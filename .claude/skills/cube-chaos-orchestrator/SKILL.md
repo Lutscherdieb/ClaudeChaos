@@ -11,6 +11,10 @@ This is the entry point for modding work in this repo. It doesn't hold DSL/prose
 
 **Never edit, move, or delete anything under `GameData/Base_Core/`, `GameData/Characters/`, `GameData/Main/`, `GameData/Extra_Mechanics/`, `GameData/Modding_Example/`, or the root `ModdingInfo.txt`/`ModdingExplanation.txt`.** Reading them (grepping for real examples, sampling sprite colors) is fine and encouraged. Writing to them is not — if a request seems to need it, **stop and explicitly warn the user** rather than doing it or quietly working around it by editing a base file "just this once."
 
+## Step 0 — confirm the game folder root
+
+This skill set and the git repo both live inside the actual Cube Chaos game install (the folder containing `GameData/`, `ModdingInfo.txt`, and `Cube Chaos.exe`), not in some separate project directory. If the current working directory doesn't look like that root (no `GameData/` folder, no `ModdingInfo.txt` alongside it), don't guess — ask the user for the game's install path via `AskUserQuestion` before doing anything else, since every path in this skill set (`GameData/<Mod>/...`, `%APPDATA%/CubeChaos/Log.txt`, etc.) is relative to it.
+
 ## Step A — new mod, or editing an existing one?
 
 Ask with `AskUserQuestion` unless it's already obvious from the request (e.g. the user names an existing mod folder or an existing perk to edit).
