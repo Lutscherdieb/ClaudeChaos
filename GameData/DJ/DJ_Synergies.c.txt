@@ -1,0 +1,127 @@
+PERK: DJ-Dwarf
+BelongsTo: CLASSSPECIES
+Ability: EveryMinute EveryCubeWhich And IsAllyToCaster Test CubeHasName Test Stone
+ CreateCubeOnPosition CopyWithAction CubeConstant Note
+  Both SetFaction FactionOfThis
+  GainAbilityText AfterThisIsCreated Both
+   EveryCubeInHandOfFactionWhich FactionOfThis And IsSmaller ManaCostOfCube Test DoubleConstant 1 IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
+    SetStorage Test If X%Chance DoubleConstant 50 TargetCube Caster GainRandomAbilityOfCube Storage
+   RemoveThisAbility
+  For each 0 mana cost cube in your hand that has an ability, 50% chance to give this one random ability of that cube End
+ PositionInDirectionFromPosition East PositionOfCube Test
+Description: Every minute each of your Stone cubes creates an allied Note to its east. For each 0 mana cost cube in your hand that has an ability, 50% chance to give the creation one random ability of that cube End
+End
+
+PERK: DJ-Plant
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim TargetCube Victim GainAbility GrowthX 1
+Description: Created allies gain 1 Growth (1 extra hp per minute) End
+End
+
+PERK: DJ-Crystal
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeDies If IsAllyToCaster Victim EveryCubeTouchingPosition PositionOfCube Victim
+ If And IsAllyToCaster Target HasNameOfCube Target Victim GainXExtraHp DoubleConstant 1
+Description: Whenever an ally dies, touching allies with the same name gain 1 extra hp End
+End
+
+PERK: DJ-Shadow
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeDies If CubeHasName Victim Solid_Shadow If X%Chance DoubleConstant 50
+ CreateCubeOnPosition CopyWithAction CubeConstant Note
+  Both SetFaction FactionOfThis
+  GainAbilityText AfterThisIsCreated Both
+   EveryCubeInHandOfFactionWhich FactionOfThis And IsSmaller ManaCostOfCube Test DoubleConstant 1
+    IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
+    SetStorage Test If X%Chance DoubleConstant 50 TargetCube Caster GainRandomAbilityOfCube Storage
+   RemoveThisAbility
+  For each 0 mana cost cube in your hand that has an ability, 50% chance to give this one random ability of that cube End
+ PositionOfCube Victim
+Description: After a Solid_Shadow dies, 50% chance to create an allied Note in its place. For each 0 mana cost cube in your hand that has an ability, 50% chance to give the creation one random ability of that cube End
+End
+
+PERK: DJ-Devourer
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsPlaced If HasAbilityWithName Victim Swarm
+ EveryCubeInHandOfFactionWhich FactionOfThis HasNameOfCube Test Victim
+  Both RemoveAbilityWithName Swarm GainAbility StrengthX 1
+Description: When an ally with Swarm is placed, cubes in your hand with the same name lose Swarm and gain 1 Strength End
+End
+
+PERK: DJ-Remnant
+BelongsTo: CLASSSPECIES
+Ability: EveryMinute Both SetVariable DJRMAX MaxHpOfCube ARandomCubeWhich And IsAllyToCaster Test Not IsALeader Test
+ Both EveryCubeWhich And IsAllyToCaster Test Not IsALeader Test
+  If IsLarger MaxHpOfCube Target GetVariableOnCube DJRMAX Caster
+   SetStorage Target TargetCube Caster SetVariable DJRMAX MaxHpOfCube Storage
+ Both ChangeMaxManaOfFaction GetVariableOnCube DJRMAX Caster FactionOfThis
+ GenerateXMana GetVariableOnCube DJRMAX Caster
+Description: Every minute gain mana and max mana equal to the highest max hp among non-leader allies End
+End
+
+PERK: DJ-Undead
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If HasAbilityWithName Victim Undead
+ TargetCube Victim GainRandomAbilityOfCube ARandomCubeInLibraryWhich IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
+Description: After an Undead ally is created it gains a random ability of a random cube in the game End
+End
+
+COMPOUND: ABILITY
+Moil_Rhythm
+Nothing
+Text: \C255 238 0 Moil Rhythm \CN End
+NO_DUPLICATES
+NORANDOM
+CubeColourShift: 0.9 0 0 0
+End
+
+PERK: DJ-Moil
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Note
+ If X%Chance DoubleConstant 20
+  TargetCube Victim Both
+   GainAbility Moil_Rhythm
+   GainAllAbilitiesOfPerk ARandomPerkInLibraryWhich And Not PerkIsType Test CLASS
+   And Not PerkIsType Test SPECIES Not PerkIsType Test CLASSSPECIES
+Description: After a Note is created, 20% chance it gains all abilities of a random applicable perk in the game End
+End
+
+PERK: DJ-Chaos
+BelongsTo: CLASSSPECIES
+Ability: EveryMinute EveryCubeWhich And IsAllyToCaster Test Not IsALeader Test
+ GainRandomAbilityOfCube ARandomCubeInLibraryWhich IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
+Description: Every minute each non-leader ally gains a random ability of a random cube in the game (a different one for each) End
+End
+
+COMPOUND: ABILITY
+Fungus_Rhythm
+Nothing
+Text: \C255 238 0 Fungus Rhythm \CN End
+NO_DUPLICATES
+NORANDOM
+CubeColourShift: 0.5 255 238 0
+End
+
+PERK: DJ-Fungus
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Mycelium
+ EveryCubeInHandOfFactionWhich FactionOfThis And IsSmaller ManaCostOfCube Test DoubleConstant 1
+  IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
+  SetStorage Test If X%Chance DoubleConstant 20 TargetCube Victim Both GainAbility Fungus_Rhythm GainRandomAbilityOfCube Storage
+Description: Whenever an ally Mycelium is created, for each 0 mana cost cube in your hand that has an ability, 20% chance to give it one random ability of that cube End
+End
+
+PERK: DJ-Elemental
+BelongsTo: CLASSSPECIES
+Ability: AtTheStartOfTheBattle SetStorage ARandomCubeWhich IsNeutral Test
+ EveryCubeInHandOfFactionWhich FactionOfThis True GainAllAbilitiesOfCube Storage
+Description: At the start of the battle every cube in your hand gains all abilities of a random neutral cube on the battlefield End
+End
+
+PERK: DJ-No_Species
+BelongsTo: CLASSSPECIES
+Ability: Every30Seconds SetStorage ARandomCubeInHandOfFactionWhich FactionOfThis And IsSmaller ManaCostOfCube Test DoubleConstant 1
+  IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
+ If CubeExists Storage GainRandomAbilityOfCube Storage
+Description: Every 30 seconds, your starting leader gains a random ability of a random 0 mana cost cube from your hand End
+End

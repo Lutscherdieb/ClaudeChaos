@@ -1,0 +1,39 @@
+CUBE: Microphone 15 0 0
+IDENT 1 0 0 15 10
+TYPE Modifier
+TYPE Starter
+Ability: AfterThisIsCreated AddCubeToHandOfThis CubeConstant Record
+Text: After this is created add a Record to your hand End
+Ability: BeforeACubeIsAddedToYourHand If CubeHasName Victim Record
+ EveryCubeTouchingPosition PositionOfThis If Not IsALeader Target
+  SetStorage Target TargetCube Victim GainAllAbilitiesOfCube Storage
+Text: Records added to your hand gain all abilities of non-leader cubes touching this Microphone End
+Visual: Target 1 0 109 209 228
+Visual: Target -1 0 109 209 228
+Visual: Target 0 1 109 209 228
+Visual: Target 0 -1 109 209 228
+AiPlacementRule: And AiStacking AiBackline
+End
+
+CUBE: Speaker 50 15 15
+IDENT 3 10 0 30 40
+TYPE Factory
+TYPE Starter
+Ability: Every10Seconds CreateCubeOnPosition CopyWithAction CubeConstant Note Both GainAbility Flying PlaySound Coin PositionInDirectionFromThis East
+Text: Every 10 seconds creates a flying Note to the east End
+Ability: AfterThisCreates EveryCubeInHandOfFactionWhich FactionOfThis And IsSmaller ManaCostOfCube Test DoubleConstant 1
+ IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
+ SetStorage Test If X%Chance DoubleConstant 50 TargetCube Victim GainRandomAbilityOfCube Storage
+Text: For each 0 mana cost cube in your hand that has an ability, 50% chance to give the creation one random ability of that cube End
+Ability: Unique
+Visual: Square 1 0 96 96 96
+AiPlacementRule: And And AiStacking AiBackline AiEmptyInfront
+End
+
+CUBE: Record 0 0 0
+TOKEN
+End
+
+CUBE: Note 0 0 0
+TOKEN
+End

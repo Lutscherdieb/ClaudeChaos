@@ -1,0 +1,111 @@
+PERK: DJ
+BelongsTo: CLASS
+LevelRequirement: 1
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller HpOfCube Victim DoubleConstant 1
+ TargetCube Victim Both SetHp DoubleConstant 1 Both GainAbility ChargeEveryX 120 GainAbility EveryXMeleeY 120 1
+Description: Whenever an allied cube would be created with 0 hp or less, it is instead created with 1 hp, and every 2 seconds moves forward and deals 1 melee damage to touching enemies End
+ObtainAction: AddCubeToInventory CubeConstant Microphone
+ObtainAction: AddCubeToInventory CubeConstant Speaker
+End
+
+PERK: Echo
+BelongsTo: DJ
+Ability: AfterACubeDies If And IsAllyToCaster Victim Not CubeHasName Victim Note If X%Chance DoubleConstant 10
+ CreateCubeOnPosition CopyWithAction CubeConstant Note
+  Both SetFaction FactionOfThis
+  GainAbilityText AfterThisIsCreated Both
+   XTimes AmountOfPerksInInventoryWhich IsSameString NameOfPerk Test StringConstant Echo
+    EveryCubeInHandOfFactionWhich FactionOfThis And IsSmaller ManaCostOfCube Test DoubleConstant 1
+     IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
+     SetStorage Test If X%Chance DoubleConstant 50 TargetCube Caster GainRandomAbilityOfCube Storage
+   RemoveThisAbility
+  For each 0 mana cost cube in your hand that has an ability, 50% chance to give this one random ability of that cube. Additional copies of this perk repeat this scan End
+ PositionOfCube Victim
+Description: After a non-Note ally dies, 10% chance you create a Note in its place. For each 0 mana cost cube in your hand that has an ability, 50% chance to give the creation one random ability of that cube. Additional copies of this perk repeat this scan End
+End
+
+PERK: Symphony
+BelongsTo: DJ
+Ability: AfterACubeCollides If IsAllyToCaster Victim If IsAllyToCaster Storage If And IsSmaller ManaCostOfCube Victim DoubleConstant 1 IsSmaller ManaCostOfCube Storage DoubleConstant 1
+ Both TargetCube Victim Exile
+  TargetCube Storage Both Exile CreateCubeOnPosition CombinationOf2Cubes Victim Storage PositionOfCube Storage
+Description: Whenever an allied 0 mana cost cube moves into another allied 0 mana cost cube, exile both and create a combination of them in place of the second cube End
+End
+
+PERK: Inspiration
+BelongsTo: DJ
+Ability: AtTheStartOfTheBattle Both TargetCube TheFirstCubeInHandOfFactionWhich FactionOfThis Not HasLimitedUses Test
+ Both Exile XTimes DoubleConstant 3 AddCubeToHandOfFaction CopyWithAction Target NoManaCost FactionOfThis
+RemoveThisAbility
+Description: At the start of the battle, exile the first cube with infinite uses from your hand and add three 0 mana cost copies of it to your hand End
+End
+
+PERK: Added_Variance
+BelongsTo: DJ
+Ability: BeforeACubeIsAddedToYourHand TargetCube Victim
+ Both SetVariable OVAR AmountOfAbilitiesOfCube Target
+  Both SetVariable IDX AmountOfAbilitiesOfCube Target
+   Both Until IsSmaller GetVariableOnCube IDX Target DoubleConstant 1
+    Both
+     If IsLarger AmountOfAbilitiesOfCubeWhich Target IsSameAbility Test NthAbilityOfCubeWhich GetVariableOnCube IDX Target Target True DoubleConstant 1
+      RemoveAbility NthAbilityOfCubeWhich GetVariableOnCube IDX Target Target True
+     ChangeVariable IDX DoubleConstant -1
+    Nothing
+   XTimes Subtraction GetVariableOnCube OVAR Target AmountOfAbilitiesOfCube Target GainRandomAbilityOfCube ARandomCubeInLibraryWhich IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
+Description: Before a cube is added to your hand, remove all but one copy of each of its abilities, then add a random ability of a random cube in game to it for each ability removed this way. Additional copies of this perk repeat this End
+End
+
+PERK: Added_Focus
+BelongsTo: DJ
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim TargetCube Victim
+ Both SetVariable OVAR AmountOfAbilitiesOfCube Target
+  Both SetVariable IDX AmountOfAbilitiesOfCube Target
+   Both Until IsSmaller GetVariableOnCube IDX Target DoubleConstant 2
+    Both
+     RemoveAbility NthAbilityOfCubeWhich GetVariableOnCube IDX Target Target True
+     ChangeVariable IDX DoubleConstant -1
+    Nothing
+   If IsLarger GetVariableOnCube OVAR Target DoubleConstant 0
+    XTimes Subtraction GetVariableOnCube OVAR Target DoubleConstant 1 GainAbility FirstAbilityOfCubeWhich Target True
+Description: After an ally is created, remove all but one ability, then add a copy of that ability to it for each ability removed this way. Additional copies of this perk repeat this End
+End
+
+PERK: Bass_Drop
+BelongsTo: DJ
+Ability: EveryMinute EveryCubeWhich And IsAllyToCaster Test IsSmaller ManaCostOfCube Test DoubleConstant 1
+ GainAbility StrengthX 1
+Description: Every minute every allied 0 mana cost cube gains 1 strength End
+End
+
+PERK: Sampling
+BelongsTo: DJ
+Ability: BeforeACubeIsAddedToYourHand If IsSmaller ManaCostOfCube Victim DoubleConstant 1
+ CreateCubeOnPosition Victim ARandomLeftPosition
+Description: Before a 0 mana cost cube is added to your hand, create a copy of it in a random left_side_position End
+End
+
+PERK: Super_Sampling
+Ability: BeforeACubeIsAddedToYourHand CreateCubeOnPosition Victim ARandomLeftPosition
+Description: Before a cube is added to your hand, create a copy of it in a random left_side_position End
+IsUpgradeFrom: Sampling 100
+End
+
+PERK: Feedback
+BelongsTo: DJ
+Ability: BeforeACubeGainsAnAbility If And IsAllyToCaster Victim IsAllyToCaster Culprit
+ If Not IsSameCube Culprit Victim If X%Chance DoubleConstant 20
+ TargetCube Victim Silent GainAffectedAbility
+Description: Before an ally gains an ability from another ally, 20% chance it silently gains another copy End
+End
+
+PERK: Final_Countdown
+BelongsTo: DJ
+Ability: Every30Seconds TargetCube ARandomNotLeaderEnemy SetHp DoubleConstant 1
+Description: Every 30 seconds set a random non leader enemies hp to 1 End
+End
+
+PERK: Grand_Finale
+Ability: Every30Seconds XTimes DoubleConstant 2 TargetCube ARandomNotLeaderEnemy SetHp DoubleConstant 1
+Description: Every 30 seconds set two random non leader enemies hp to 1 End
+IsUpgradeFrom: Final_Countdown 60
+End

@@ -1,0 +1,7 @@
+PERK: Mixtape
+BelongsTo: Consumable
+ClickAction: If BattleOngoing Both LoseThisPerk EveryCubeInHandOfFactionWhich DoubleConstant 1 True
+ GainRandomAbilityOfCube ARandomCubeInLibraryWhich Not IsToken Test
+Description: Consumable: Add a random ability of a random cube in the game to each cube in your hand (not the same one for each) (Only works in battles) End
+Value: 20
+End

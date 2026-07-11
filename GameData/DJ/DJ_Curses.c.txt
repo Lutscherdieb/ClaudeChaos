@@ -1,0 +1,15 @@
+PERK: Curse_Of_Atrophy
+WorldAbility: AfterACubeIsCreated If IsAlly Victim If IsLarger AmountOfAbilitiesOfCube Victim DoubleConstant 0
+ TargetCube Victim RemoveRandomAbility
+Description: After an ally is created, remove one of its abilities at random End
+Value: -200
+BalanceCap: 10
+End
+
+PERK: Wobbly_Knee
+WorldAbility: AfterACubeIsCreated If IsAlly Victim If IsPlaced If IsLarger AmountOfAbilitiesOfCube Victim DoubleConstant 0
+ TargetCube Victim RemoveRandomAbility
+Description: After an ally is placed, remove one of its abilities at random End
+Value: -100
+BalanceCap: 10
+End
