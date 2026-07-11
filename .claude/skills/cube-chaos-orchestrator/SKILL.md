@@ -47,6 +47,8 @@ If they picked "perk-like thing" and it's still unclear which exact category, as
 
 Every path ends the same way: **`cube-chaos-mod-setup`'s launch-and-check-`Log.txt` loop, at least once since the last edit, before anything is reported as done.** A change that "should work" but hasn't been launched and checked is not done.
 
+**After that passes, regenerate the mod's own README preview.** Every mod folder keeps a `GameData/<Mod>/README.md` with a card-style preview of its content (see `cube-chaos-sprite-art`'s "Rendering README preview cards..." section) — re-run `python3 .claude/skills/cube-chaos-sprite-art/scripts/render_preview_cards.py` (from the repo root) whenever content or sprites changed this session, so the preview images under `GameData/<Mod>/Preview/` never drift from what's actually in the mod. Skip this only if the session made no content/sprite changes at all (e.g. a pure DSL refactor with no visible/textual change).
+
 ## Notes for extending this orchestrator
 
 - If a genuinely new content type shows up that doesn't fit the dispatch table (the game adds something new, or this mod needs a mechanic none of the existing categories cover), don't force it into an existing workflow file — add a new one and a new dispatch-table row, the same way `cube-chaos-sprite-art`'s border-pattern-library table is meant to grow as new categories get confirmed.

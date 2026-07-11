@@ -1,7 +1,8 @@
 # This repo tracks only a few things out of the whole Cube Chaos install:
 #   - .claude/        the Claude Code skills used to build mods
-#   - GameData/DJ/    the DJ mod we've built (our own content)
-#   - README.md, preview/   repo docs and the upscaled sprite previews it embeds
+#   - GameData/DJ/    the DJ mod we've built (our own content, including its
+#                     own README.md and Preview/ sprite-preview images)
+#   - README.md       repo-level docs
 # Everything else (game binaries, base-game GameData folders, and any other
 # mod folders that come and go as you subscribe/unsubscribe on the Workshop)
 # is deliberately left untracked.
@@ -12,7 +13,6 @@
 !/.gitignore
 !/CLAUDE.md
 !/README.md
-!/preview/
 !/.claude/
 !/GameData/
 
@@ -29,3 +29,7 @@
 .DS_Store
 Thumbs.db
 *.swp
+
+# Python bytecode cache from running .claude/ scripts (e.g. render_preview_cards.py)
+__pycache__/
+*.pyc

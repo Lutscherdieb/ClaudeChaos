@@ -27,6 +27,13 @@ To create a new mod:
 3. Add one or more `.c.txt` files containing your `CUBE:`/`PERK:` definitions (see `cube-chaos-scripting`).
 4. Add a `Sprites/` subfolder with `.c.png` files matching each `.c.txt` file's basename (see `cube-chaos-sprite-art`).
 5. **Append your folder name as a new line at the end of `GameData/Loading_Order.txt`.** Without this step nothing you wrote will ever load, no matter how correct it is.
+6. Give the mod its own `GameData/<YourModName>/README.md` (see below) — every mod folder in this repo keeps one, not just a shared repo-root README.
+
+## Each mod keeps its own `README.md` and `Preview/` folder
+
+Every mod folder (e.g. `GameData/DJ/`) has its own `README.md` — a short description plus a `## Preview` section showing every cube/perk/curse/etc. rendered as a game-accurate tooltip card, not a shared write-up bolted onto the repo-root README. Keeping each mod's documentation and preview images inside its own folder means the mod folder stays self-contained (this repo may eventually split one mod per repo — a mod whose docs/images already live inside its own folder needs no rework to become its own repo).
+
+The preview images live in `GameData/<Mod>/Preview/` and are generated (never hand-drawn) by `cube-chaos-sprite-art`'s `scripts/render_preview_cards.py` — see that skill's "Rendering README preview cards..." section for what the script does and the reverse-engineered facts (font, border-cropping rules, keyword coloring) it encodes. Re-run it (`python3 .claude/skills/cube-chaos-sprite-art/scripts/render_preview_cards.py` from the repo root) whenever this mod's content or sprites change, so `Preview/` never drifts from what the `.c.txt`/`.c.png` files actually contain. The script defaults to the DJ mod; point its `MOD_DIR`/`OUT_DIR`/`MOD_PREFIX` constants at a different mod folder to reuse it there.
 
 ## Filename collisions (a silent, hard-to-diagnose bug)
 

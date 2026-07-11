@@ -15,7 +15,8 @@ Don't ask about anything else at this stage: no starting cubes, no classes/speci
 3. Invoke `cube-chaos-mod-setup` for the actual mechanics (folder creation, `Description` file format, appending to `Loading_Order.txt`) — that skill is the source of truth for the exact file format and the filename-collision pitfall to check before naming anything. Don't re-derive or duplicate those steps here.
 4. Create **only**: the mod folder itself and its `Description` file. No `Sprites/` folder, no `.c.txt` files yet — those get created lazily by whatever content workflow runs next, sized correctly for what's actually in them at that point rather than guessed upfront.
 5. Confirm the mod is wired in: `GameData/Loading_Order.txt` has the new folder name appended as its own line.
-6. Launch the game once and check `Log.txt` (`%APPDATA%/CubeChaos/Log.txt`) for `WARNING`/`ERROR` lines — an empty mod should load with zero new warnings; if it doesn't, something in the scaffold is wrong before any real content even exists.
+6. Create a minimal `GameData/<Mod>/README.md` skeleton: mod name, a one-line placeholder description (to be filled in once real content exists), and an empty `## Preview` heading. Don't try to generate preview images yet — there's no content or sprites to render (see `cube-chaos-sprite-art`'s preview-card script, which gets its first real run once the first content workflow adds a cube/perk). Also add a link to it from the repo root `README.md`'s mod list, matching how the DJ mod is linked there.
+7. Launch the game once and check `Log.txt` (`%APPDATA%/CubeChaos/Log.txt`) for `WARNING`/`ERROR` lines — an empty mod should load with zero new warnings; if it doesn't, something in the scaffold is wrong before any real content even exists.
 
 ## After this
 

@@ -387,3 +387,13 @@ When fixing/updating one icon in a sheet that already has other finished (or in-
 5. Composite all tiles into one square sheet sized `tile_size * ceil(sqrt(n))`.
 6. Only for CLASSSPECIES sheets: overlay the fancy border mask as the final step.
 7. **Always verify by actually launching the game** and checking `%APPDATA%/CubeChaos/Log.txt` plus the process's stdout for `WARNING`/`ERROR`/`CANT READ` lines — sprite-sizing and DSL mistakes are frequently silent otherwise (no crash, just visually wrong or a logged warning).
+
+## Rendering README preview cards styled like the game's own tooltips
+
+`scripts/render_preview_cards.py` (in this skill's folder) renders a mod's `CUBE:`/`PERK:` content as PNG "cards" matching the game's actual in-game tooltip look (name, rule text, `VALUE:` line, and the real sprite icon with its category border) — used for this repo's own `README.md` previews under `preview/`. Re-run it (`python3 .claude/skills/cube-chaos-sprite-art/scripts/render_preview_cards.py`) whenever DJ mod content or sprites change and the README images need to stay in sync; edit its `MOD_DIR`/`OUT_DIR`/`MOD_PREFIX` constants to point at a different mod folder.
+
+Key facts baked into that script, established by reverse-engineering the game's own compiled UI code and byte-diffing real sprite files (not guessed) — reuse these rather than re-deriving them:
+- **Font**: `GeneralData/dogicapixel.ttf` is the confirmed real UI font (hardcoded by name in the game's compiled `TextPrinter` class), not a lookalike guess.
+- **The outer 1px magenta `(255,0,220)` guide ring is invisible in-game and must be cropped off** before upscaling a PERK icon for a card — but only for style-1/style-2 bordered tiles (plain class border, clean-3-ring categories like Curses/Consumables). Do NOT strip it from CLASSSPECIES synergy tiles (their style-4 fancy frame genuinely renders that outer ring) or CUBE icons (no guide ring exists there at all — cubes have no border convention, see above).
+- **The engine auto-colors the literal word "mana" blue** in tooltip text (confirmed via a `Player.ManaColour` reference in the compiled UI code) — the only keyword-coloring rule confirmed from data; everything else in `Description:`/`Text:` renders plain white.
+- **An `IsUpgradeFrom:` perk reuses its base perk's icon slot** (it has no sprite of its own — see the "upgrade perk needs no unique sprite" note above) — look up the base perk's icon index by name rather than the upgrade's own (blank) slot index.
