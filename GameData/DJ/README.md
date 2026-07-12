@@ -1,6 +1,6 @@
 # DJ — a Cube Chaos Class mod
 
-A full Class built with the skills in this repo's `.claude/` folder: a Microphone/Speaker/Record/Note cube family, a stacking Echo/Symphony perk line, curses, a consumable, and a synergy portrait for every base-game species.
+A full Class built with the skills in this repo's `.claude/` folder: a cube family, a stacking perk line, curses, a consumable, and a synergy portrait for every base-game species.
 
 ## Preview — DJ mod content
 
@@ -29,9 +29,8 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 ## Installing this mod (to play it)
 
 1. Find your Cube Chaos install folder (Steam → right-click Cube Chaos → Manage → Browse local files). It's the folder containing `Cube Chaos.exe` and a `GameData/` subfolder.
-2. Copy this folder (`GameData/DJ/`) into `<your install>/GameData/DJ/`.
-3. Launch the game — Cube Chaos scans `GameData/` for mod folders on startup, so no separate "enable" step is needed.
-4. If something doesn't show up, check `%APPDATA%/CubeChaos/Log.txt` for parse errors.
+2. Copy this folder (`GameData/DJ/`) into `<your Cube Chaos install>/GameData/DJ/`.
+3. Launch the game and enable the Mod.
 
 ---
 
