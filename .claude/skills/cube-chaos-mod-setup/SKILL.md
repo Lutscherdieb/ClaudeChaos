@@ -13,6 +13,8 @@ For the DSL used inside the `.c.txt` files themselves (CUBE:/PERK:/Ability: synt
 
 Every top-level folder under `GameData/` is a "package" (Base_Core, Extra_Mechanics, Characters, Main are the base game's own packages). `GameData/Loading_Order.txt` lists which package folders actually get loaded, **in order, one per line**. A folder that exists but isn't listed is completely inert — e.g. `GameData/Modding_Example/` ships with the game but is deliberately absent from `Loading_Order.txt`, so editing it has zero effect. This is a common trap: don't assume a folder is "the mod" just because it looks mod-shaped: check `Loading_Order.txt`.
 
+**`Loading_Order.txt` inclusion is necessary but not sufficient — the game also has its own in-game Mods screen (from the main menu) where each listed mod must be toggled on.** Confirmed directly by the user (not discoverable from data files — it's compiled UI, not GameData config): a mod can be correctly scaffolded and present in `Loading_Order.txt` and still not actually be active in a run until it's also enabled from that screen. When writing install instructions or when a test-launch doesn't show expected content, check both — don't assume `Loading_Order.txt` alone is the whole activation story.
+
 To create a new mod:
 
 1. Make a new folder: `GameData/<YourModName>/`.
@@ -26,7 +28,7 @@ To create a new mod:
    ```
 3. Add one or more `.c.txt` files containing your `CUBE:`/`PERK:` definitions (see `cube-chaos-scripting`).
 4. Add a `Sprites/` subfolder with `.c.png` files matching each `.c.txt` file's basename (see `cube-chaos-sprite-art`).
-5. **Append your folder name as a new line at the end of `GameData/Loading_Order.txt`.** Without this step nothing you wrote will ever load, no matter how correct it is.
+5. **Append your folder name as a new line at the end of `GameData/Loading_Order.txt`.** Without this step nothing you wrote will ever load, no matter how correct it is. It's still not *active* until also toggled on in the in-game Mods screen (main menu) — see above.
 6. Give the mod its own `GameData/<YourModName>/README.md` (see below) — every mod folder in this repo keeps one, not just a shared repo-root README.
 
 ## Each mod keeps its own `README.md` and `Preview/` folder
@@ -55,6 +57,8 @@ There is no hot-reload: the game parses all `GameData` content fresh at startup.
 2. Launch the game (`Cube Chaos.exe`), wait several seconds for full boot (loading + sprite-cutting takes a couple seconds, but give it ~10-15s margin before checking).
 3. Check `%APPDATA%/CubeChaos/Log.txt` (Windows: `C:\Users\<user>\AppData\Roaming\CubeChaos\Log.txt`) for `WARNING`/`ERROR` lines, and check `CrashLog.txt`'s modification time to confirm no new crash occurred. Also check the launched process's own stdout if you redirected it to a file — some errors print there but not to Log.txt.
 4. Close the game process again before making further edits (same command as step 1).
+
+A clean `Log.txt` confirms the mod's files *parsed* correctly — parsing happens at boot for everything listed in `Loading_Order.txt` regardless of the in-game Mods-screen toggle above. It does NOT confirm the mod is actually enabled for play; that's a separate, human/UI-only check (there's no known way to verify or flip that toggle from the log or any GameData file), so don't tell a user "it's confirmed working" based on the log alone if what they actually asked about was whether they'd see it in a real run.
 
 ### Warnings you will see that are expected/harmless (not bugs)
 
