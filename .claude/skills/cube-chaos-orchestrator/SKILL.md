@@ -1,11 +1,11 @@
 ---
 name: cube-chaos-orchestrator
-description: Entry point for any Cube Chaos modding session - use whenever the user wants to create or edit a mod, or asks for a new/changed Class, Species, Perk, Cube, Curse, Blight, Boon, Nightmare, Terrain perk, Consumable, Golden perk, Neutral perk, CubeUpgrade, or Class+Species synergy. Routes to the right workflow file under workflows/ and sequences the domain skills (cube-chaos-scripting, cube-chaos-rule-text, cube-chaos-sprite-art, cube-chaos-mod-setup) so nothing is created half-finished. Trigger on "create a mod", "edit a mod", "new cube", "new perk", "new class", "new species", "new curse", "new synergy", or generally "let's work on the Cube Chaos mod".
+description: Entry point for any Cube Chaos modding session - use whenever the user wants to create or edit a mod, or asks for a new/changed Class, Species, Perk, Cube, Curse, Blight, Boon, Nightmare, Terrain perk, Consumable, Golden perk, Neutral perk, CubeUpgrade, or Class+Species synergy. Routes to the right workflow file under workflows/ and sequences the domain skills (cube-chaos-scripting, cube-chaos-rule-text, cube-chaos-sprite-art, cube-chaos-balancing, cube-chaos-mod-setup) so nothing is created half-finished. Trigger on "create a mod", "edit a mod", "new cube", "new perk", "new class", "new species", "new curse", "new synergy", or generally "let's work on the Cube Chaos mod".
 ---
 
 # Cube Chaos mod orchestrator
 
-This is the entry point for modding work in this repo. It doesn't hold DSL/prose/sprite knowledge itself — that lives in the four domain skills — it holds the *process*: what order things happen in, what's mandatory before something counts as "done," and which workflow file to read for a given content type.
+This is the entry point for modding work in this repo. It doesn't hold DSL/prose/sprite/balancing knowledge itself — that lives in the domain skills — it holds the *process*: what order things happen in, what's mandatory before something counts as "done," and which workflow file to read for a given content type.
 
 ## The one hard rule (full version in `CLAUDE.md`)
 
@@ -40,14 +40,18 @@ If they picked "perk-like thing" and it's still unclear which exact category, as
 | User wants... | Workflow file | Domain skills it will invoke, roughly in order |
 |---|---|---|
 | A new mod | `workflows/new-mod.md` | `cube-chaos-mod-setup` |
-| A `CUBE:` (new or edited) | `workflows/content-cube.md` | `cube-chaos-scripting` → `cube-chaos-rule-text` → `cube-chaos-sprite-art` |
-| A reward perk, Curse, Blight, Boon, Nightmare, Terrain perk, Consumable, Golden perk, Neutral perk, or CubeUpgrade | `workflows/content-perk-family.md` | `cube-chaos-scripting` → `cube-chaos-rule-text` → `cube-chaos-sprite-art` |
+| A `CUBE:` (new or edited) | `workflows/content-cube.md` | `cube-chaos-balancing` (mana/hp/IDENT stats, `IDENT` cubes only) → `cube-chaos-scripting` → `cube-chaos-rule-text` → `cube-chaos-sprite-art` |
+| A reward perk, Curse, Blight, Boon, Nightmare, Terrain perk, Consumable, Golden perk, Neutral perk, or CubeUpgrade | `workflows/content-perk-family.md` | `cube-chaos-balancing` (`Value:`/`BalanceCap:`, categories that carry one) → `cube-chaos-scripting` → `cube-chaos-rule-text` → `cube-chaos-sprite-art` |
 | A Class or Species base perk, or a Class+Species synergy | `workflows/content-class-species.md` | `cube-chaos-scripting` → `cube-chaos-rule-text` → `cube-chaos-sprite-art` |
 | *Editing* something that already exists (any type above) | Same workflow file as the content type, but read `workflows/editing-checklist.md` first — it has rules that only apply to edits, not fresh creation | Same as above |
 
 Every path ends the same way: **`cube-chaos-mod-setup`'s launch-and-check-`Log.txt` loop, at least once since the last edit, before anything is reported as done.** A change that "should work" but hasn't been launched and checked is not done.
 
-**After that passes, regenerate the mod's own README preview.** Every mod folder keeps a `GameData/<Mod>/README.md` with a card-style preview of its content (see `cube-chaos-sprite-art`'s "Rendering README preview cards..." section) — re-run `python3 .claude/skills/cube-chaos-sprite-art/scripts/render_preview_cards.py` (from the repo root) whenever content or sprites changed this session, so the preview images under `GameData/<Mod>/Preview/` never drift from what's actually in the mod. Skip this only if the session made no content/sprite changes at all (e.g. a pure DSL refactor with no visible/textual change).
+**Exception: a pure sprite-pixel edit or a pure `Text:`/`Description:` wording edit needs no test-launch.** If the session's only changes are (a) repainting pixels inside an already-correctly-sized/sliced sheet (no resize, no new/removed tile, no slot-count change) and/or (b) rewording the *content* of an existing `Text:`/`Description:` field while leaving its structure intact (same field keyword, same trailing `End`, no argument/token change) — there is no DSL parse path or mechanical logic for either edit to break. The launch loop exists to catch parse errors and silent logic bugs in `Ability:`/`WorldAbility:` chains and sheet-slot mismatches; neither of those exists for a content-only pixel or wording change. Still launch-and-check whenever the same edit touches sheet dimensions/slot count, or any `Ability:`/trigger-chain/argument-count territory, even if it also happens to touch a sprite or some text.
+
+**After that passes, check whether this mod already has a `GameData/<Mod>/README.md`.** If it does, regenerate its preview cards: re-run `python3 .claude/skills/cube-chaos-sprite-art/scripts/render_preview_cards.py` (from the repo root) whenever content or sprites changed this session, so `GameData/<Mod>/Preview/` never drifts from what's actually in the mod. Skip this only if the session made no content/sprite changes at all (e.g. a pure DSL refactor with no visible/textual change).
+
+**If the mod does NOT yet have a `README.md`, don't create one as part of finishing this change.** Per `cube-chaos-mod-setup`'s README governance section: a README is created late and only on explicit request or your own judgment call that a session's work has landed at a genuinely feature-complete point — and even then, ask the user first rather than creating it silently. Don't let "every path ends with a README regen" become "every path ends with a README" — those are different rules for different situations (an existing README must stay in sync; a nonexistent one is not owed to every change).
 
 ## Notes for extending this orchestrator
 

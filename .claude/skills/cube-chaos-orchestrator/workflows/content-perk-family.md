@@ -29,11 +29,13 @@ Covers reward perks, Curses, Blights, Boons, Nightmares, Terrain perks, Consumab
 
 **`ClickAction:` is the trigger keyword for Consumables** (confirmed via `Main/Consumables.c.txt`), typically wrapped as `ClickAction: If BattleOngoing Both LoseThisPerk <effect>` (or `If Not BattleOngoing` for consumables that only work outside battle) — `LoseThisPerk` consumes the item on use. To target "your hand" vs "the enemy's hand" inside a consumable's effect, `EveryCubeInHandOfFactionWhich DoubleConstant 1 True <action>` is your own hand and `DoubleConstant 2` is the enemy's (confirmed via `Bottled_Architect` and `Signal_Jammer`).
 
+**A fresh `IsUpgradeFrom:` upgrade perk goes in its own `<ModPrefix>_UpgradePerks.c.txt`, never appended into the same file as the perk it upgrades.** This matches the base game's own convention (upgrades always live in a separate, sprite-less file — see `cube-chaos-sprite-art`'s upgrade-perk section) and avoids ever having to reason about blank sprite-sheet slots for the regular perks file at all. If the perk being upgraded still lives in the mixed-file style from before this convention was adopted, that's a sign to split it out now rather than adding one more upgrade to the pile.
+
 ## Sequence
 
-1. **`cube-chaos-scripting`** — the `PERK:` block, trigger chain, and its paired `Description:`.
+1. **`cube-chaos-scripting`** — the `PERK:` block, trigger chain, and its paired `Description:`. If this is an `IsUpgradeFrom:` upgrade, write it directly into `<ModPrefix>_UpgradePerks.c.txt`, not the regular perks file.
 2. **`cube-chaos-rule-text`** — review the `Description:` wording against the chain, including the "only add the stacking-clarification sentence when the re-trigger mechanism is genuinely non-obvious" rule (not for every stacking perk by default).
-3. **`cube-chaos-sprite-art`** — pick the border style + color from the table above (or the confirmed-precedent table in that skill directly, which is authoritative if this file and it ever disagree), generate it from scratch via the border-pattern-library recipes, then draw the interior art. Figure out the correct grid slot and whether the sheet needs resizing.
+3. **`cube-chaos-sprite-art`** — skip entirely for an `IsUpgradeFrom:` upgrade (it has no sprite of its own and its file has no matching sheet at all). For a fresh non-upgrade perk: pick the border style + color from the table above (or the confirmed-precedent table in that skill directly, which is authoritative if this file and it ever disagree), generate it from scratch via the border-pattern-library recipes, then draw the interior art. Figure out the correct grid slot and whether the sheet needs resizing.
 4. **Test-launch** — `cube-chaos-mod-setup`'s loop.
 
 ## If this is an edit, not a fresh perk

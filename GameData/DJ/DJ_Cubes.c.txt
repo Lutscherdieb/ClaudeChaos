@@ -19,8 +19,8 @@ CUBE: Speaker 50 15 15
 IDENT 3 10 0 30 40
 TYPE Factory
 TYPE Starter
-Ability: Every10Seconds CreateCubeOnPosition CopyWithAction CubeConstant Note Both GainAbility Flying PlaySound Coin PositionInDirectionFromThis East
-Text: Every 10 seconds creates a flying Note to the east End
+Ability: Every10Seconds CreateCubeOnPosition CopyWithAction CubeConstant Note Both GainAbility Flying PlaySound Coin PositionInDirectionFromThis Forwards
+Text: Every 10 seconds creates a flying Note in front of this End
 Ability: AfterThisCreates EveryCubeInHandOfFactionWhich FactionOfThis And IsSmaller ManaCostOfCube Test DoubleConstant 1
  IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
  SetStorage Test If X%Chance DoubleConstant 50 TargetCube Victim GainRandomAbilityOfCube Storage

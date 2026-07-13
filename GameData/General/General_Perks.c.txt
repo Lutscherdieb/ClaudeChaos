@@ -1,0 +1,53 @@
+PERK: General
+BelongsTo: CLASS
+LevelRequirement: 1
+Description: Whenever an ally is created or before it dies while in enemy territory, it gains 1 Strength End
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+ TargetCube Victim GainAbility StrengthX 1
+AbilityText: Whenever an ally is created in enemy territory, it gains 1 Strength End
+Ability: BeforeACubeDies If IsAllyToCaster Victim If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+ TargetCube Victim GainAbility StrengthX 1
+AbilityText: Before an ally dies in enemy territory, it gains 1 Strength End
+ObtainAction: AddCubeToInventory CubeConstant Bomber
+ObtainAction: AddCubeToInventory CubeConstant Bunker
+ObtainAction: AddCubeToInventory CubeConstant Drop_Helicopter
+End
+
+PERK: Arms_Race
+BelongsTo: General
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Shot
+ Both TargetCube Victim Exile
+  CreateCubeOnPosition CubeConstant Shell PositionOfCube Victim
+Description: Created Shots are created as Shells instead End
+End
+
+PERK: Air_Superiority
+BelongsTo: General
+Ability: EveryXSeconds DoubleConstant 20 TargetCube ARandomCubeWhich And IsAllyToCaster Test HasAbilityWithName Test Flying
+ GainAbility DoubleTimeX 10
+Description: Every 20 seconds, give a random friendly unit with Flying Double Time for 10 seconds End
+End
+
+PERK: Dig_In
+BelongsTo: General
+Ability: BeforeACubeTakesDamage If IsAllyToCaster Victim If Not IsALeader Victim If IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+ NegateX DoubleConstant 1
+Description: Before a non leader ally takes damage while in friendly territory, reduce that damage by 1 End
+End
+
+PERK: Revenge
+BelongsTo: General
+Ability: AfterACubeDies If And IsAllyToCaster Victim And Not HasAbilityWithName Victim ProjectileX Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+ If X%Chance DoubleConstant 10
+  CreateCubeOnPosition CopyWithAction Victim SetHp MaxHpOfCube Victim ARandomLeftPosition
+Description: After a non-projectile ally dies while in enemy territory, 10% chance you create a full hp copy of it in a random left_side_position End
+End
+
+PERK: Air_Support
+BelongsTo: General
+Ability: AfterACubeTakesDamage If And IsAllyToCaster Victim IsALeader Victim
+ Cooldown 600
+  Randomly CreateCubeOnPosition CubeConstant Bomber ARandomLeftPosition
+   CreateCubeOnPosition CubeConstant Drop_Helicopter ARandomLeftPosition
+Description: After an allied leader takes damage, create a Bomber or Drop_Helicopter in a random left_side_position, cooldown 10 seconds End
+End

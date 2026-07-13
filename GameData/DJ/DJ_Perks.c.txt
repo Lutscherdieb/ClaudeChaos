@@ -84,12 +84,6 @@ Ability: BeforeACubeIsAddedToYourHand If IsSmaller ManaCostOfCube Victim DoubleC
 Description: Before a 0 mana cost cube is added to your hand, create a copy of it in a random left_side_position End
 End
 
-PERK: Super_Sampling
-Ability: BeforeACubeIsAddedToYourHand CreateCubeOnPosition Victim ARandomLeftPosition
-Description: Before a cube is added to your hand, create a copy of it in a random left_side_position End
-IsUpgradeFrom: Sampling 100
-End
-
 PERK: Feedback
 BelongsTo: DJ
 Ability: BeforeACubeGainsAnAbility If And IsAllyToCaster Victim IsAllyToCaster Culprit
@@ -102,10 +96,4 @@ PERK: Final_Countdown
 BelongsTo: DJ
 Ability: Every30Seconds TargetCube ARandomNotLeaderEnemy SetHp DoubleConstant 1
 Description: Every 30 seconds set a random non leader enemies hp to 1 End
-End
-
-PERK: Grand_Finale
-Ability: Every30Seconds XTimes DoubleConstant 2 TargetCube ARandomNotLeaderEnemy SetHp DoubleConstant 1
-Description: Every 30 seconds set two random non leader enemies hp to 1 End
-IsUpgradeFrom: Final_Countdown 60
 End

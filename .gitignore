@@ -1,8 +1,9 @@
 # This repo tracks only a few things out of the whole Cube Chaos install:
-#   - .claude/        the Claude Code skills used to build mods
-#   - GameData/DJ/    the DJ mod we've built (our own content, including its
-#                     own README.md and Preview/ sprite-preview images)
-#   - README.md       repo-level docs
+#   - .claude/         the Claude Code skills used to build mods
+#   - GameData/DJ/     the DJ mod we've built (our own content, including its
+#                      own README.md and Preview/ sprite-preview images)
+#   - GameData/General/ the General mod (same deal)
+#   - README.md        repo-level docs
 # Everything else (game binaries, base-game GameData folders, and any other
 # mod folders that come and go as you subscribe/unsubscribe on the Workshop)
 # is deliberately left untracked.
@@ -16,9 +17,10 @@
 !/.claude/
 !/GameData/
 
-# Inside GameData, ignore everything except our own DJ mod folder.
+# Inside GameData, ignore everything except our own mod folders.
 /GameData/*
 !/GameData/DJ/
+!/GameData/General/
 
 # Personal/machine-local Claude Code settings - contains local permission rules
 # with absolute paths tied to whoever's machine set them up (usernames, drive

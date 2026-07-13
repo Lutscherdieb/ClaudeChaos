@@ -29,8 +29,17 @@ Card design notes (reverse-engineered once so future regens don't redo this):
   rule could be confirmed from data files, so everything else stays white.
 - An `IsUpgradeFrom:` perk has no sprite slot of its own (engine reuses the
   base perk's icon) -- look up the base perk's icon index instead of the
-  upgrade's own (blank) slot.
+  upgrade's own (blank) slot. The base game itself never mixes upgrade and
+  regular perks in one file -- upgrades live in a separate, sprite-less
+  `..._UpgradePerks.c.txt` (see SKILL.md's "Upgrade perks live in their own
+  sprite-less file" section) -- so this script reads that file too, if
+  present, and resolves each upgrade's icon by walking its `IsUpgradeFrom:`
+  chain until it lands on a name with a real slot in the main sheet (a chain
+  can be several hops long, e.g. Mk3 upgrades from Mk2 which upgrades from
+  the real base perk -- resolving only one hop was a real bug here, fixed
+  alongside adding the separate-file support).
 """
+import math
 import os
 import re
 from PIL import Image, ImageDraw, ImageFont
@@ -41,6 +50,13 @@ SPRITES = os.path.join(MOD_DIR, "Sprites")
 FONT_PATH = os.path.join(ROOT, "GeneralData", "dogicapixel.ttf")
 OUT_DIR = os.path.join(MOD_DIR, "Preview")  # lives with the mod, e.g. for GameData/DJ/README.md
 MOD_PREFIX = "DJ"  # this mod's .c.txt/.c.png basename prefix
+
+# Grid columns are derived from the actual tile count (ceil(sqrt(n)), matching
+# the game's own square-sheet convention -- see SKILL.md) rather than
+# hardcoded per category, so this script works unmodified for any mod's own
+# tile counts, not just DJ's.
+def grid_cols(n):
+    return max(1, math.ceil(math.sqrt(n)))
 
 BG = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -157,12 +173,22 @@ def wrap_to_width(d, s, f, max_width):
 def wrap_paragraph(d, s, f, max_width):
     if s == "":
         return [""]
-    if s.startswith("- "):
-        hang = "  "
-        hang_w = text_width(d, hang, f)
-        wrapped = wrap_to_width(d, s[2:], f, max_width - hang_w)
-        return [("- " if i == 0 else hang) + line for i, line in enumerate(wrapped)]
-    return wrap_to_width(d, s, f, max_width)
+    # "\N" is the game's own real forced-line-break marker inside Text:/
+    # Description: fields (confirmed via real base-game usage, e.g.
+    # Main/3GeneralCubes.c.txt) -- split on it first so each point renders
+    # as its own line here too, matching what the actual tooltip shows,
+    # rather than printing the two literal characters "\N".
+    lines = []
+    for segment in s.split("\\N"):
+        segment = segment.strip()
+        if segment.startswith("- "):
+            hang = "  "
+            hang_w = text_width(d, hang, f)
+            wrapped = wrap_to_width(d, segment[2:], f, max_width - hang_w)
+            lines.extend(("- " if i == 0 else hang) + line for i, line in enumerate(wrapped))
+        else:
+            lines.extend(wrap_to_width(d, segment, f, max_width))
+    return lines
 
 
 def draw_colored_line(d, pos, s, f, default_color):
@@ -175,6 +201,16 @@ def draw_colored_line(d, pos, s, f, default_color):
         x += text_width(d, part, f)
 
 
+def humanize(s):
+    """Body text embeds identifiers verbatim from the DSL source -- cube/perk
+    names (Drop_Helicopter) and registered tooltip keywords
+    (left_side_position) alike -- as underscored tokens. Replace underscores
+    with spaces for readability, same as pretty() already does for titles;
+    this is a documentation-readability choice for these cards, not a claim
+    about exactly how the compiled game's own tooltip renderer displays it."""
+    return s.replace("_", " ")
+
+
 def render_card(title, description, value, icon_img, extra_lines=None):
     dummy = ImageDraw.Draw(Image.new("RGB", (10, 10)))
     f_title, f_body = font(TITLE_SIZE), font(BODY_SIZE)
@@ -185,9 +221,9 @@ def render_card(title, description, value, icon_img, extra_lines=None):
     body_lines = []
     if extra_lines:
         for p in extra_lines:
-            body_lines.extend(wrap_paragraph(dummy, p, f_body, text_area_w))
+            body_lines.extend(wrap_paragraph(dummy, humanize(p), f_body, text_area_w))
     if description:
-        body_lines.extend(wrap_to_width(dummy, description, f_body, text_area_w))
+        body_lines.extend(wrap_paragraph(dummy, humanize(description), f_body, text_area_w))
 
     text_block_h = TITLE_SIZE + TITLE_GAP + len(body_lines) * (BODY_SIZE + LINE_GAP)
     icon_block_h = icon_h + ((BODY_SIZE + 16) if value is not None else 0)
@@ -215,17 +251,6 @@ def render_card(title, description, value, icon_img, extra_lines=None):
     return im
 
 
-def stack(cards):
-    w = max(c.width for c in cards)
-    h = sum(c.height for c in cards) + PAD_BETWEEN_CARDS * (len(cards) - 1)
-    out = Image.new("RGB", (w, h), BG)
-    y = 0
-    for c in cards:
-        out.paste(c, (0, y))
-        y += c.height + PAD_BETWEEN_CARDS
-    return out
-
-
 def pretty(name):
     return name.replace("_", " ").upper()
 
@@ -233,64 +258,93 @@ def pretty(name):
 def build_curses():
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Curses.c.txt"), PERK_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Curses.c.png")
+    cols = grid_cols(len(blocks))
     cards = []
     for i, b in enumerate(blocks):
         name = b["header"].group(1)
         desc = field(b["lines"], "Description:")
         val = field(b["lines"], "Value:")
-        icon = upscale(crop_icon(sheet, i, TILE_PERK, 2, strip_guide=True), 7)
-        cards.append(render_card(pretty(name), desc, val, icon))
-    return stack(cards)
+        icon = upscale(crop_icon(sheet, i, TILE_PERK, cols, strip_guide=True), 7)
+        cards.append((name, render_card(pretty(name), desc, val, icon)))
+    return cards
 
 
 def build_consumables():
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Consumables.c.txt"), PERK_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Consumables.c.png")
+    cols = grid_cols(len(blocks))
     cards = []
     for i, b in enumerate(blocks):
         name = b["header"].group(1)
         desc = field(b["lines"], "Description:")
         val = field(b["lines"], "Value:")
-        icon = upscale(crop_icon(sheet, i, TILE_PERK, 1, strip_guide=True), 7)
-        cards.append(render_card(pretty(name), desc, val, icon))
-    return stack(cards)
+        icon = upscale(crop_icon(sheet, i, TILE_PERK, cols, strip_guide=True), 7)
+        cards.append((name, render_card(pretty(name), desc, val, icon)))
+    return cards
 
 
 def build_synergies():
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Synergies.c.txt"), PERK_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Synergies.c.png")
+    cols = grid_cols(len(blocks))
     cards = []
     for i, b in enumerate(blocks):
         name = b["header"].group(1)
         desc = field(b["lines"], "Description:")
-        icon = upscale(crop_icon(sheet, i, TILE_PERK, 4, strip_guide=False), 6)
+        icon = upscale(crop_icon(sheet, i, TILE_PERK, cols, strip_guide=False), 6)
         title = name.replace("_", " ").replace("-", " + ").upper()
-        cards.append(render_card(title, desc, None, icon))
-    return stack(cards)
+        cards.append((name, render_card(title, desc, None, icon)))
+    return cards
 
 
 def build_perks():
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Perks.c.txt"), PERK_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Perks.c.png")
+    cols = grid_cols(len(blocks))
     name_to_idx = {b["header"].group(1): i for i, b in enumerate(blocks)}
-    cards = []
-    for i, b in enumerate(blocks):
+
+    # Upgrades live in their own sprite-less file, matching base-game
+    # convention (e.g. ZUpgradeClassPerks.c.txt) -- read it too, if present.
+    upgrade_path = os.path.join(MOD_DIR, f"{MOD_PREFIX}_UpgradePerks.c.txt")
+    upgrade_blocks = parse_blocks(upgrade_path, PERK_HEADER) if os.path.exists(upgrade_path) else []
+    upgrade_by_name = {b["header"].group(1): b for b in upgrade_blocks}
+
+    def resolve_icon_idx(target_name, seen=frozenset()):
+        # Walk the IsUpgradeFrom chain -- an upgrade can itself be the base
+        # of a further upgrade (e.g. Mk3 -> Mk2 -> the real Mk1 perk) -- until
+        # landing on a name with a real slot in the main sheet.
+        if target_name in name_to_idx:
+            return name_to_idx[target_name]
+        if target_name in seen or target_name not in upgrade_by_name:
+            raise KeyError(f"Cannot resolve icon: no real perk at the end of the "
+                            f"IsUpgradeFrom chain starting at {target_name!r}")
+        next_target = field(upgrade_by_name[target_name]["lines"], "IsUpgradeFrom:").split()[0]
+        return resolve_icon_idx(next_target, seen | {target_name})
+
+    def render_block(b, icon_idx):
         name = b["header"].group(1)
-        desc = field(b["lines"], "Description:")
+        # A PERK's Description: is a single whole-perk field (unlike CUBE's
+        # per-Ability Text:, which stacks) -- multiple Ability: lines share
+        # one Description at the end, each with its own AbilityText: instead.
+        # Fall back to the first AbilityText: if a perk has no top-level
+        # Description: of its own.
+        desc = field(b["lines"], "Description:") or field(b["lines"], "AbilityText:")
         upgrade_of = field(b["lines"], "IsUpgradeFrom:")
-        icon_idx, extra = i, None
-        if upgrade_of:
-            base_name = upgrade_of.split()[0]
-            icon_idx = name_to_idx[base_name]
-            extra = [f"(Upgrade of {base_name.replace('_', ' ')})"]
-        icon = upscale(crop_icon(sheet, icon_idx, TILE_PERK, 4, strip_guide=True), 7)
-        cards.append(render_card(pretty(name), desc, None, icon, extra_lines=extra))
-    return stack(cards)
+        extra = [f"(Upgrade of {upgrade_of.split()[0].replace('_', ' ')})"] if upgrade_of else None
+        icon = upscale(crop_icon(sheet, icon_idx, TILE_PERK, cols, strip_guide=True), 7)
+        return name, render_card(pretty(name), desc, None, icon, extra_lines=extra)
+
+    cards = [render_block(b, i) for i, b in enumerate(blocks)]
+    for b in upgrade_blocks:
+        base_name = field(b["lines"], "IsUpgradeFrom:").split()[0]
+        cards.append(render_block(b, resolve_icon_idx(base_name)))
+    return cards
 
 
 def build_cubes():
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Cubes.c.txt"), CUBE_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Cubes.c.png")
+    cols = grid_cols(len(blocks))
     cards = []
     for i, b in enumerate(blocks):
         h = b["header"]
@@ -306,15 +360,55 @@ def build_cubes():
         if texts:
             extra.append("")
             extra.extend(f"- {t}" for t in texts)
-        icon = upscale(crop_icon(sheet, i, TILE_CUBE, 2, strip_guide=False), 10)
-        cards.append(render_card(pretty(name), None, None, icon, extra_lines=extra))
-    return stack(cards)
+        icon = upscale(crop_icon(sheet, i, TILE_CUBE, cols, strip_guide=False), 10)
+        cards.append((name, render_card(pretty(name), None, None, icon, extra_lines=extra)))
+    return cards
+
+
+BUILDERS = {
+    "Curses": build_curses,
+    "Consumables": build_consumables,
+    "Synergies": build_synergies,
+    "Perks": build_perks,
+    "Cubes": build_cubes,
+}
+
+
+def render_mod(mod_dir, mod_prefix):
+    global MOD_DIR, SPRITES, OUT_DIR, MOD_PREFIX
+    MOD_DIR, MOD_PREFIX = mod_dir, mod_prefix
+    SPRITES = os.path.join(MOD_DIR, "Sprites")
+    OUT_DIR = os.path.join(MOD_DIR, "Preview")
+    os.makedirs(OUT_DIR, exist_ok=True)
+    # One PNG per item (not one stacked image per category) -- editing a
+    # single perk/cube then only touches that one file, instead of forcing
+    # a regen+diff of the whole category's combined image.
+    seen_prefixes = set()
+    written = set()
+    for category, builder in BUILDERS.items():
+        txt_path = os.path.join(MOD_DIR, f"{MOD_PREFIX}_{category}.c.txt")
+        if not os.path.exists(txt_path):
+            continue  # this mod has no content of this category -- skip it
+        prefix = f"{MOD_PREFIX}_{category}_"
+        seen_prefixes.add(prefix)
+        for name, card in builder():
+            fname = f"{prefix}{name}.png"
+            card.save(os.path.join(OUT_DIR, fname))
+            written.add(fname)
+    # Clean out stale files from a previous run: renamed/removed individual
+    # items (same category prefix, but not written this run), leftover
+    # combined per-category images from before the per-item switch, or a
+    # whole category that no longer has any content.
+    for fname in os.listdir(OUT_DIR):
+        if fname.endswith("_preview.png"):
+            os.remove(os.path.join(OUT_DIR, fname))
+        elif any(fname.startswith(p) for p in seen_prefixes) and fname not in written:
+            os.remove(os.path.join(OUT_DIR, fname))
+        elif not any(fname.startswith(p) for p in seen_prefixes):
+            os.remove(os.path.join(OUT_DIR, fname))
+    print(f"done: {mod_prefix}")
 
 
 if __name__ == "__main__":
-    build_curses().save(os.path.join(OUT_DIR, f"{MOD_PREFIX}_Curses_preview.png"))
-    build_consumables().save(os.path.join(OUT_DIR, f"{MOD_PREFIX}_Consumables_preview.png"))
-    build_synergies().save(os.path.join(OUT_DIR, f"{MOD_PREFIX}_Synergies_preview.png"))
-    build_perks().save(os.path.join(OUT_DIR, f"{MOD_PREFIX}_Perks_preview.png"))
-    build_cubes().save(os.path.join(OUT_DIR, f"{MOD_PREFIX}_Cubes_preview.png"))
-    print("done")
+    render_mod(os.path.join(ROOT, "GameData", "DJ"), "DJ")
+    render_mod(os.path.join(ROOT, "GameData", "General"), "General")

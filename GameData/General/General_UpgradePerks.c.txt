@@ -1,0 +1,65 @@
+PERK: Arms_Race_Mk2
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Shot
+ Both TargetCube Victim Exile
+  CreateCubeOnPosition CubeConstant Shell PositionOfCube Victim
+AbilityText: Created Shots are created as Shells instead End
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Shell
+ Both TargetCube Victim Exile
+  CreateCubeOnPosition CubeConstant Bomb PositionOfCube Victim
+AbilityText: Created Shells are created as Bombs instead End
+Description: Created Shots are created as Shells instead \N Created Shells are created as Bombs instead End
+IsUpgradeFrom: Arms_Race 60
+End
+
+PERK: Arms_Race_Mk3
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Shot
+ Both TargetCube Victim Exile
+  CreateCubeOnPosition CubeConstant Shell PositionOfCube Victim
+AbilityText: Created Shots are created as Shells instead End
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Shell
+ Both TargetCube Victim Exile
+  CreateCubeOnPosition CubeConstant Bomb PositionOfCube Victim
+AbilityText: Created Shells are created as Bombs instead End
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Bomb
+ Both TargetCube Victim Exile
+  CreateCubeOnPosition CubeConstant Rocket PositionOfCube Victim
+AbilityText: Created Bombs are created as Rockets instead End
+Description: Created Shots are created as Shells instead \N Created Shells are created as Bombs instead \N Created Bombs are created as Rockets instead End
+IsUpgradeFrom: Arms_Race_Mk2 80
+End
+
+PERK: Air_Superiority_Mk2
+Ability: EveryXSeconds DoubleConstant 20 EveryCubeWhich And IsAllyToCaster Test HasAbilityWithName Test Flying
+ GainAbility DoubleTimeX 10
+Description: Every 20 seconds, give all friendly units with Flying Double Time for 10 seconds End
+IsUpgradeFrom: Air_Superiority 100
+End
+
+PERK: Entrenchment
+Ability: BeforeACubeTakesDamage If IsAllyToCaster Victim If Not IsALeader Victim If IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+ Both NegateX DoubleConstant 1
+  If Not IsAllyToCaster Culprit TargetCube Culprit TakeXDamage DoubleConstant 1
+Description: Before a non leader ally takes damage while in friendly territory, reduce that damage by 1 and deal 1 damage back to a non ally that dealt it End
+IsUpgradeFrom: Dig_In 60
+End
+
+PERK: Blood_for_Blood
+Ability: AfterACubeDies If And IsAllyToCaster Victim Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+ If X%Chance DoubleConstant 50
+  CreateCubeOnPosition CopyWithAction Victim SetHp MaxHpOfCube Victim ARandomLeftPosition
+Description: After an ally dies while in enemy territory, 50% chance you create a full hp copy of it in a random left_side_position End
+IsUpgradeFrom: Revenge 80
+End
+
+PERK: Air_Raid
+Ability: AfterACubeTakesDamage If And IsAllyToCaster Victim IsALeader Victim
+ Cooldown 600
+  Randomly CreateCubeOnPosition CubeConstant Bomber ARandomLeftPosition
+   CreateCubeOnPosition CubeConstant Drop_Helicopter ARandomLeftPosition
+AbilityText: After an allied leader takes damage, create a Bomber or Drop_Helicopter in a random left_side_position, cooldown 10 seconds End
+Ability: EveryMinute Randomly CreateCubeOnPosition CubeConstant Bomber ARandomLeftPosition
+ CreateCubeOnPosition CubeConstant Drop_Helicopter ARandomLeftPosition
+AbilityText: Every minute, create a Bomber or Drop_Helicopter in a random left_side_position End
+Description: After an allied leader takes damage, create a Bomber or Drop_Helicopter in a random left_side_position, cooldown 10 seconds \N Every minute, create a Bomber or Drop_Helicopter in a random left_side_position End
+IsUpgradeFrom: Air_Support 80
+End

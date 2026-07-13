@@ -3,7 +3,7 @@
 ## Gather before writing anything
 
 - Name, mana cost, hp/max hp.
-- `TOKEN` (not randomly obtainable, e.g. a byproduct created by another cube's ability) vs `IDENT rarity aggressive defensive scaling weirdness` (a real obtainable cube — needs an `AiPlacementRule:` too). If unsure which, ask; don't guess a rarity/stat spread.
+- `TOKEN` (not randomly obtainable, e.g. a byproduct created by another cube's ability) vs `IDENT rarity aggressive defensive scaling weirdness` (a real obtainable cube — needs an `AiPlacementRule:` too). For an `IDENT` cube, use `cube-chaos-balancing` to pick these numbers (real empirical ranges by rarity, plus what aggressive/defensive/scaling/weirdness actually mean) rather than guessing — if rarity itself is unclear, ask the user; it's a drop-frequency/tone decision the ability chain alone can't answer.
 - What the ability actually does, in plain language, before touching the DSL — this is what gets handed to `cube-chaos-scripting` and is also the basis for the `Text:` line, so getting it right once here saves a rewrite later.
 - Which existing `.c.txt`/`Sprites/*.c.png` pair in the active mod this belongs in (or whether it needs a new one — check the filename-collision pitfall in `cube-chaos-mod-setup` before naming a new file).
 

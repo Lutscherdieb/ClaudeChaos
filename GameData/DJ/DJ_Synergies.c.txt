@@ -8,8 +8,8 @@ Ability: EveryMinute EveryCubeWhich And IsAllyToCaster Test CubeHasName Test Sto
     SetStorage Test If X%Chance DoubleConstant 50 TargetCube Caster GainRandomAbilityOfCube Storage
    RemoveThisAbility
   For each 0 mana cost cube in your hand that has an ability, 50% chance to give this one random ability of that cube End
- PositionInDirectionFromPosition East PositionOfCube Test
-Description: Every minute each of your Stone cubes creates an allied Note to its east. For each 0 mana cost cube in your hand that has an ability, 50% chance to give the creation one random ability of that cube End
+ PositionInDirectionFromPosition Forwards PositionOfCube Test
+Description: Every minute each of your Stone cubes creates an allied Note in front of it. For each 0 mana cost cube in your hand that has an ability, 50% chance to give the creation one random ability of that cube End
 End
 
 PERK: DJ-Plant
