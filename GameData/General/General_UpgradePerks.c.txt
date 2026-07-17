@@ -8,7 +8,7 @@ Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Shel
   CreateCubeOnPosition CubeConstant Bomb PositionOfCube Victim
 AbilityText: Created Shells are created as Bombs instead End
 Description: Created Shots are created as Shells instead \N Created Shells are created as Bombs instead End
-IsUpgradeFrom: Arms_Race 60
+IsUpgradeFrom: Arms_Race 80
 End
 
 PERK: Arms_Race_Mk3
@@ -25,7 +25,7 @@ Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Bomb
   CreateCubeOnPosition CubeConstant Rocket PositionOfCube Victim
 AbilityText: Created Bombs are created as Rockets instead End
 Description: Created Shots are created as Shells instead \N Created Shells are created as Bombs instead \N Created Bombs are created as Rockets instead End
-IsUpgradeFrom: Arms_Race_Mk2 80
+IsUpgradeFrom: Arms_Race_Mk2 100
 End
 
 PERK: Air_Superiority_Mk2
@@ -54,12 +54,34 @@ End
 PERK: Air_Raid
 Ability: AfterACubeTakesDamage If And IsAllyToCaster Victim IsALeader Victim
  Cooldown 600
-  Randomly CreateCubeOnPosition CubeConstant Bomber ARandomLeftPosition
-   CreateCubeOnPosition CubeConstant Drop_Helicopter ARandomLeftPosition
-AbilityText: After an allied leader takes damage, create a Bomber or Drop_Helicopter in a random left_side_position, cooldown 10 seconds End
-Ability: EveryMinute Randomly CreateCubeOnPosition CubeConstant Bomber ARandomLeftPosition
- CreateCubeOnPosition CubeConstant Drop_Helicopter ARandomLeftPosition
-AbilityText: Every minute, create a Bomber or Drop_Helicopter in a random left_side_position End
-Description: After an allied leader takes damage, create a Bomber or Drop_Helicopter in a random left_side_position, cooldown 10 seconds \N Every minute, create a Bomber or Drop_Helicopter in a random left_side_position End
+  Randomly CreateCubeOnPosition CopyWithAction CubeConstant Bomber GainAbility Take_Off ARandomLeftPosition
+   CreateCubeOnPosition CopyWithAction CubeConstant Drop_Helicopter GainAbility Take_Off ARandomLeftPosition
+AbilityText: After an allied leader takes damage, create a Bomber or Drop_Helicopter in a random left_side_position, giving it Take Off, cooldown 10 seconds End
+Ability: EveryMinute Randomly CreateCubeOnPosition CopyWithAction CubeConstant Bomber GainAbility Take_Off ARandomLeftPosition
+ CreateCubeOnPosition CopyWithAction CubeConstant Drop_Helicopter GainAbility Take_Off ARandomLeftPosition
+AbilityText: Every minute, create a Bomber or Drop_Helicopter in a random left_side_position, giving it Take Off End
+Description: After an allied leader takes damage, create a Bomber or Drop_Helicopter in a random left_side_position, giving it Take Off, cooldown 10 seconds \N Every minute, create a Bomber or Drop_Helicopter in a random left_side_position, giving it Take Off End
 IsUpgradeFrom: Air_Support 80
+End
+
+PERK: Heroic_Warrior
+Ability: AfterACubeDies If IsAllyToCaster Culprit If IsEnemyToCaster Victim
+ TargetCube Culprit GainAbility StrengthX 2
+Description: After an ally kills an enemy, it gains 2 strength End
+IsUpgradeFrom: Experienced_Fighter 60
+End
+
+PERK: Splendid_Logistics
+Ability: AtTheStartOfTheBattle EveryCubeInHandOfFactionWhich FactionOfThis True
+ ChangeManaCost Division Multiplication ManaCostOfCube Target DoubleConstant -15 DoubleConstant 100
+Description: At the start of each battle, your cubes cost 15% less mana End
+IsUpgradeFrom: Wartime_Logistics 60
+End
+
+PERK: Blinding_Faith
+Ability: AfterACubeTakesDamage If IsEnemyToCaster Victim If IsAllyToCaster Culprit If Not IsALeader Culprit
+ Both TargetCube Culprit GainAbility FervorX 1
+  TargetCube Victim GainAbility SplinterX 1
+Description: After a non leader ally deals damage to an enemy, it gains 1 fervor (increasing the next damage it deals by 1) and that enemy gains 1 splinter (increasing the next damage it takes by 1) End
+IsUpgradeFrom: Believer 80
 End

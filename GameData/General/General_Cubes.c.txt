@@ -45,8 +45,11 @@ Ability: Flying
 Ability: ChargeEveryX 60
 Ability: AfterThisMoves If Not IsEqual PlacabilityOfPosition PositionOfThis FactionOfThis
  If CubeExists TheFirstCubeInDirectionFromPositionWhich South PositionOfThis IsEnemyToCaster Test
-  CreateCubeOnPosition CubeConstant Bomb PositionInDirectionFromPosition South PositionOfThis
-Text: After this moves in enemy territory with an enemy any distance below this, create a Bomb below this End
+  Both CreateCubeOnPosition CubeConstant Bomb PositionInDirectionFromPosition South PositionOfThis
+   If CubeExists CubeOfPosition PositionInDirectionFromPosition South PositionOfThis
+    TargetCube CubeOfPosition PositionInDirectionFromPosition South PositionOfThis
+     Both RemoveAbilityWithName Flying RemoveAbilityWithName ChargeEveryX
+Text: After this moves in enemy territory with an enemy any distance below this, create a Bomb below this, which falls instead of flying off End
 Ability: BeforeThisMoves IfElse HasAbilityWithName Caster ChargeEveryX
  If Or CubeExists CubeInDirectionFromCube Forwards Caster
   Not PositionExists PositionInDirectionFromPosition Forwards PositionOfThis
@@ -62,13 +65,17 @@ Visual: Target 0 1 96 96 96
 AiPlacementRule: And AiFrontline AiFlying
 End
 
-CUBE: Bomb 0 1 1
-TOKEN
+CUBE: Bomb 12 1 1
+IDENT 1 12 0 0 0
+TYPE Attacker
 Ability: ProjectileX 4
 Ability: BeforeThisDies Both EveryCubeInRadiusXAroundTarget DoubleConstant 2 TakeXDamage DoubleConstant 2
  Both CreateAoEParticlesColourRadiusPosition DoubleConstant 16738816 DoubleConstant 2 PositionOfThis
  PlaySound Small_Explosion
 Text: Before this dies deal 2 damage to all cubes at most 2 spaces away from it End
+Ability: Flying
+Ability: ChargeEveryX 15
+AiPlacementRule: AiMissile
 End
 
 CUBE: Artillery 30 3 3
@@ -78,12 +85,11 @@ Ability: EveryXSeconds DoubleConstant 20 Both CreateCubeOnPosition CubeConstant 
  If CubeExists CubeOfPosition PositionInDirectionFromPosition Forwards PositionInDirectionFromPosition North PositionOfThis
   TargetCube CubeOfPosition PositionInDirectionFromPosition Forwards PositionInDirectionFromPosition North PositionOfThis
    Both GainAbility Arcing DoubleConstant 180
-    Both GainAbility ChargeEveryX 15
-     Both SetVariable ARCING RandomRoundBetweenXtoY DoubleConstant 17 DoubleConstant 25
-      Both If CubeHasName Target Shell SetSpriteToCube CubeConstant Shell_Arc
-       Both If CubeHasName Target Bomb SetSpriteToCube CubeConstant Bomb_Arc
-        If CubeHasName Target Rocket SetSpriteToCube CubeConstant Rocket_Arc
-Text: Every 20 seconds create a Shell above and forward, and grant it arcing momentum End
+    Both SetVariable ARCING RandomRoundBetweenXtoY DoubleConstant 17 DoubleConstant 25
+     Both If CubeHasName Target Shell SetSpriteToCube CubeConstant Shell_Arc
+      Both If CubeHasName Target Bomb SetSpriteToCube CubeConstant Bomb_Arc
+       If CubeHasName Target Rocket SetSpriteToCube CubeConstant Rocket_Arc
+Text: Every 20 seconds create a Shell above and forward, and grant it arcing momentum (it already charges forwards on its own) End
 Ability: Faction_Colours
 Visual: Target 27 0 255 0 0
 AiPlacementRule: And AiEmptyNorth AiStacking
@@ -138,25 +144,37 @@ Visual: Target 0 2 96 96 96
 AiPlacementRule: And AiFrontline AiFlying
 End
 
-CUBE: Shot 0 1 1
-TOKEN
+CUBE: Shot 5 1 1
+IDENT 1 5 0 0 0
+TYPE Attacker
 Ability: ProjectileX 2
 Ability: DieAfterX 300
+Ability: Flying
+Ability: ChargeEveryX 15
+AiPlacementRule: AiMissile
 End
 
-CUBE: Shell 0 1 1
-TOKEN
+CUBE: Shell 8 1 1
+IDENT 1 8 0 0 0
+TYPE Attacker
 Ability: ProjectileX 3
 Ability: ExplodesX 1
+Ability: Flying
+Ability: ChargeEveryX 15
+AiPlacementRule: AiMissile
 End
 
-CUBE: Rocket 0 1 1
-TOKEN
+CUBE: Rocket 17 1 1
+IDENT 1 17 0 0 0
+TYPE Attacker
 Ability: ProjectileX 5
 Ability: BeforeThisDies Both EveryCubeInRadiusXAroundTarget DoubleConstant 3 TakeXDamage DoubleConstant 3
  Both CreateAoEParticlesColourRadiusPosition DoubleConstant 16738816 DoubleConstant 3 PositionOfThis
  PlaySound Small_Explosion
 Text: Before this dies deal 3 damage to all cubes at most 3 spaces away from it End
+Ability: Flying
+Ability: ChargeEveryX 15
+AiPlacementRule: AiMissile
 End
 
 CUBE: Shell_Arc 0 0 0
@@ -179,11 +197,8 @@ Ability: ArmorX 1
 Ability: Burrowed
 Ability: EverySecond If And CubeExists TheFirstCubeInDirectionFromPositionWhich Forwards PositionOfThis True
  IsEnemyToCaster TheFirstCubeInDirectionFromPositionWhich Forwards PositionOfThis True
- Both CreateCubeOnPosition CubeConstant Shot PositionInDirectionFromPosition Forwards PositionOfThis
-  If CubeExists CubeOfPosition PositionInDirectionFromPosition Forwards PositionOfThis
-   TargetCube CubeOfPosition PositionInDirectionFromPosition Forwards PositionOfThis
-    Both GainAbility Flying GainAbility ChargeEveryX 15
-Text: Every second, if the next cube ahead in this row is an enemy (not an ally or neutral), create a Shot in front and give it Flying and Charging End
+ CreateCubeOnPosition CubeConstant Shot PositionInDirectionFromPosition Forwards PositionOfThis
+Text: Every second, if the next cube ahead in this row is an enemy (not an ally or neutral), create a Shot in front End
 Ability: Faction_Colours
 Visual: Target 1 0 96 96 96
 AiPlacementRule: And AiStacking AiDefense
@@ -218,9 +233,36 @@ Ability: Burrowing
 Ability: EveryXSeconds DoubleConstant 30 Both CreateCubeOnPosition CubeConstant Rocket PositionInDirectionFromPosition North PositionOfThis
  If CubeExists CubeOfPosition PositionInDirectionFromPosition North PositionOfThis
   TargetCube CubeOfPosition PositionInDirectionFromPosition North PositionOfThis
-   Both GainAbility Flying Both GainAbility Take_Off GainAbility HomingX 15
-Text: Every 30 seconds create a Rocket above this, giving it Flying, Take Off, and homing towards enemies every quarter of a second End
+   Both RemoveAbilityWithName ChargeEveryX Both GainAbility Take_Off GainAbility HomingX 15
+Text: Every 30 seconds create a Rocket above this, replacing its own charging with Take Off and homing towards enemies every quarter of a second End
 Ability: Faction_Colours
 Visual: Target 0 -1 96 96 96
 AiPlacementRule: And AiEmptyNorth AiStacking
+End
+
+CUBE: Medic 30 6 6
+IDENT 1 5 0 15 0
+TYPE Support
+Ability: ChargeEveryX 120
+Ability: EveryXMeleeY 180 1
+Ability: AfterThisCollides If IsAllyToCaster Storage TargetCube Storage HealXDamage DoubleConstant 1
+Text: After this moves into an ally, heal it for 1 hp End
+Ability: Faction_Colours
+Visual: Plus 0 0 0 254 33
+AiPlacementRule: And AiFrontline AiStacking
+End
+
+CUBE: Bombardement 25 0 0
+IDENT 1 15 0 0 5
+TYPE Bomber
+Ability: FreePlacement
+Ability: AfterThisIsCreated Both
+ Both CreateCubeOnPosition CubeConstant Bomb PositionOfThis
+  If CubeExists CubeOfPosition PositionOfThis
+   TargetCube CubeOfPosition PositionOfThis Both RemoveAbilityWithName Flying RemoveAbilityWithName ChargeEveryX
+ Both CreateCubeOnPosition CubeConstant Bomb TopPositionAboveCube Caster
+  If CubeExists CubeOfPosition TopPositionAboveCube Caster
+   TargetCube CubeOfPosition TopPositionAboveCube Caster Both RemoveAbilityWithName Flying RemoveAbilityWithName ChargeEveryX
+Text: After this is placed, create a Bomb here and another at the top of this column, both falling instead of flying End
+AiPlacementRule: True
 End

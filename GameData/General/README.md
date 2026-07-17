@@ -20,21 +20,45 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 <img src="Preview/General_Perks_Blood_for_Blood.png" width="700" alt="Blood for Blood perk card (upgrade of Revenge)">
 <img src="Preview/General_Perks_Air_Support.png" width="700" alt="Air Support perk card">
 <img src="Preview/General_Perks_Air_Raid.png" width="700" alt="Air Raid perk card (upgrade of Air Support)">
+<img src="Preview/General_Perks_Thirst_for_Blood.png" width="700" alt="Thirst for Blood perk card">
+<img src="Preview/General_Perks_Experienced_Fighter.png" width="700" alt="Experienced Fighter perk card">
+<img src="Preview/General_Perks_Heroic_Warrior.png" width="700" alt="Heroic Warrior perk card (upgrade of Experienced Fighter)">
+<img src="Preview/General_Perks_Wartime_Logistics.png" width="700" alt="Wartime Logistics perk card">
+<img src="Preview/General_Perks_Splendid_Logistics.png" width="700" alt="Splendid Logistics perk card (upgrade of Wartime Logistics)">
+<img src="Preview/General_Perks_Believer.png" width="700" alt="Believer perk card">
+<img src="Preview/General_Perks_Blinding_Faith.png" width="700" alt="Blinding Faith perk card (upgrade of Believer)">
 
 ### Cubes
 
 <img src="Preview/General_Cubes_Bomber.png" width="700" alt="Bomber cube card">
-<img src="Preview/General_Cubes_Bomb.png" width="700" alt="Bomb cube card">
 <img src="Preview/General_Cubes_Artillery.png" width="700" alt="Artillery cube card">
 <img src="Preview/General_Cubes_Recruit.png" width="700" alt="Recruit cube card">
 <img src="Preview/General_Cubes_Parachute.png" width="700" alt="Parachute cube card">
 <img src="Preview/General_Cubes_Drop_Helicopter.png" width="700" alt="Drop Helicopter cube card">
 <img src="Preview/General_Cubes_Shot.png" width="700" alt="Shot cube card">
 <img src="Preview/General_Cubes_Shell.png" width="700" alt="Shell cube card">
+<img src="Preview/General_Cubes_Bomb.png" width="700" alt="Bomb cube card">
 <img src="Preview/General_Cubes_Rocket.png" width="700" alt="Rocket cube card">
 <img src="Preview/General_Cubes_Bunker.png" width="700" alt="Bunker cube card">
 <img src="Preview/General_Cubes_Airport.png" width="700" alt="Airport cube card">
 <img src="Preview/General_Cubes_Rocket_Silo.png" width="700" alt="Rocket Silo cube card">
+<img src="Preview/General_Cubes_Medic.png" width="700" alt="Medic cube card">
+<img src="Preview/General_Cubes_Bombardement.png" width="700" alt="Bombardement cube card">
+
+### Class+Species synergies
+
+<img src="Preview/General_Synergies_General-Elemental.png" width="700" alt="General + Elemental synergy card">
+<img src="Preview/General_Synergies_General-Devourer.png" width="700" alt="General + Devourer synergy card">
+<img src="Preview/General_Synergies_General-Shadow.png" width="700" alt="General + Shadow synergy card">
+<img src="Preview/General_Synergies_General-Undead.png" width="700" alt="General + Undead synergy card">
+<img src="Preview/General_Synergies_General-Chaos.png" width="700" alt="General + Chaos synergy card">
+<img src="Preview/General_Synergies_General-Fungus.png" width="700" alt="General + Fungus synergy card">
+<img src="Preview/General_Synergies_General-Moil.png" width="700" alt="General + Moil synergy card">
+<img src="Preview/General_Synergies_General-Crystal.png" width="700" alt="General + Crystal synergy card">
+<img src="Preview/General_Synergies_General-Remnant.png" width="700" alt="General + Remnant synergy card">
+<img src="Preview/General_Synergies_General-Dwarf.png" width="700" alt="General + Dwarf synergy card">
+<img src="Preview/General_Synergies_General-Plant.png" width="700" alt="General + Plant synergy card">
+<img src="Preview/General_Synergies_General-No_Species.png" width="700" alt="General + No_Species synergy card">
 
 ## Installing this mod (to play it)
 

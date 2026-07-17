@@ -7,6 +7,10 @@
 - What the ability actually does, in plain language, before touching the DSL — this is what gets handed to `cube-chaos-scripting` and is also the basis for the `Text:` line, so getting it right once here saves a rewrite later.
 - Which existing `.c.txt`/`Sprites/*.c.png` pair in the active mod this belongs in (or whether it needs a new one — check the filename-collision pitfall in `cube-chaos-mod-setup` before naming a new file).
 
+## Preview-and-approve gate (before the Sequence below)
+
+Before writing any file, run the orchestrator's **Step C preview-and-approve gate**: print the theoretical spec (rarity/mana/hp/IDENT stats + the real `Ability:` chain + the `Text:` *derived from that chain*, sprite as concept only) and get the user's explicit OK. Iterate on the printed table — not on files — until they approve. Sprites and the Sequence below happen only after that OK.
+
 ## Sequence
 
 1. **`cube-chaos-scripting`** — write the `CUBE:` block, the `Ability:` chain, and its paired `Text:` (every custom `Ability:` needs one, immediately after it — not shared with a sibling ability). Check whether it needs `Visual:` placement-preview lines (any cube with a positional effect — deals damage in front, heals below, etc.) and an `AiPlacementRule:` (required whenever `IDENT` is present).

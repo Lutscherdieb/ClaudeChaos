@@ -1,5 +1,7 @@
 # Workflow: Class/Species base perk, or a Class+Species synergy
 
+**Before writing any file, run the orchestrator's Step C preview-and-approve gate** for either flow below: print the theoretical spec (granted cubes + the real passive/synergy `Ability:` chain + the `Text:` *derived from that chain*) and get the user's explicit OK, iterating on the printed table until they approve. Two wrinkles specific to this workflow: (1) a class/species color is itself a gated decision — confirm it with the user (per the "ask before picking colors" memory) as part of the spec, not silently; (2) the base-perk flow's color-pick step happens *before drawing* by necessity, but the actual sprite pixels — like every other content type — are still drawn only after the design OK.
+
 ## Class or Species base perk (`BelongsTo: CLASS` / `BelongsTo: SPECIES`)
 
 Exactly one of these per class/species — it's what grants the starting cubes.

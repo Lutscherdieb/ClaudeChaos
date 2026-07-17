@@ -1,3 +1,9 @@
+COMPOUND: ABILITY
+BloodthirstX
+AfterThisKills If IsEnemyToCaster Victim HealXDamage GenericStacking
+Text: \C0 254 33 Bloodthirst STACKING 1 \B : \CN After this kills an enemy heal for \C0 254 33 STACKING 1 \CN hp End
+End
+
 PERK: General
 BelongsTo: CLASS
 LevelRequirement: 1
@@ -8,9 +14,9 @@ AbilityText: Whenever an ally is created in enemy territory, it gains 1 Strength
 Ability: BeforeACubeDies If IsAllyToCaster Victim If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
  TargetCube Victim GainAbility StrengthX 1
 AbilityText: Before an ally dies in enemy territory, it gains 1 Strength End
-ObtainAction: AddCubeToInventory CubeConstant Bomber
 ObtainAction: AddCubeToInventory CubeConstant Bunker
-ObtainAction: AddCubeToInventory CubeConstant Drop_Helicopter
+ObtainAction: AddCubeToInventory CubeConstant Rocket_Silo
+ObtainAction: AddCubeToInventory CubeConstant Airport
 End
 
 PERK: Arms_Race
@@ -19,6 +25,7 @@ Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Shot
  Both TargetCube Victim Exile
   CreateCubeOnPosition CubeConstant Shell PositionOfCube Victim
 Description: Created Shots are created as Shells instead End
+Unique
 End
 
 PERK: Air_Superiority
@@ -47,7 +54,38 @@ PERK: Air_Support
 BelongsTo: General
 Ability: AfterACubeTakesDamage If And IsAllyToCaster Victim IsALeader Victim
  Cooldown 600
-  Randomly CreateCubeOnPosition CubeConstant Bomber ARandomLeftPosition
-   CreateCubeOnPosition CubeConstant Drop_Helicopter ARandomLeftPosition
-Description: After an allied leader takes damage, create a Bomber or Drop_Helicopter in a random left_side_position, cooldown 10 seconds End
+  Randomly CreateCubeOnPosition CopyWithAction CubeConstant Bomber GainAbility Take_Off ARandomLeftPosition
+   CreateCubeOnPosition CopyWithAction CubeConstant Drop_Helicopter GainAbility Take_Off ARandomLeftPosition
+Description: After an allied leader takes damage, create a Bomber or Drop_Helicopter in a random left_side_position, giving it Take Off, cooldown 10 seconds End
+End
+
+PERK: Thirst_for_Blood
+BelongsTo: General
+Ability: AtTheStartOfTheBattle EveryCubeInHandOfFactionWhich FactionOfThis True
+ GainAbility BloodthirstX 3
+Description: At the start of each battle, cubes in your hand gain 3 bloodthirst (healing 3 hp after they kill an enemy) End
+End
+
+PERK: Experienced_Fighter
+BelongsTo: General
+Ability: AfterACubeDies If IsAllyToCaster Culprit If Not IsALeader Culprit If IsEnemyToCaster Victim
+ TargetCube Culprit GainAbility StrengthX 1
+Description: After a non leader ally kills an enemy, it gains 1 strength End
+End
+
+PERK: Wartime_Logistics
+BelongsTo: General
+Ability: AtTheStartOfTheBattle EveryCubeInHandOfFactionWhich FactionOfThis True
+ If IsLarger ManaCostOfCube Target DoubleConstant 10
+  IfElse IsLarger ManaCostOfCube Target DoubleConstant 11
+   ChangeManaCost Division ManaCostOfCube Target DoubleConstant -10
+   ChangeManaCost Subtraction DoubleConstant 10 ManaCostOfCube Target
+Description: At the start of each battle, your cubes cost 10% less mana, down to a minimum of 10 End
+End
+
+PERK: Believer
+BelongsTo: General
+Ability: AfterACubeTakesDamage If IsEnemyToCaster Victim If IsAllyToCaster Culprit If Not IsALeader Culprit
+ TargetCube Culprit GainAbility FervorX 1
+Description: After a non leader ally deals damage to an enemy, it gains 1 fervor (increasing the next damage it deals by 1) End
 End

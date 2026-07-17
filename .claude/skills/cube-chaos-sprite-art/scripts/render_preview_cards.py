@@ -48,8 +48,100 @@ ROOT = r"e:\Programme\Steam\steamapps\common\Cube Chaos"
 MOD_DIR = os.path.join(ROOT, "GameData", "DJ")
 SPRITES = os.path.join(MOD_DIR, "Sprites")
 FONT_PATH = os.path.join(ROOT, "GeneralData", "dogicapixel.ttf")
+MODDING_INFO_PATH = os.path.join(ROOT, "ModdingInfo.txt")
 OUT_DIR = os.path.join(MOD_DIR, "Preview")  # lives with the mod, e.g. for GameData/DJ/README.md
 MOD_PREFIX = "DJ"  # this mod's .c.txt/.c.png basename prefix
+
+# A bare `Ability: Name arg1 arg2` line that grants a pre-registered built-in
+# ability (StrengthX, ChargeEveryX, FreePlacement, ...) needs no Text: of its
+# own in the source .c.txt (see cube-chaos-scripting's Text:/Description:
+# requirement) -- the engine already has that ability's tooltip text baked
+# in. But that means THIS script has nothing to read for it either, and a
+# cube whose abilities are all built-ins (e.g. General's own Recruit: just
+# ChargeEveryX/EveryXMeleeY/FreePlacement/Climbing/Faction_Colours, no custom
+# Ability: chains at all) previously rendered with an empty ability list --
+# not stale data, a genuine gap. Fix: parse ModdingInfo.txt's own doc-string
+# list for these exact same built-in abilities (real registered tooltip
+# templates, e.g. `ChargeEveryX TIME     "... Every CODE 1 move forwards "`)
+# and substitute the bare Ability: line's actual literal arguments into the
+# template's CODE N / STACKING N placeholders, same convention the base game
+# itself uses in ModdingInfo.txt.
+ABILITY_DOC_RE = re.compile(r'^(\w+)((?:\s+[A-Za-z]+)*)\s+"(.*)"\s*$')
+
+
+def load_builtin_ability_docs():
+    docs = {}
+    for line in open(MODDING_INFO_PATH, encoding="utf-8").read().split("\n"):
+        m = ABILITY_DOC_RE.match(line)
+        if not m:
+            continue
+        name, types_blob, template = m.group(1), m.group(2), m.group(3)
+        docs[name] = {"types": types_blob.split(), "template": template}
+    return docs
+
+
+def strip_markup(s):
+    # \C R G B ... \CN colors a span, \B is a bold marker -- both are literal
+    # plain characters in these doc strings (not real escapes), meaningful to
+    # the game's own tooltip renderer but not to this plain-text card.
+    s = re.sub(r'\\C\d+ \d+ \d+', '', s)
+    s = s.replace('\\CN', '').replace('\\B', '')
+    return re.sub(r'\s+', ' ', s).strip()
+
+
+def resolve_builtin_ability_text(name, args, ability_docs):
+    doc = ability_docs.get(name)
+    if not doc or not doc["template"]:
+        return None
+    text = doc["template"]
+    code_i = stacking_i = 0
+    for t, raw_val in zip(doc["types"], args):
+        if t == "STACKING":
+            stacking_i += 1
+            text = text.replace(f"STACKING {stacking_i}", raw_val)
+        elif t == "TIME":
+            code_i += 1
+            # TIME literals are in ticks (60/sec) -- convert to the same
+            # "N second(s)" phrasing real Text:/Description: prose uses
+            # (see cube-chaos-rule-text) rather than showing a raw tick count.
+            secs = float(raw_val) / 60
+            if secs == int(secs):
+                secs = int(secs)
+                val_str = f"{secs} second" + ("" if secs == 1 else "s")
+            else:
+                val_str = f"{secs:.2g} seconds"
+            text = text.replace(f"CODE {code_i}", val_str)
+        else:
+            code_i += 1
+            text = text.replace(f"CODE {code_i}", raw_val)
+    return strip_markup(text)
+
+
+def collect_ability_texts(lines, ability_docs):
+    """Top-level Ability:/Text: pairs, in file order. A custom ability's own
+    immediately-following Text: is used verbatim (existing behavior); a bare
+    built-in-only Ability: line (no Text: right after it) falls back to
+    resolve_builtin_ability_text instead of being silently dropped."""
+    top = [l for l in lines if l and not l[0].isspace()]
+    texts = []
+    i = 0
+    while i < len(top):
+        line = top[i]
+        if line.startswith("Ability:"):
+            if i + 1 < len(top) and top[i + 1].startswith("Text:"):
+                content = top[i + 1][len("Text:"):].strip()
+                if content.endswith(" End"):
+                    content = content[:-4].strip()
+                texts.append(content)
+                i += 2
+                continue
+            tokens = line[len("Ability:"):].strip().split()
+            if tokens:
+                resolved = resolve_builtin_ability_text(tokens[0], tokens[1:], ability_docs)
+                if resolved:
+                    texts.append(resolved)
+        i += 1
+    return texts
 
 # Grid columns are derived from the actual tile count (ceil(sqrt(n)), matching
 # the game's own square-sheet convention -- see SKILL.md) rather than
@@ -345,12 +437,13 @@ def build_cubes():
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Cubes.c.txt"), CUBE_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Cubes.c.png")
     cols = grid_cols(len(blocks))
+    ability_docs = load_builtin_ability_docs()
     cards = []
     for i, b in enumerate(blocks):
         h = b["header"]
         name, mana, hp, maxhp = h.group(1), int(h.group(2)), int(h.group(3)), int(h.group(4))
         is_token = any(l.strip() == "TOKEN" for l in b["lines"])
-        texts = all_top_level(b["lines"], "Text:")
+        texts = collect_ability_texts(b["lines"], ability_docs)
         stat_bits = [f"Mana Cost: {mana}"]
         if hp or maxhp:
             stat_bits.append(f"HP: {hp}" if hp == maxhp else f"HP: {hp}/{maxhp}")

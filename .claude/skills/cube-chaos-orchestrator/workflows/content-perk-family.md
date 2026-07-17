@@ -31,6 +31,10 @@ Covers reward perks, Curses, Blights, Boons, Nightmares, Terrain perks, Consumab
 
 **A fresh `IsUpgradeFrom:` upgrade perk goes in its own `<ModPrefix>_UpgradePerks.c.txt`, never appended into the same file as the perk it upgrades.** This matches the base game's own convention (upgrades always live in a separate, sprite-less file — see `cube-chaos-sprite-art`'s upgrade-perk section) and avoids ever having to reason about blank sprite-sheet slots for the regular perks file at all. If the perk being upgraded still lives in the mixed-file style from before this convention was adopted, that's a sign to split it out now rather than adding one more upgrade to the pile.
 
+## Preview-and-approve gate (before the Sequence below)
+
+Before writing any file, run the orchestrator's **Step C preview-and-approve gate**: print the theoretical spec (category + `Value:`/`BalanceCap:` + the real trigger chain + the `Description:` *derived from that chain*, sprite/border as concept only) and get the user's explicit OK. Iterate on the printed table — not on files — until they approve. Sprites and the Sequence below happen only after that OK.
+
 ## Sequence
 
 1. **`cube-chaos-scripting`** — the `PERK:` block, trigger chain, and its paired `Description:`. If this is an `IsUpgradeFrom:` upgrade, write it directly into `<ModPrefix>_UpgradePerks.c.txt`, not the regular perks file.

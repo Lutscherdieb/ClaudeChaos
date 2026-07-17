@@ -1,0 +1,102 @@
+PERK: General-Elemental
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeDies If IsNeutral Victim If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+ If X%Chance DoubleConstant 50
+  CreateCubeOnPosition CopyWithAction Victim SetHp MaxHpOfCube Victim ARandomLeftPosition
+Description: After a neutral cube dies while in enemy territory, 50% chance you create a full hp copy of it in a random left_side_position End
+End
+
+PERK: General-Devourer
+BelongsTo: CLASSSPECIES
+Ability: AtTheStartOfTheBattle Both AddCubeToHandOfThis CopyWithAction CubeConstant Rocket GainAbility Swarm
+ Both AddCubeToHandOfThis CopyWithAction CubeConstant Bomb GainAbility Swarm
+  Both AddCubeToHandOfThis CopyWithAction CubeConstant Shell GainAbility Swarm
+   AddCubeToHandOfThis CopyWithAction CubeConstant Shot GainAbility Swarm
+Description: At the start of the battle add a Rocket, Bomb, Shell, and Shot to your hand, each with Swarm End
+End
+
+PERK: General-Shadow
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeDies If CubeHasName Victim Solid_Shadow If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+ If X%Chance DoubleConstant 20
+  Both CreateCubeOnPosition CubeConstant Bomb TopPositionAboveCube Victim
+   If CubeExists CubeOfPosition TopPositionAboveCube Victim
+    TargetCube CubeOfPosition TopPositionAboveCube Victim Both RemoveAbilityWithName Flying RemoveAbilityWithName ChargeEveryX
+Description: After a Solid_Shadow dies while in enemy territory, 20% chance to create an allied Bomb at the top of that column, which falls from there End
+End
+
+PERK: General-Undead
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeDies If IsAllyToCaster Victim If Not HasAbilityWithName Victim Undead If Not HasAbilityWithName Victim ProjectileX
+ If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+  Both CreateCubeOnPosition CubeConstant Zombie PositionInDirectionFromPosition South TopPositionAboveCube Victim
+   CreateCubeOnPosition CubeConstant Parachute TopPositionAboveCube Victim
+Description: After a non undead, non projectile ally dies while in enemy territory, create an allied Zombie below the top of that column, with a Parachute above it End
+End
+
+PERK: General-Chaos
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeTakesDamage If And IsEnemyToCaster Victim IsALeader Victim
+ SetStorage ARandomCubeInLibraryWhich Not IsToken Test
+  AddCubeToHandOfThis CopyWithAction Storage ChangeManaCost Division Multiplication ManaCostOfCube Storage DoubleConstant -50 DoubleConstant 100
+Description: After an enemy leader takes damage, add a random cube to your hand, 50% cheaper End
+End
+
+PERK: General-Fungus
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If Not HasAbilityWithName Victim ChargeEveryX
+ TargetCube Victim GainAbility ChargeEveryX 120
+Description: Whenever an ally without charging is created, it gains charging (moves forwards every 2 seconds) End
+End
+
+PERK: General-Moil
+BelongsTo: CLASSSPECIES
+Ability: Every30Seconds TargetPerk ARandomPerkInInventoryWhich IsTestPerkMoilable
+ If PerkExists Target
+  CreateCubeOnPosition CopyWithAction CubeConstant Perk_Moil
+   Both GainAllAbilitiesOfPerk Target
+    Both SetSpriteToPerk Target
+     Both SetSpriteToCube CombinationOf2Cubes Target CubeConstant Perk_Moil
+      GainAbilityText AfterThisIsCreated Both
+       CreateCubeOnPosition CubeConstant Parachute PositionInDirectionFromThis North
+       RemoveThisAbility
+      Creates a Parachute above this, then removes itself End
+   ARandomLeftPosition
+Description: Every 30 seconds create a cube version of a random eligible perk from your inventory (like Perk_Moil) on a random left_side_position, with a Parachute above it End
+End
+
+PERK: General-Crystal
+BelongsTo: CLASSSPECIES
+Ability: BeforeACubeDies If IsAllyToCaster Victim If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+ EveryCubeTouchingPosition PositionOfCube Victim
+  If IsEnemyToCaster Target TargetCube Victim GainAbility ExplodesX 1
+Description: Before an ally dies while in enemy territory, give it 1 Explodes for each touching enemy (dealing that much combined damage to touching cubes as it dies) End
+End
+
+PERK: General-Remnant
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeIsCreated If And IsAllyToCaster Victim Not IsALeader Victim
+ TargetCube Victim TeleportToPosition ARandomRightPosition
+Description: After an ally is created, it's created on a random right_side_position instead End
+End
+
+PERK: General-Dwarf
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeTakesDamage If IsAllyToCaster Victim If IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+ If X%Chance DoubleConstant 10
+  TargetCube Victim GainAbility RetaliateX 1
+Description: After an ally in friendly territory takes damage, 10% chance to give it Retaliate 1 (whenever a non ally damages it after that, deal 1 damage back) End
+End
+
+PERK: General-Plant
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+ TargetCube Victim GainAbility GrowthX 3
+Description: Whenever an ally is created in friendly territory, it gains 3 growth (gaining 3 extra hp per minute) End
+End
+
+PERK: General-No_Species
+BelongsTo: CLASSSPECIES
+Ability: EveryXSeconds 45 AddCubeToHandOfThis FreeCopy ARandomCubeInLibraryWhich And HasCategory Test ATTACKER Not IsToken Test
+Description: Every 45 seconds add a free random attacker cube to your hand End
+End

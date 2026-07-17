@@ -53,6 +53,37 @@ Every path ends the same way: **`cube-chaos-mod-setup`'s launch-and-check-`Log.t
 
 **If the mod does NOT yet have a `README.md`, don't create one as part of finishing this change.** Per `cube-chaos-mod-setup`'s README governance section: a README is created late and only on explicit request or your own judgment call that a session's work has landed at a genuinely feature-complete point — and even then, ask the user first rather than creating it silently. Don't let "every path ends with a README regen" become "every path ends with a README" — those are different rules for different situations (an existing README must stay in sync; a nonexistent one is not owed to every change).
 
+## Step C — preview-and-approve gate (before any file is written)
+
+**No obtainable content gets written to a `.c.txt` until its design is previewed and the user has explicitly OK'd it.** This is a hard gate, the same weight as the launch-and-check-`Log.txt` gate at the other end of the flow — the launch gate catches implementation bugs *after* writing; this gate catches design/intent mismatches *before* writing, where a fix is a table edit instead of a re-implementation. The single highest-value thing it catches: **rule text derived from the ability I would actually write, not paraphrased from the user's prompt** — that's exactly where "that's not the trigger I meant" hides, and it's near-free to catch here.
+
+**What triggers the gate:** any *new or edited* CUBE: or PERK-family item whose design is changing — i.e. the change creates or alters an `Ability:`/`WorldAbility:`/`SpecialAction:` chain, or a balance number (mana/hp, `IDENT` rarity/aggressive/defensive/scaling/weirdness, `Value:`/`BalanceCap:`). Class/Species base perks and Class+Species synergies count too (they carry an `Ability:`+`Text:`). It does **not** fire for the pure-cosmetic edits that also skip the launch loop — a pure `Text:`/`Description:` reword with no mechanical change, or a pure sprite-pixel repaint — because there's no *design* being decided, only wording or pixels.
+
+**How to run it (plain preview + free feedback — no plan-mode ceremony, no forced-choice menus):**
+
+1. For each triggered item, before invoking `cube-chaos-scripting` to write anything, build the full theoretical spec and print it as a plain-text preview block:
+
+   ```
+   <Mod>_<File> — "<Name>"   [proposed]
+     Type / rarity:  CUBE, IDENT, Uncommon        (or PERK category, etc.)
+     Cost / stats:   4 mana · 3/3 hp · aggressive   (Value:/BalanceCap: for perk-family)
+     Ability (as I'd actually write it):
+        Ability: ...the real DSL chain...
+     Rule text (DERIVED from that ability, not from your prompt):
+        "..."
+     Sprite:  concept only, drawn after OK — palette/border named, no pixels yet
+   ```
+
+   The ability line is the *real* chain (run `cube-chaos-scripting`/`cube-chaos-balancing` first), and the rule text is generated from that chain via `cube-chaos-rule-text`, **not** a restatement of what the user asked for. If the two diverge, that divergence is the whole point of showing it.
+
+2. If the session creates several items (e.g. a synergy batch), present them **together in one plan**, but accept **per-item feedback** — the user shouldn't have to re-approve nine good items to adjust the tenth.
+
+3. Then wait for the user's own words. "OK / go" → implement. "Cost's too high / that's not the trigger I meant / make it simpler" → adjust the *spec table* (not files), reprint the changed item(s), and wait again. Loop until the user OKs. **Ask via `AskUserQuestion` only if genuinely blocked on a design decision** (per the existing "ask ambiguous mechanics" / "ask for content names" / "ask before picking colors" memories) — otherwise plain iteration on the printed table is enough.
+
+4. **Only sprites and file writes happen after the OK.** Mechanics (ability + numbers + rule text) are what the gate approves; the sprite is drawn *after*, once the design is locked, so no pixel work is wasted on a design that gets reshaped. The per-workflow "Sequence" steps run only past this point.
+
+This gate sits *before* the launch-and-check gate — approve the design, then implement, then launch-and-check.
+
 ## Notes for extending this orchestrator
 
 - If a genuinely new content type shows up that doesn't fit the dispatch table (the game adds something new, or this mod needs a mechanic none of the existing categories cover), don't force it into an existing workflow file — add a new one and a new dispatch-table row, the same way `cube-chaos-sprite-art`'s border-pattern-library table is meant to grow as new categories get confirmed.
