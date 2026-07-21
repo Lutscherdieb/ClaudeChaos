@@ -1,3 +1,12 @@
+COMPOUND: ABILITY
+General_Inherited_Strength
+StrengthX 1
+ExtraTrigger: Inheritable
+Text: \C255 38 0 Strength 1 \CN , Inheritable End
+NO_DUPLICATES
+NORANDOM
+End
+
 PERK: General-Elemental
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeDies If IsNeutral Victim If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
@@ -19,9 +28,9 @@ PERK: General-Shadow
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeDies If CubeHasName Victim Solid_Shadow If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
  If X%Chance DoubleConstant 20
-  Both CreateCubeOnPosition CubeConstant Bomb TopPositionAboveCube Victim
-   If CubeExists CubeOfPosition TopPositionAboveCube Victim
-    TargetCube CubeOfPosition TopPositionAboveCube Victim Both RemoveAbilityWithName Flying RemoveAbilityWithName ChargeEveryX
+  CreateCubeOnPosition CopyWithAction CubeConstant Bomb
+   Both RemoveAbilityWithName Flying RemoveAbilityWithName ChargeEveryX
+   TopPositionAboveCube Victim
 Description: After a Solid_Shadow dies while in enemy territory, 20% chance to create an allied Bomb at the top of that column, which falls from there End
 End
 
@@ -29,9 +38,10 @@ PERK: General-Undead
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeDies If IsAllyToCaster Victim If Not HasAbilityWithName Victim Undead If Not HasAbilityWithName Victim ProjectileX
  If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
-  Both CreateCubeOnPosition CubeConstant Zombie PositionInDirectionFromPosition South TopPositionAboveCube Victim
-   CreateCubeOnPosition CubeConstant Parachute TopPositionAboveCube Victim
-Description: After a non undead, non projectile ally dies while in enemy territory, create an allied Zombie below the top of that column, with a Parachute above it End
+  If X%Chance DoubleConstant 20
+   Both CreateCubeOnPosition CubeConstant Zombie PositionInDirectionFromPosition South TopPositionAboveCube Victim
+    CreateCubeOnPosition CopyWithAction CubeConstant Parachute Secret GainAbility Undead TopPositionAboveCube Victim
+Description: After a non undead, non projectile ally dies while in enemy territory, 20% chance to create an allied Zombie below the top of that column, with an undead Parachute above it End
 End
 
 PERK: General-Chaos
@@ -51,18 +61,20 @@ End
 
 PERK: General-Moil
 BelongsTo: CLASSSPECIES
-Ability: Every30Seconds TargetPerk ARandomPerkInInventoryWhich IsTestPerkMoilable
+Ability: EveryMinute If X%Chance DoubleConstant 50 TargetPerk ARandomPerkInInventoryWhich IsTestPerkMoilable
  If PerkExists Target
   CreateCubeOnPosition CopyWithAction CubeConstant Perk_Moil
    Both GainAllAbilitiesOfPerk Target
-    Both SetSpriteToPerk Target
-     Both SetSpriteToCube CombinationOf2Cubes Target CubeConstant Perk_Moil
-      GainAbilityText AfterThisIsCreated Both
-       CreateCubeOnPosition CubeConstant Parachute PositionInDirectionFromThis North
-       RemoveThisAbility
-      Creates a Parachute above this, then removes itself End
+    Both GainXExtraHp RoundedDown Division ValueOfPerk Target 2
+     Both ChangeManaCost Division ValueOfPerk Target 2
+      Both SetSpriteToPerk Target
+       Both SetSpriteToCube CombinationOf2Cubes Target CubeConstant Perk_Moil
+        GainAbilityText AfterThisIsCreated Both
+         CreateCubeOnPosition CubeConstant Parachute PositionInDirectionFromThis North
+         RemoveThisAbility
+        Creates a Parachute above this, then removes itself End
    ARandomLeftPosition
-Description: Every 30 seconds create a cube version of a random eligible perk from your inventory (like Perk_Moil) on a random left_side_position, with a Parachute above it End
+Description: Every minute, 50% chance to create a cube version of a random eligible perk from your inventory (like Perk_Moil) on a random left_side_position, with a Parachute above it, its hp and cost are both half the perk's value End
 End
 
 PERK: General-Crystal
@@ -75,9 +87,9 @@ End
 
 PERK: General-Remnant
 BelongsTo: CLASSSPECIES
-Ability: AfterACubeIsCreated If And IsAllyToCaster Victim Not IsALeader Victim
- TargetCube Victim TeleportToPosition ARandomRightPosition
-Description: After an ally is created, it's created on a random right_side_position instead End
+Ability: AfterACubeIsCreated If And IsAllyToCaster Victim IsPlaced
+ TargetCube Victim GainAbility General_Inherited_Strength
+Description: Placed allies gain strength 1, inherited by cubes they create End
 End
 
 PERK: General-Dwarf

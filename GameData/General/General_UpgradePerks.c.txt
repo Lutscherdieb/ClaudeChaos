@@ -25,7 +25,7 @@ Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Bomb
   CreateCubeOnPosition CubeConstant Rocket PositionOfCube Victim
 AbilityText: Created Bombs are created as Rockets instead End
 Description: Created Shots are created as Shells instead \N Created Shells are created as Bombs instead \N Created Bombs are created as Rockets instead End
-IsUpgradeFrom: Arms_Race_Mk2 100
+IsUpgradeFrom: Arms_Race_Mk2 120
 End
 
 PERK: Air_Superiority_Mk2

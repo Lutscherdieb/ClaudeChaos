@@ -134,6 +134,40 @@ Guard every such call site with a "has at least one ability" filter: `IsLarger A
 - Factions are numbered `0` = neutral, `1` = one player, `2` = the other (confirmed via dozens of `SetFaction DoubleConstant 1`/`2`/`0` calls, e.g. `Main/Perks.c.txt`'s `Both SetFaction DoubleConstant 1 ...` / `Both SetFaction DoubleConstant 2 ...` pair for "give a copy to each side"). To affect "everyone's hand" (both players) rather than one side relative to the caster, loop `EveryCubeInHandOfFactionWhich DoubleConstant 1 ...` and `EveryCubeInHandOfFactionWhich DoubleConstant 2 ...` explicitly — simpler and more literal than `FactionOfThis`/`InvertedFaction FactionOfThis`, which only get you "mine" vs "the opponent's" relative to the current Caster.
 - `CreateCubeOnPosition`/`CopyWithAction` on a bare `CubeConstant X` **defaults to allied-to-Caster**, not neutral — confirmed by `Characters/Species/Shadow.c.txt`'s `Shadow_Hive` perk, which creates `CubeConstant Solid_Shadow_Hive` with no `SetFaction` call at all and its own `Description:` calls the result "an allied Solid_Shadow_Hive". The base game explicitly wraps in `NeutralCopy CUBE` (a different function) or appends `SetFaction DoubleConstant 0` when a spawned cube needs to be neutral instead. Don't assume a freshly created cube inherits the faction of whatever triggered its creation (e.g. `Victim`'s faction) — it won't, unless you explicitly `SetFaction FactionOfCube Victim` (or similar) yourself.
 
+## Modifying a cube you just created: `CopyWithAction` at creation, never re-acquire it by position
+
+**The single most common real bug shape in this repo.** To create a cube and give it something, it is tempting to create it and then look up whatever is now standing on that square:
+
+```
+Both CreateCubeOnPosition CubeConstant Rocket PositionInDirectionFromPosition North PositionOfThis
+ If CubeExists CubeOfPosition PositionInDirectionFromPosition North PositionOfThis
+  TargetCube CubeOfPosition PositionInDirectionFromPosition North PositionOfThis
+   GainAbility HomingX 15
+```
+
+This is wrong, and it fails **silently and intermittently** — it looks correct in every test where the square happened to be free. `CreateCubeOnPosition` on an occupied square does not create anything and does not abort the surrounding chain; the following `CubeExists` check then passes against the **pre-existing blocker**, and the grant lands on that unrelated cube. User-reported symptom, found on `Rocket_Silo` and then `Airport`: "the cube blocking the spawn position is getting homing." A `Burrowing`/`AiEmptyNorth` cube is *more* exposed to this, not less — it spends its life adjacent to whatever it failed to burrow through.
+
+**The fix is `CreateCubeOnPosition CopyWithAction CUBE ACTION POSITION`** — the action applies to the copy *before* placement, so it can only ever touch the cube being created, and a blocked creation grants nothing to nobody:
+
+```
+CreateCubeOnPosition CopyWithAction CubeConstant Bomb
+ Both RemoveAbilityWithName Flying RemoveAbilityWithName ChargeEveryX
+ PositionInDirectionFromPosition South PositionOfThis
+```
+
+Note the surrounding `Both` disappears — there is no longer a second action to sequence. This is overwhelmingly the base game's own idiom (71+ `CreateCubeOnPosition CopyWithAction` sites across every base file; the risky re-acquire shape appears essentially once, at `Characters/Classes/PerkFragments.c.txt:924`). **A guard-first shape (`If Not CubeExists <pos>` before creating) has zero occurrences in the base game** — don't invent it; it also doesn't help, since the interesting failure is "creation silently no-ops," not "we forgot to check."
+
+**The one legitimate reason to re-acquire by position: another perk may have replaced your cube after creation.** `Arms_Race`-style perks (`AfterACubeIsCreated ... Exile` + create a different cube at `PositionOfCube Victim`) swap the cube out between your `CreateCubeOnPosition` and the next line, so a chain that must affect the *replacement* has to look it up by position. The tell is branching on names the created cube can't possibly have — the General mod's `Artillery` creates `CubeConstant Shell` yet branches on `CubeHasName Target Bomb`/`Rocket`, which are reachable only via that swap. Converting such a site to `CopyWithAction` silently turns those branches into dead code. Guard it with a name check instead of converting it:
+
+```
+TargetCube CubeOfPosition <pos>
+ If Or Or CubeHasName Target Shell CubeHasName Target Bomb CubeHasName Target Rocket
+  Both GainAbility Arcing DoubleConstant 180
+   ...
+```
+
+So: **`CopyWithAction` by default; re-acquire only when a post-creation swap is genuinely being handled, and then always name-guarded.** When auditing a mod for this, grep for `TargetCube CubeOfPosition` and `TargetCube CubeInDirectionFromCube` — every hit is either a bug or a deliberate swap-handler, and the two are easy to tell apart by whether the chain branches on foreign cube names.
+
 ## Duplicating a specific live cube (e.g. pulled from hand) without consuming the original
 
 `CreateCubeOnPosition CUBE POSITION` on a CUBE expression that's a **freshly-instantiated template** (`CubeConstant X`, or a value already built via `SetStorage CopyWithAction CubeConstant X ...` and reused across multiple positions) needs no special handling — every real example of that shape just calls `CreateCubeOnPosition Storage <position>` directly, since `Storage` there holds a template value, not a specific board/hand object.
@@ -315,6 +349,38 @@ Ability: BeforeThisMoves IfElse HasAbilityWithName Caster ChargeEveryX
    <effect when fleeing is about to be blocked>
 ```
 Combining both patterns, a full "patrol until blocked, then reverse" cube needs only ONE reversal `Ability:` instead of two (real before/after comparison: General mod's `Bomber` cube originally used the two-`AfterThisMoves`-blocks shape above keyed on enemy-leader detection, then the `EventDirection`-based single-trigger shape, then this ability-state-keyed shape once the `EventDirection`/`Backwards` gap surfaced in actual play — see `GameData/General/General_Cubes.c.txt`).
+
+## Making an ability propagate to created cubes: the base-game `Inheritable` modifier
+
+For "cubes created by this also get ability X (recursively)," don't hand-roll an `AfterThisCreates TargetCube Victim GainAbility X` grant — the base game already has a reusable modifier, `Inheritable` (`Base_Core/1Compounds.c.txt:567`, `NORANDOM`), whose tooltip (`Base_Core/ToolTipText.c.txt:73`) reads *"Cube created/added to a players hand by this also gain this ability"*:
+```
+COMPOUND: ABILITY
+Inheritable
+AfterThisCreates If Not IsPlaced TargetCube Victim GainThisAbility
+ExtraTrigger: BeforeThisAddsACubeToHand TargetCube Victim GainThisAbility
+NORANDOM
+End
+```
+
+How it actually works — and the non-obvious parts that bit during the General mod's `General-Remnant` rewrite:
+
+- **It's attached via `ExtraTrigger: Inheritable` placed on an ability line inside a `CUBE:` or `COMPOUND: ABILITY` definition — a *definition-time* composition, NOT something you dynamically bolt onto an existing ability at grant time.** Real base-game usage: `Main/CubeUpgrades.c.txt`'s `BurningDamage` (`AfterThisDealsDamage ... GainAbility Burning` then `ExtraTrigger: Inheritable`), and cube ability lines in `Main/3GeneralCubes.c.txt` (`ExtraTrigger: Inheritable` right after the `Ability:` it modifies). The convention is to also append `, Inheritable` to that ability's own `Text:`.
+- **`GainThisAbility` propagates the *whole* ability the `ExtraTrigger: Inheritable` is part of — recursively** (the created cube gets the full compound, including its own `Inheritable`, so *its* creations inherit too), but **only to non-placed cubes** (`If Not IsPlaced`) plus cubes added to hand. So it fires for cubes *spawned by* the holder, not for cubes the player hand-places.
+- **Granting `Inheritable` standalone (`GainAbility Inheritable`) does nothing useful** — its `GainThisAbility` would only re-propagate `Inheritable` itself, carrying no actual effect. To make some effect (e.g. `StrengthX`) inheritable you must define your *own* compound that bundles the effect body **and** `ExtraTrigger: Inheritable`, then grant/reference that compound.
+- **A bare passive stat ability works fine as that compound's body** — confirmed by load-testing `StrengthX 1` as the body line of a mod compound under `ExtraTrigger: Inheritable` (parsed clean, no `CANT READ`). This matters because a passive stat is exactly what you want the *holder itself* to benefit from: the holder gets the stat via the body, and the whole compound cascades to its creations via the ExtraTrigger. Real usage, General mod's `General_Inherited_Strength` (`GameData/General/General_Synergies.c.txt`), granted to placed allies by the `General-Remnant` synergy (`AfterACubeIsCreated If And IsAllyToCaster Victim IsPlaced → TargetCube Victim GainAbility General_Inherited_Strength`) so the placed ally deals +1 and every cube in its creation tree inherits +1:
+```
+COMPOUND: ABILITY
+General_Inherited_Strength
+StrengthX 1
+ExtraTrigger: Inheritable
+Text: \C255 38 0 Strength 1 \CN , Inheritable End
+NO_DUPLICATES
+NORANDOM
+End
+```
+- **The mod compound must be defined earlier in the same file than the perk/cube that references it** (the same single-pass ordering constraint documented in the gotchas above) — `General_Inherited_Strength` sits at the top of `General_Synergies.c.txt`, before the first perk. Defining it in the same file as its only user also sidesteps the cross-*package*/cross-*file* load-order trap entirely.
+- **Semantic contrast to weigh before choosing this over a hand-rolled grant:** `Inheritable` makes the *holder itself* carry the effect and cascades it *recursively* down the whole creation tree. A plain `GainAbilityText AfterThisCreates TargetCube Victim GainAbility X` grant instead leaves the holder unaffected and only buffs its *direct* creations (non-recursive). These are genuinely different mechanics — pick per intent, and surface the difference to the user when a request ("cubes created by this gain X") is ambiguous about whether the holder benefits or whether it should cascade.
+- **Inverse/opt-out exists:** `TheInheritor` (`Main/1Compounds.c.txt:72`, `Text: \C255 0 220 Inheritor: \CN Cubes created by this cube won't inherit abilities`) is a cube-side ability that blocks inheritance from happening on that cube's creations.
 
 ## Preserving a dynamically-granted ability through a "replace this cube with a different cube" cascade
 

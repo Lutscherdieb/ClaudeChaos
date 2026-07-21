@@ -45,11 +45,11 @@ Ability: Flying
 Ability: ChargeEveryX 60
 Ability: AfterThisMoves If Not IsEqual PlacabilityOfPosition PositionOfThis FactionOfThis
  If CubeExists TheFirstCubeInDirectionFromPositionWhich South PositionOfThis IsEnemyToCaster Test
-  Both CreateCubeOnPosition CubeConstant Bomb PositionInDirectionFromPosition South PositionOfThis
-   If CubeExists CubeOfPosition PositionInDirectionFromPosition South PositionOfThis
-    TargetCube CubeOfPosition PositionInDirectionFromPosition South PositionOfThis
-     Both RemoveAbilityWithName Flying RemoveAbilityWithName ChargeEveryX
-Text: After this moves in enemy territory with an enemy any distance below this, create a Bomb below this, which falls instead of flying off End
+  If X%Chance DoubleConstant 50
+   CreateCubeOnPosition CopyWithAction CubeConstant Bomb
+    Both RemoveAbilityWithName Flying RemoveAbilityWithName ChargeEveryX
+    PositionInDirectionFromPosition South PositionOfThis
+Text: After this moves in enemy territory with an enemy any distance below this, 50% chance to create a Bomb below this, which falls instead of flying off End
 Ability: BeforeThisMoves IfElse HasAbilityWithName Caster ChargeEveryX
  If Or CubeExists CubeInDirectionFromCube Forwards Caster
   Not PositionExists PositionInDirectionFromPosition Forwards PositionOfThis
@@ -84,11 +84,12 @@ TYPE Shooter
 Ability: EveryXSeconds DoubleConstant 20 Both CreateCubeOnPosition CubeConstant Shell PositionInDirectionFromPosition Forwards PositionInDirectionFromPosition North PositionOfThis
  If CubeExists CubeOfPosition PositionInDirectionFromPosition Forwards PositionInDirectionFromPosition North PositionOfThis
   TargetCube CubeOfPosition PositionInDirectionFromPosition Forwards PositionInDirectionFromPosition North PositionOfThis
-   Both GainAbility Arcing DoubleConstant 180
-    Both SetVariable ARCING RandomRoundBetweenXtoY DoubleConstant 17 DoubleConstant 25
-     Both If CubeHasName Target Shell SetSpriteToCube CubeConstant Shell_Arc
-      Both If CubeHasName Target Bomb SetSpriteToCube CubeConstant Bomb_Arc
-       If CubeHasName Target Rocket SetSpriteToCube CubeConstant Rocket_Arc
+   If Or Or CubeHasName Target Shell CubeHasName Target Bomb CubeHasName Target Rocket
+    Both GainAbility Arcing DoubleConstant 180
+     Both SetVariable ARCING RandomRoundBetweenXtoY DoubleConstant 17 DoubleConstant 25
+      Both If CubeHasName Target Shell SetSpriteToCube CubeConstant Shell_Arc
+       Both If CubeHasName Target Bomb SetSpriteToCube CubeConstant Bomb_Arc
+        If CubeHasName Target Rocket SetSpriteToCube CubeConstant Rocket_Arc
 Text: Every 20 seconds create a Shell above and forward, and grant it arcing momentum (it already charges forwards on its own) End
 Ability: Faction_Colours
 Visual: Target 27 0 255 0 0
@@ -128,7 +129,7 @@ Ability: Flying
 Ability: ChargeEveryX 75
 Ability: EveryXSeconds DoubleConstant 20 Both CreateCubeOnPosition CubeConstant Recruit PositionInDirectionFromPosition South PositionInDirectionFromPosition South PositionOfThis
  CreateCubeOnPosition CubeConstant Parachute PositionInDirectionFromPosition South PositionOfThis
-Text: Every 20 seconds, create a Recruit below this, then a Parachute above it End
+Text: Every 20 seconds, create a Recruit 2 spaces below this, with a Parachute in the space between End
 Ability: BeforeThisMoves IfElse HasAbilityWithName Caster ChargeEveryX
  If Or CubeExists CubeInDirectionFromCube Forwards Caster
   Not PositionExists PositionInDirectionFromPosition Forwards PositionOfThis
@@ -164,8 +165,8 @@ Ability: ChargeEveryX 15
 AiPlacementRule: AiMissile
 End
 
-CUBE: Rocket 17 1 1
-IDENT 1 17 0 0 0
+CUBE: Rocket 25 1 1
+IDENT 1 25 0 0 0
 TYPE Attacker
 Ability: ProjectileX 5
 Ability: BeforeThisDies Both EveryCubeInRadiusXAroundTarget DoubleConstant 3 TakeXDamage DoubleConstant 3
@@ -173,7 +174,8 @@ Ability: BeforeThisDies Both EveryCubeInRadiusXAroundTarget DoubleConstant 3 Tak
  PlaySound Small_Explosion
 Text: Before this dies deal 3 damage to all cubes at most 3 spaces away from it End
 Ability: Flying
-Ability: ChargeEveryX 15
+Ability: Take_Off
+Ability: HomingX 15
 AiPlacementRule: AiMissile
 End
 
@@ -189,7 +191,7 @@ CUBE: Rocket_Arc 0 0 0
 TOKEN
 End
 
-CUBE: Bunker 40 8 8
+CUBE: Bunker 50 8 8
 IDENT 1 15 15 0 0
 TYPE Shooter
 TYPE Starter
@@ -215,26 +217,21 @@ End
 CUBE: Airport 90 6 6
 IDENT 2 10 5 60 15
 TYPE Support
-Ability: EveryXSeconds DoubleConstant 60 Both Randomly CreateCubeOnPosition CubeConstant Bomber PositionInDirectionFromPosition North PositionOfThis
- CreateCubeOnPosition CubeConstant Drop_Helicopter PositionInDirectionFromPosition North PositionOfThis
-  If CubeExists CubeOfPosition PositionInDirectionFromPosition North PositionOfThis
-   TargetCube CubeOfPosition PositionInDirectionFromPosition North PositionOfThis
-    GainAbility Take_Off
+Ability: EveryXSeconds DoubleConstant 60 Randomly
+ CreateCubeOnPosition CopyWithAction CubeConstant Bomber GainAbility Take_Off PositionInDirectionFromPosition North PositionOfThis
+ CreateCubeOnPosition CopyWithAction CubeConstant Drop_Helicopter GainAbility Take_Off PositionInDirectionFromPosition North PositionOfThis
 Text: Every minute create a Bomber or Drop_Helicopter above this, giving it Take Off End
 Ability: Faction_Colours
 Visual: Target 0 -1 96 96 96
 AiPlacementRule: And AiEmptyNorth AiBackline
 End
 
-CUBE: Rocket_Silo 30 3 3
+CUBE: Rocket_Silo 40 3 3
 IDENT 1 20 5 0 5
 TYPE Shooter
 Ability: Burrowing
-Ability: EveryXSeconds DoubleConstant 30 Both CreateCubeOnPosition CubeConstant Rocket PositionInDirectionFromPosition North PositionOfThis
- If CubeExists CubeOfPosition PositionInDirectionFromPosition North PositionOfThis
-  TargetCube CubeOfPosition PositionInDirectionFromPosition North PositionOfThis
-   Both RemoveAbilityWithName ChargeEveryX Both GainAbility Take_Off GainAbility HomingX 15
-Text: Every 30 seconds create a Rocket above this, replacing its own charging with Take Off and homing towards enemies every quarter of a second End
+Ability: EveryXSeconds DoubleConstant 45 CreateCubeOnPosition CubeConstant Rocket PositionInDirectionFromPosition North PositionOfThis
+Text: Every 45 seconds create a Rocket above this End
 Ability: Faction_Colours
 Visual: Target 0 -1 96 96 96
 AiPlacementRule: And AiEmptyNorth AiStacking
@@ -256,13 +253,13 @@ CUBE: Bombardement 25 0 0
 IDENT 1 15 0 0 5
 TYPE Bomber
 Ability: FreePlacement
-Ability: AfterThisIsCreated Both
- Both CreateCubeOnPosition CubeConstant Bomb PositionOfThis
-  If CubeExists CubeOfPosition PositionOfThis
-   TargetCube CubeOfPosition PositionOfThis Both RemoveAbilityWithName Flying RemoveAbilityWithName ChargeEveryX
- Both CreateCubeOnPosition CubeConstant Bomb TopPositionAboveCube Caster
-  If CubeExists CubeOfPosition TopPositionAboveCube Caster
-   TargetCube CubeOfPosition TopPositionAboveCube Caster Both RemoveAbilityWithName Flying RemoveAbilityWithName ChargeEveryX
+Ability: AfterThisIsCreated Both Exile Both
+ CreateCubeOnPosition CopyWithAction CubeConstant Bomb
+  Both RemoveAbilityWithName Flying RemoveAbilityWithName ChargeEveryX
+  PositionOfThis
+ CreateCubeOnPosition CopyWithAction CubeConstant Bomb
+  Both RemoveAbilityWithName Flying RemoveAbilityWithName ChargeEveryX
+  TopPositionAboveCube Caster
 Text: After this is placed, create a Bomb here and another at the top of this column, both falling instead of flying End
 AiPlacementRule: True
 End
