@@ -16,3 +16,12 @@ ObtainAction: AddCubeToInventory CubeConstant Martyr
 ObtainAction: AddCubeToInventory CubeConstant Brimstone
 ObtainAction: AddCubeToInventory CubeConstant Plague_Ritual
 End
+
+PERK: Hell_Dragon_Egg
+BelongsTo: Unholy
+Ability: AtTheStartOfTheBattle Both AddCubeToHandOfThis FreeCopy CubeConstant Hell_Dragon_Egg RemoveThisAbility
+Description: Start with a free Hell_Dragon_Egg in your hand End
+ReferenceCube: Hell_Dragon_Egg
+ReferenceCube: Baby_Hell_Dragon
+ReferenceCube: Hell_Dragon
+End

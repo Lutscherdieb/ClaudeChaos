@@ -24,6 +24,11 @@ upgrade file), `DJ_Synergies` (`CLASSSPECIES`), `DJ_Consumables`, `DJ_Curses`.
 - **`Note` is `0 0 0` with a `NORANDOM` keyword tag** — this makes it a *passing-but-unpickable*
   ability donor at several ability-scan sites, so those guards name-exclude it. See the
   `GainRandomAbilityOfCube` zero-ability crash-guard notes in `cube-chaos-scripting`.
+- **`Note` is now a `0 1 1` homing projectile**, NOT the "0 0 0 ability donor" the Core-concept line
+  above still implies — its real `CUBE:` block (`DJ_Cubes.c.txt`) is `0 1 1` with `Flying`/`HomingX 120`/
+  `ProjectileX 2`/`DieAfterX 7200` and no `NORANDOM` tag. (The shared skills' crash-guard notes that
+  describe `Note` as a zero-ability `NORANDOM` token are stale against the current cube — flagged for a
+  skill pass.) The `Bass_Dragon` line below leans on this: spawned Notes fly off and home enemies.
 - **`Echo` was renamed from `Encore`** — it counts its own copies via its literal name
   (`AmountOfPerksInInventoryWhich IsSameString NameOfPerk Test StringConstant Echo`), so the literal
   name must stay in sync or the self-count silently reads 0.
@@ -31,6 +36,29 @@ upgrade file), `DJ_Synergies` (`CLASSSPECIES`), `DJ_Consumables`, `DJ_Curses`.
   suspect in a reported freeze when combined with the base-game `Reciprocity` perk (unguarded
   ability-grant recursion). See the freeze-investigation memory; use `Silent` for any new
   ability-grant-reacting perk.
+
+## Dragon evolution line — `Bass_Dragon`
+
+Mimics the base-game per-class Dragon line (reference: Cryomancer's `Icy_Dragon_Egg` in
+`GameData/Characters/Classes/Cryomancer.c.txt`, cubes in `Characters/2TokenCubes.c.txt`). The 3-stage
+shape is shared by all three mods in this repo (General's `War_Dragon`, Unholy's `Hell_Dragon`):
+
+- **Egg** `Bass_Dragon_Egg` (TOKEN 10/7/7, `ArmorX 1`): base compound `Dragon_Egg CubeConstant <baby>`
+  — after 4 min on the field it dies and drops the baby into hand.
+- **Baby** `Baby_Bass_Dragon` (TOKEN 5/15/15): `GrowingUp 40 CubeConstant <adult>` + `GrowthX 5` +
+  `RegenerationX 2` + `WorthXMore 25`. Grows maxhp past 40 (~5 min) then becomes the adult
+  (egg 4 min + baby ~5 min ≈ full dragon by ~9 min — deliberately a late-game payoff, matching base).
+- **Adult** `Bass_Dragon` (TOKEN 200/30/30) + `Flying`/`GrowthX 2`/`EveryXMeleeY 120 4`.
+- **Grant**: `PERK: Bass_Dragon_Egg BelongsTo: DJ` (reward perk, `DJ_Perks`) adds the egg at battle
+  start; `PERK: Baby_Bass_Dragon IsUpgradeFrom: Bass_Dragon_Egg 60` (`DJ_UpgradePerks`, sprite-less)
+  starts you with the baby, forge cost 60.
+
+**DJ signature — Note artillery.** Baby spawns 1 Note/10s (North). Adult spawns a Note on each of the
+4 touching positions every 6s (`North`/`South`/`Forwards`/`Backwards` — sideways two are faction-
+relative so an AI-owned dragon still fires the right way) **and** teleports to the top of a random
+enemy's column every 15s (`SetStorage ARandomEnemy` → `TeleportToPosition TopPositionAboveCube Storage`;
+teleport is NOT default on base dragons, built explicitly). Because `Note` is a homing projectile
+(see above), each spawned Note flies off to strike enemies — the adult is a 4-way music battery.
 
 ## Docs
 

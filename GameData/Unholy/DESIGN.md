@@ -87,6 +87,29 @@ There is no hard engine limit on starter count (`ObtainAction:` is repeatable); 
 the base power/variety baseline. Revisit and trim to a curated few if it plays too strong. The five
 new starters also carry `TYPE Starter` (inventory-sorting only), matching `Ritual`/`Cultist`.
 
+## Dragon evolution line — `Hell_Dragon`
+
+Mimics the base-game per-class/species Dragon line (reference: Cryomancer's `Icy_Dragon_Egg` in
+`GameData/Characters/Classes/Cryomancer.c.txt`, cubes in `Characters/2TokenCubes.c.txt`; base species
+attach theirs the same way, e.g. `Chaos_Dragon_Egg BelongsTo: Chaos`). Shared egg→baby→adult shape
+(see DJ's `DESIGN.md` for the full breakdown; same across all three mods):
+
+- **Egg** `Hell_Dragon_Egg` (TOKEN 10/7/7) → **Baby** `Baby_Hell_Dragon` (TOKEN 5/15/15,
+  `GrowingUp 40`) → **Adult** `Hell_Dragon` (TOKEN 200/30/30) + `Flying`/`GrowthX 2`/`EveryXMeleeY 120 4`.
+- **Grant**: `PERK: Hell_Dragon_Egg BelongsTo: Unholy` (appended to `Unholy_Species.c.txt`);
+  upgrade `PERK: Baby_Hell_Dragon IsUpgradeFrom: Hell_Dragon_Egg 60` in the **new**
+  `Unholy_UpgradePerks.c.txt` (this mod had no upgrade-perks file before — added for this line).
+
+**Unholy signature — Hellfire Breath.** Applies the base-game `Burning` **keyword** (0-arg; "after 5s
+deal 1 dmg to every touching cube and this", `ModdingInfo.txt:89`) to enemies — chosen over direct
+damage because it's literally "burning" and spreads between adjacent burning enemies, fitting the
+chaotic-demon theme (cf. the Imp/`Acidic` "hits allies too" choice above). Adult lights **all** enemies
+every 5s (`EveryCubeWhich IsEnemyToCaster Test GainAbility Burning`); baby lights a **single random**
+enemy every 8s (baby→adult escalation, mirroring the other two lines). Rule text references `Burning`
+colour-only (`\C255 106 0`) per the base-keyword convention, no `\A`. Note: because `Burning` is a
+binary keyword (no stack level), re-application frequency only controls how fast newly-created enemies
+get ignited — the 1 dmg/5s burn rate itself is fixed by the keyword.
+
 ## Sprite notes
 
 - Palette: blood-red demon theme, `RGB(150,20,20)` (see the mod-palette memory).

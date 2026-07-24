@@ -27,6 +27,8 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 <img src="Preview/General_Perks_Splendid_Logistics.png" width="700" alt="Splendid Logistics perk card (upgrade of Wartime Logistics)">
 <img src="Preview/General_Perks_Believer.png" width="700" alt="Believer perk card">
 <img src="Preview/General_Perks_Blinding_Faith.png" width="700" alt="Blinding Faith perk card (upgrade of Believer)">
+<img src="Preview/General_Perks_War_Dragon_Egg.png" width="700" alt="War Dragon Egg perk card">
+<img src="Preview/General_Perks_Baby_War_Dragon.png" width="700" alt="Baby War Dragon perk card (upgrade of War Dragon Egg)">
 
 ### Cubes
 
@@ -44,6 +46,9 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 <img src="Preview/General_Cubes_Rocket_Silo.png" width="700" alt="Rocket Silo cube card">
 <img src="Preview/General_Cubes_Medic.png" width="700" alt="Medic cube card">
 <img src="Preview/General_Cubes_Bombardement.png" width="700" alt="Bombardement cube card">
+<img src="Preview/General_Cubes_War_Dragon_Egg.png" width="700" alt="War Dragon Egg cube card">
+<img src="Preview/General_Cubes_Baby_War_Dragon.png" width="700" alt="Baby War Dragon cube card">
+<img src="Preview/General_Cubes_War_Dragon.png" width="700" alt="War Dragon cube card">
 
 ### Class+Species synergies
 

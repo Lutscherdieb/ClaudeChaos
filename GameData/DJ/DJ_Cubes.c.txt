@@ -62,3 +62,33 @@ Ability: Unique
 Visual: Square 1 0 96 96 96
 AiPlacementRule: And AiStacking AiBackline
 End
+
+CUBE: Bass_Dragon_Egg 10 7 7
+TOKEN
+Ability: Dragon_Egg CubeConstant Baby_Bass_Dragon
+Ability: ArmorX 1
+AiPlacementRule: And AiStacking AiBackline
+End
+
+CUBE: Baby_Bass_Dragon 5 15 15
+TOKEN
+Ability: GrowingUp 40 CubeConstant Bass_Dragon
+Ability: EveryXSeconds DoubleConstant 10 CreateCubeOnPosition CubeConstant Note PositionInDirectionFromPosition North PositionOfThis
+Text: Every 10 seconds create a Note above this End
+Ability: GrowthX 5
+Ability: RegenerationX 2
+Ability: WorthXMore 25
+AiPlacementRule: And AiStacking AiBackline
+End
+
+CUBE: Bass_Dragon 200 30 30
+TOKEN
+Ability: EveryXSeconds DoubleConstant 6 Both CreateCubeOnPosition CubeConstant Note PositionInDirectionFromPosition North PositionOfThis Both CreateCubeOnPosition CubeConstant Note PositionInDirectionFromPosition South PositionOfThis Both CreateCubeOnPosition CubeConstant Note PositionInDirectionFromPosition Forwards PositionOfThis CreateCubeOnPosition CubeConstant Note PositionInDirectionFromPosition Backwards PositionOfThis
+Text: Every 6 seconds create a Note on each of the 4 touching positions End
+Ability: EveryXSeconds DoubleConstant 15 SetStorage ARandomEnemy If CubeExists Storage TeleportToPosition TopPositionAboveCube Storage
+Text: Every 15 seconds teleport to the top of the column above a random enemy End
+Ability: Flying
+Ability: GrowthX 2
+Ability: EveryXMeleeY 120 4
+AiPlacementRule: And AiStacking AiBackline
+End

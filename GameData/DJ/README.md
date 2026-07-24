@@ -13,6 +13,9 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 <img src="Preview/DJ_Cubes_Record.png" width="700" alt="Record cube card">
 <img src="Preview/DJ_Cubes_Note.png" width="700" alt="Note cube card">
 <img src="Preview/DJ_Cubes_Keyboard.png" width="700" alt="Keyboard cube card">
+<img src="Preview/DJ_Cubes_Bass_Dragon_Egg.png" width="700" alt="Bass Dragon Egg cube card">
+<img src="Preview/DJ_Cubes_Baby_Bass_Dragon.png" width="700" alt="Baby Bass Dragon cube card">
+<img src="Preview/DJ_Cubes_Bass_Dragon.png" width="700" alt="Bass Dragon cube card">
 
 ### Perks
 
@@ -28,6 +31,8 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 <img src="Preview/DJ_Perks_Feedback.png" width="700" alt="Feedback perk card">
 <img src="Preview/DJ_Perks_Final_Countdown.png" width="700" alt="Final Countdown perk card">
 <img src="Preview/DJ_Perks_Grand_Finale.png" width="700" alt="Grand Finale perk card (upgrade of Final Countdown)">
+<img src="Preview/DJ_Perks_Bass_Dragon_Egg.png" width="700" alt="Bass Dragon Egg perk card">
+<img src="Preview/DJ_Perks_Baby_Bass_Dragon.png" width="700" alt="Baby Bass Dragon perk card (upgrade of Bass Dragon Egg)">
 
 ### Curses
 

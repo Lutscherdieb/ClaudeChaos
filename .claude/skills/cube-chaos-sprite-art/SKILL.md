@@ -275,6 +275,10 @@ Two reliable techniques for turning a single silhouette mask into a shaded multi
 
 Still verify the result by reading the upscaled PNG back before calling it done (see the workflow below) — shading mistakes are visual, not logged.
 
+## Themed variant of an existing cube: palette-remap its tile, don't redraw
+
+When a new cube is a deliberate re-skin of an existing one (a "green plague version of the Imp", a "holy version of the Cultist"), the fastest and most consistent route is to **copy the existing tile's pixels and remap its palette** via a small `{old_rgb: new_rgb}` dict, rather than hand-drawing a fresh silhouette. It guarantees the variant reads as the same creature and keeps the shading structure (outline/base/highlight/accent relationships) intact. Real usage, the Unholy mod (`scratchpad`-style generator, RGB maps recorded in `GameData/Unholy/DESIGN.md`): `Plague_Imp` = the `Imp` tile with the blood-red family mapped to greens, `Martyr` = the `Cultist` tile mapped to white/gold, `Plague_Ritual` = the `Ritual` pentagram mapped to green. Sample the source tile's palette first (a `Counter` over its `T`×`T` box, minus background) so the map covers every real color, and keep any accent that should stay (e.g. gold eyes) unmapped or mapped to itself. This is the tile-relocation discipline's cousin: read only the source tile's box, write only the target tile's box.
+
 ## Getting clean icon silhouettes from vector shapes
 
 A plain `Image.NEAREST` downscale of a hand-drawn high-res vector shape (arcs, rounded rects) tends to produce broken/noisy edges, since NEAREST just samples single points. Better: draw the shape at high resolution (e.g. 240×240) in PIL `ImageDraw` on an `"L"` (grayscale) mask, downscale with `Image.LANCZOS` (smooth antialiasing), then threshold (`mask.point(lambda p: 255 if p > 120 else 0)`) to get a crisp binary silhouette at the target pixel size. This reads far better than NEAREST for organic/curved shapes (arcs, circles) at tiny sizes.

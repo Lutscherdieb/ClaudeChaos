@@ -114,3 +114,31 @@ Ability: AfterThisDies Both
 Text: After this dies, create an allied Plague_Imp on each empty touching position, each gaining 1 \C255 38 0 Strength \CN per touching cube that isn't a Plague_Imp End
 AiPlacementRule: True
 End
+
+CUBE: Hell_Dragon_Egg 10 7 7
+TOKEN
+Ability: Dragon_Egg CubeConstant Baby_Hell_Dragon
+Ability: ArmorX 1
+AiPlacementRule: And AiStacking AiBackline
+End
+
+CUBE: Baby_Hell_Dragon 5 15 15
+TOKEN
+Ability: GrowingUp 40 CubeConstant Hell_Dragon
+Ability: EveryXSeconds DoubleConstant 8 SetStorage ARandomEnemy If CubeExists Storage TargetCube Storage GainAbility Burning
+Text: Every 8 seconds give a random enemy \C255 106 0 Burning \CN End
+Ability: GrowthX 5
+Ability: RegenerationX 2
+Ability: WorthXMore 25
+AiPlacementRule: And AiStacking AiBackline
+End
+
+CUBE: Hell_Dragon 200 30 30
+TOKEN
+Ability: EveryXSeconds DoubleConstant 5 EveryCubeWhich IsEnemyToCaster Test GainAbility Burning
+Text: Every 5 seconds give all enemies \C255 106 0 Burning \CN End
+Ability: Flying
+Ability: GrowthX 2
+Ability: EveryXMeleeY 120 4
+AiPlacementRule: And AiStacking AiBackline
+End
