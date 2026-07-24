@@ -40,8 +40,8 @@ Ability: AfterACubeDies If IsAllyToCaster Victim If Not HasAbilityWithName Victi
  If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
   If X%Chance DoubleConstant 20
    Both CreateCubeOnPosition CubeConstant Zombie PositionInDirectionFromPosition South TopPositionAboveCube Victim
-    CreateCubeOnPosition CopyWithAction CubeConstant Parachute Secret GainAbility Undead TopPositionAboveCube Victim
-Description: After a non undead, non projectile ally dies while in enemy territory, 20% chance to create an allied Zombie below the top of that column, with an undead Parachute above it End
+    CreateCubeOnPosition CopyWithAction CubeConstant Parachute GainAbility Undead TopPositionAboveCube Victim
+Description: After a non \C0 50 0 Undead \CN, non \C250 150 150 Projectile \CN ally dies while in enemy territory, 20% chance to create an allied Zombie below the top of that column, with an \C0 50 0 Undead \CN Parachute above it End
 End
 
 PERK: General-Chaos
@@ -82,7 +82,7 @@ BelongsTo: CLASSSPECIES
 Ability: BeforeACubeDies If IsAllyToCaster Victim If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
  EveryCubeTouchingPosition PositionOfCube Victim
   If IsEnemyToCaster Target TargetCube Victim GainAbility ExplodesX 1
-Description: Before an ally dies while in enemy territory, give it 1 Explodes for each touching enemy (dealing that much combined damage to touching cubes as it dies) End
+Description: Before an ally dies while in enemy territory, give it \C182 0 0 Explodes 1 \CN for each touching enemy End
 End
 
 PERK: General-Remnant
@@ -97,7 +97,7 @@ BelongsTo: CLASSSPECIES
 Ability: AfterACubeTakesDamage If IsAllyToCaster Victim If IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
  If X%Chance DoubleConstant 10
   TargetCube Victim GainAbility RetaliateX 1
-Description: After an ally in friendly territory takes damage, 10% chance to give it Retaliate 1 (whenever a non ally damages it after that, deal 1 damage back) End
+Description: After an ally in friendly territory takes damage, 10% chance to give it \C198 27 33 Retaliate 1 \CN End
 End
 
 PERK: General-Plant

@@ -6,7 +6,7 @@ Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller HpOfCube Vict
    Both HealXDamage DoubleConstant 1
     Both TeleportToPosition ARandomPositionWhich And IsPositionEmpty Test Not IsEqual PlacabilityOfPosition Test FactionOfCube Victim
      XTimes RoundedDown Division ManaCostOfCube Victim DoubleConstant 10 GainAbility ExplodesX 1
-Description: Before an allied cube would be created with 0 hp, instead it is created with 1 hp, teleports to a random empty position on the enemy's side, and explodes for 1 damage to touching cubes per 10 mana it costs when it dies End
+Description: After an allied cube is created with 0 hp, it gains 1 hp, teleports to a random empty position on the enemy's side, and explodes for 1 damage to touching cubes per 10 mana it costs when it dies End
 ObtainAction: AddCubeToInventory CubeConstant Ritual
 ObtainAction: AddCubeToInventory CubeConstant Cultist
 ObtainAction: AddCubeToInventory CubeConstant Hellhound

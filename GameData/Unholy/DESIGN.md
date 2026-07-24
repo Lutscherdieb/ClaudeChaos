@@ -52,7 +52,7 @@ by any class. Balance is anchored to real base-game analogs, not invented from s
 
 | Cube | Mana / HP | 0HP? | Balance anchor / notes |
 |---|---|---|---|
-| `Ritual` | 30 / 0 | yes | Species starter; charges + explodes (boom 3), spawns Imps |
+| `Ritual` | 30 / 0 | yes | Species starter; teleports + explodes (boom 3), spawns Imps |
 | `Cultist` | 5 / 3 | no | Species starter; cheap charging attacker + sacrifice |
 | `Hellhound` | 20 / 3 | no | Fast rusher — `Small_Warrior_Slime` charge speed (30) with a 2/s bite |
 | `Plague_Imp` | 32 / 4 | no | The `Imp` token's kit made obtainable + green; poisons touching non-Imps on death (Imp-body ≈25 + death poison) |
@@ -76,7 +76,7 @@ by any class. Balance is anchored to real base-game analogs, not invented from s
   (`Plague_Imp` = Imp-body + death poison → 32; `Damned_Soul` = 25 Imp + its own body → 38). This is a
   design anchor the user set, not a base-game measured figure.
 
-### Starting cubes — deliberately 7, above the base-game 2 convention
+### Starting cubes — deliberately 8, above the base-game 2 convention
 
 The `Unholy` species perk grants **all 8 cubes** as starters (`Ritual`, `Cultist`, `Hellhound`,
 `Plague_Imp`, `Damned_Soul`, `Martyr`, `Brimstone`, `Plague_Ritual`), via one
@@ -84,8 +84,9 @@ The `Unholy` species perk grants **all 8 cubes** as starters (`Ritual`, `Cultist
 class/species — chosen so the full demon kit is guaranteed in hand (the new cubes were effectively
 unfindable as rare drops in the global pool) and so the species reads as a complete themed toolbox.
 There is no hard engine limit on starter count (`ObtainAction:` is repeatable); this just sits above
-the base power/variety baseline. Revisit and trim to a curated few if it plays too strong. The five
-new starters also carry `TYPE Starter` (inventory-sorting only), matching `Ritual`/`Cultist`.
+the base power/variety baseline. Revisit and trim to a curated few if it plays too strong. The six
+new starters (all but `Ritual`/`Cultist`) also carry `TYPE Starter` (inventory-sorting only), matching
+`Ritual`/`Cultist`.
 
 ## Dragon evolution line — `Hell_Dragon`
 
@@ -112,13 +113,22 @@ get ignited — the 1 dmg/5s burn rate itself is fixed by the keyword.
 
 ## Sprite notes
 
-- Palette: blood-red demon theme, `RGB(150,20,20)` (see the mod-palette memory).
+- **Species identity color: `RGB(150, 20, 20)`** (blood red) — the `Unholy` base-perk icon fill AND
+  its species border. Chosen via `AskUserQuestion` before use (species/class colors are always
+  confirmed with the user, never picked unprompted).
 - `Plague_Imp` = green recolor of the `Imp` silhouette. `Martyr` = holy (white/gold) recolor of the
   `Cultist` silhouette. `Molten_Brimstone` = molten/glowing hazard token.
-- Multi-color shading (base + outline + highlight + accent), never flat single-color icons.
+- Multi-color shading (base + outline + highlight + accent), never flat single-color icons — cube icons
+  are NOT flat red despite the species color, per explicit user requirement.
 - **Demon family palette** (sampled from the existing `Imp`/`Cultist`/`Ritual` tiles, reuse for new
-  red demons): body `(150,30,30)`, outline `(25,10,10)`, highlight `(197,72,62)`, gold-eye accent
-  `(255,205,70)`, on BG `(0,148,255)`.
+  red demons): body `(150,30,30)`, outline `(25–30,10–12,10–12)`, highlight `(197,72,62)`, shadowed
+  recess (hood void) `(18,9,9)`, glowing-eyes accent `(255,205,70)`, on BG `(0,148,255)`.
+- **`Ritual`'s pentagram** uses 2 layered line widths only: black outline `RGB(15,10,10)` (wider) + red
+  `RGB(185,40,40)` (narrower), clean geometry (R=0.44, star=0.90R). A 3rd bright-core layer was tried
+  and rejected by the user — it crowded the star at 17px and read worse than the clean 2-tone. Keep it
+  black-outline + red only.
+- `Unholy_Species.c.png`'s perk icon (demon head) is still flat single-red — offered to recolor it too
+  but the user scoped the recolor to the cubes; revisit if asked.
 - **Recolor maps used** (`scratchpad/build_sheet.py` regenerates the whole 3×3 sheet from the old
   tiles + these maps):
   - `Plague_Imp` (green): `(25,10,10)→(8,22,8)`, `(150,30,30)→(70,140,45)`,
@@ -127,3 +137,11 @@ get ignited — the 1 dmg/5s burn rate itself is fixed by the keyword.
     `(197,72,62)→(255,255,255)`, gold `(255,205,70)` kept.
   - `Molten_Brimstone`: dark rock `(40,20,15)` + rock body `(100,50,35)` + orange glow `(255,110,0)`
     + gold core `(255,205,70)`.
+
+## Docs
+
+Has a `README.md` + `Preview/` cards (added 2026-07-25) — keep them in sync on every content/sprite
+change (`render_preview_cards.py`, run from the parent repo's root; it renders DJ, General, and Unholy
+by default). The preview script resolves this perk file under its `_Species.c.txt` basename instead of
+the usual `_Perks.c.txt` — see the script's `perks_source_basename()` if a species mod's perks ever stop
+showing up in its own preview cards.

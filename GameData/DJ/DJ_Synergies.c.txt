@@ -50,7 +50,7 @@ PERK: DJ-Undead
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If HasAbilityWithName Victim Undead
  TargetCube Victim GainRandomAbilityOfCube ARandomCubeInLibraryWhich IsLarger AmountOfAbilitiesOfCubeWhich Test Not AbilityHasName Test Rhythmic DoubleConstant 0
-Description: After an Undead ally is created it gains a random ability of a random cube in the game End
+Description: After an ally with \C0 50 0 Undead \CN is created it gains a random ability of a random cube in the game End
 End
 
 COMPOUND: ABILITY

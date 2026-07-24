@@ -43,7 +43,14 @@ If they picked "perk-like thing" and it's still unclear which exact category, as
 | A `CUBE:` (new or edited) | `workflows/content-cube.md` | `cube-chaos-balancing` (mana/hp/IDENT stats, `IDENT` cubes only) → `cube-chaos-scripting` → `cube-chaos-rule-text` → `cube-chaos-sprite-art` |
 | A reward perk, Curse, Blight, Boon, Nightmare, Terrain perk, Consumable, Golden perk, Neutral perk, or CubeUpgrade | `workflows/content-perk-family.md` | `cube-chaos-balancing` (`Value:`/`BalanceCap:`, categories that carry one) → `cube-chaos-scripting` → `cube-chaos-rule-text` → `cube-chaos-sprite-art` |
 | A Class or Species base perk, or a Class+Species synergy | `workflows/content-class-species.md` | `cube-chaos-scripting` → `cube-chaos-rule-text` → `cube-chaos-sprite-art` |
+| A themed **Dragon evolution line** for a class/species (Egg → Baby → Adult, mimicking the base game's per-class dragons) | `workflows/content-dragon-line.md` | `cube-chaos-scripting` → `cube-chaos-rule-text` → `cube-chaos-sprite-art` (balancing is light — stats anchor to base dragons) |
 | *Editing* something that already exists (any type above) | Same workflow file as the content type, but read `workflows/editing-checklist.md` first — it has rules that only apply to edits, not fresh creation | Same as above |
+
+**Suggestible pattern — reach for this when a user asks "what should I add?"** A themed **Dragon
+evolution line** (`workflows/content-dragon-line.md`) is a strong, self-contained suggestion for any
+class/species mod: it's a high-impact late-game payoff, reuses proven base-game machinery (the stock
+`Dragon_Egg`/`GrowingUp` compounds), and instantly brings a mod class to parity with the base roster
+(every base class/species ships one). All three of this repo's mods now have one — good precedent to point at.
 
 Every path ends the same way: **`cube-chaos-mod-setup`'s launch-and-check-`Log.txt` loop, at least once since the last edit, before anything is reported as done.** A change that "should work" but hasn't been launched and checked is not done.
 
@@ -105,6 +112,18 @@ Each domain skill opens with a `## Research protocol` section, and they all foll
 **Enforce the write-back.** The research step is only worth its cost once, so a session that had to go to the base game for an answer does not end until that answer is a section in the relevant skill, with its evidence (`file:line`, error text, sample size, or occurrence counts as appropriate). Treat an un-written-back finding the same as an unlaunched content change — the work isn't finished. This is what makes step 1 progressively cheaper instead of every session re-deriving the same conventions.
 
 Note the two root reference files are small enough to consult freely — `ModdingInfo.txt` is ~760 lines and `ModdingExplanation.txt` ~75. Reading them is cheap; the expensive part is rediscovering what they *don't* say, which is exactly what the skills accumulate.
+
+## Domain skill structure: core + `references/`, one shape for every skill
+
+Every domain skill (`cube-chaos-scripting`, `cube-chaos-rule-text`, `cube-chaos-sprite-art`, `cube-chaos-balancing`, `cube-chaos-mod-setup`) follows the same two-tier shape as it grows, regardless of how big it currently is:
+
+- **`SKILL.md` (core)** holds only what a *typical* trigger of that skill needs: the primary syntax/format/convention, the Research protocol section, and anything genuinely needed on nearly every use.
+- **`references/<topic>.md`** holds anything situational or deep-dive — a category of gotchas, an undocumented-field deep-dive, a specific mechanic's edge cases — split out as its own file, with a one-line "load this when..." note at the top so it's readable standalone.
+- **The split trigger is content shape, not a line-count threshold.** The moment a new section is "you'd only load this if you're doing X specifically," it goes straight into a reference file — don't let it accumulate in the core file first and wait for a size crisis to justify moving it. A skill that's currently 60 lines and a skill that's currently 600 lines follow the identical rule; the only difference is how many reference files exist yet (zero is a completely normal state for a small skill).
+- **Once any `references/` files exist, `SKILL.md` gets a "Reference index" table** (file → one-line "load when" description) so a session loads only what it needs instead of the whole skill. `cube-chaos-scripting/SKILL.md` is the canonical example — copy its shape (core sections, then the index table, then the debugging/wrap-up section) rather than reinventing the layout per skill.
+- **Every reference file is self-contained**: a title, a one-line "load this when" blurb, then the content — readable via a direct grep/read even by a session that never looked at the index table first.
+
+This is a standing convention, not a one-time cleanup — apply it to any domain skill (existing or new) the first time it grows a genuinely situational section, not retroactively once a skill "feels big."
 
 ## Notes for extending this orchestrator
 

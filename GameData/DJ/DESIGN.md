@@ -7,10 +7,11 @@ as decisions are revisited.
 
 ## Core concept
 
-A **Class** mod themed around a DJ / music. Signature material is the **`Note`** — a `0 0 0` `TOKEN`
-cube generated and consumed by DJ cubes/perks — plus **`Echo`**-style ability duplication and
-fusion/combination perks. Files: `DJ_Cubes`, `DJ_Perks`, `DJ_UpgradePerks` (dedicated sprite-less
-upgrade file), `DJ_Synergies` (`CLASSSPECIES`), `DJ_Consumables`, `DJ_Curses`.
+A **Class** mod themed around a DJ / music. Signature material is the **`Note`** — a `0 1 1` `TOKEN`
+homing-projectile cube (`Flying`/`HomingX 120`/`ProjectileX 2`/`DieAfterX 7200`) generated and consumed
+by DJ cubes/perks — plus **`Echo`**-style ability duplication and fusion/combination perks. Files:
+`DJ_Cubes`, `DJ_Perks`, `DJ_UpgradePerks` (dedicated sprite-less upgrade file), `DJ_Synergies`
+(`CLASSSPECIES`), `DJ_Consumables`, `DJ_Curses`.
 
 ## Palette / sprites
 
@@ -21,14 +22,11 @@ upgrade file), `DJ_Synergies` (`CLASSSPECIES`), `DJ_Consumables`, `DJ_Curses`.
 
 ## Deliberate design decisions
 
-- **`Note` is `0 0 0` with a `NORANDOM` keyword tag** — this makes it a *passing-but-unpickable*
-  ability donor at several ability-scan sites, so those guards name-exclude it. See the
-  `GainRandomAbilityOfCube` zero-ability crash-guard notes in `cube-chaos-scripting`.
-- **`Note` is now a `0 1 1` homing projectile**, NOT the "0 0 0 ability donor" the Core-concept line
-  above still implies — its real `CUBE:` block (`DJ_Cubes.c.txt`) is `0 1 1` with `Flying`/`HomingX 120`/
-  `ProjectileX 2`/`DieAfterX 7200` and no `NORANDOM` tag. (The shared skills' crash-guard notes that
-  describe `Note` as a zero-ability `NORANDOM` token are stale against the current cube — flagged for a
-  skill pass.) The `Bass_Dragon` line below leans on this: spawned Notes fly off and home enemies.
+- **`Note` is a `0 1 1` homing projectile, not a zero-ability `NORANDOM` donor tag** (that was an
+  earlier design, since replaced — see `DJ_Cubes.c.txt`). It carries no `NORANDOM` tag, so it's a
+  normal (if usually unwanted) ability-donor candidate at any random-ability-scan site; nothing in this
+  mod currently relies on it being excluded. The `Bass_Dragon` line below leans on its current homing
+  behavior: spawned Notes fly off and home enemies.
 - **`Echo` was renamed from `Encore`** — it counts its own copies via its literal name
   (`AmountOfPerksInInventoryWhich IsSameString NameOfPerk Test StringConstant Echo`), so the literal
   name must stay in sync or the self-count silently reads 0.

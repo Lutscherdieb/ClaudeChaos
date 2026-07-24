@@ -32,7 +32,7 @@ PERK: Air_Superiority
 BelongsTo: General
 Ability: EveryXSeconds DoubleConstant 20 TargetCube ARandomCubeWhich And IsAllyToCaster Test HasAbilityWithName Test Flying
  GainAbility DoubleTimeX 10
-Description: Every 20 seconds, give a random friendly unit with Flying Double Time for 10 seconds End
+Description: Every 20 seconds, give a random friendly unit with Flying \C197 204 112 Double Time \CN for 10 seconds End
 End
 
 PERK: Dig_In
@@ -87,7 +87,7 @@ PERK: Believer
 BelongsTo: General
 Ability: AfterACubeTakesDamage If IsEnemyToCaster Victim If IsAllyToCaster Culprit If Not IsALeader Culprit
  TargetCube Culprit GainAbility FervorX 1
-Description: After a non leader ally deals damage to an enemy, it gains 1 fervor (increasing the next damage it deals by 1) End
+Description: After a non leader ally deals damage to an enemy, it gains \C255 38 0 Fervor 1 \CN End
 End
 
 PERK: War_Dragon_Egg

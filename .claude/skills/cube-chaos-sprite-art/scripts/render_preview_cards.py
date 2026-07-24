@@ -51,6 +51,7 @@ FONT_PATH = os.path.join(ROOT, "GeneralData", "dogicapixel.ttf")
 MODDING_INFO_PATH = os.path.join(ROOT, "ModdingInfo.txt")
 OUT_DIR = os.path.join(MOD_DIR, "Preview")  # lives with the mod, e.g. for GameData/DJ/README.md
 MOD_PREFIX = "DJ"  # this mod's .c.txt/.c.png basename prefix
+COMPOUND_DOCS = {}  # this mod's own COMPOUND: ABILITY name -> doc, set by render_mod()
 
 # A bare `Ability: Name arg1 arg2` line that grants a pre-registered built-in
 # ability (StrengthX, ChargeEveryX, FreePlacement, ...) needs no Text: of its
@@ -80,15 +81,6 @@ def load_builtin_ability_docs():
     return docs
 
 
-def strip_markup(s):
-    # \C R G B ... \CN colors a span, \B is a bold marker -- both are literal
-    # plain characters in these doc strings (not real escapes), meaningful to
-    # the game's own tooltip renderer but not to this plain-text card.
-    s = re.sub(r'\\C\d+ \d+ \d+', '', s)
-    s = s.replace('\\CN', '').replace('\\B', '')
-    return re.sub(r'\s+', ' ', s).strip()
-
-
 def resolve_builtin_ability_text(name, args, ability_docs):
     doc = ability_docs.get(name)
     if not doc or not doc["template"]:
@@ -114,7 +106,92 @@ def resolve_builtin_ability_text(name, args, ability_docs):
         else:
             code_i += 1
             text = text.replace(f"CODE {code_i}", raw_val)
-    return strip_markup(text)
+    # \C/\CN/\CMANA/\B markup is deliberately left intact here (unlike the
+    # old strip-to-plain-text behavior) -- tokenize_colored resolves it into
+    # actual on-card color, the same as any other Text:/Description: source.
+    return text
+
+
+GENERIC_RE = re.compile(r'\bGeneric(\w+)\b')
+
+
+def load_mod_compound_docs(mod_dir):
+    """Index this mod's own COMPOUND: ABILITY blocks by name, so \\A <Name>
+    [params] references (this mod's own keyword idiom -- see
+    cube-chaos-rule-text; base-game abilities never use \\A) can be resolved
+    the same way resolve_builtin_ability_text resolves a bare built-in
+    Ability: line. Placeholder types are inferred from the compound's own
+    body (GenericStacking -> STACKING, GenericTime -> TIME, everything else
+    -> a positional CODE slot) in first-appearance order, matching the
+    scripting skill's documented "order by first appearance" convention."""
+    docs = {}
+    for fname in sorted(os.listdir(mod_dir)):
+        if not fname.endswith(".c.txt"):
+            continue
+        lines = open(os.path.join(mod_dir, fname), encoding="utf-8").read().split("\n")
+        i = 0
+        while i < len(lines):
+            if lines[i].strip() != "COMPOUND: ABILITY":
+                i += 1
+                continue
+            name = lines[i + 1].strip() if i + 1 < len(lines) else None
+            j = i + 2
+            block_lines, text_tpl = [], None
+            while j < len(lines) and lines[j].strip() != "End":
+                line = lines[j]
+                if line.strip().startswith("Text:"):
+                    content = line.strip()[len("Text:"):].strip()
+                    if content.endswith(" End"):
+                        content = content[:-4].strip()
+                    text_tpl = content
+                else:
+                    block_lines.append(line)
+                j += 1
+            if name and text_tpl is not None:
+                types = []
+                for line in block_lines:
+                    for g in GENERIC_RE.findall(line):
+                        types.append({"Stacking": "STACKING", "Time": "TIME"}.get(g, "CODE"))
+                docs[name] = {"types": types, "template": text_tpl}
+            i = j + 1
+    return docs
+
+
+A_REF_RE = re.compile(r'\\A (\w+)')
+
+
+def resolve_inline_abilities(s, compound_docs):
+    """Expand \\A <Name> [params...] references into that ability's own
+    registered Text:, consuming exactly as many trailing whitespace-separated
+    params as the ability's own body declares Generic* placeholders for. An
+    unknown name (shouldn't happen for well-formed content) is left as
+    literal text rather than crashing the render, so the gap stays visible
+    in the generated card instead of failing silently."""
+    out, pos = [], 0
+    for m in A_REF_RE.finditer(s):
+        out.append(s[pos:m.start()])
+        name = m.group(1)
+        doc = compound_docs.get(name)
+        if doc is None:
+            out.append(m.group(0))
+            pos = m.end()
+            continue
+        n, consumed, rest = len(doc["types"]), 0, s[m.end():]
+        params = []
+        while len(params) < n:
+            stripped = rest.lstrip(" ")
+            leading_ws = len(rest) - len(stripped)
+            wm = re.match(r'^(\S+)', stripped)
+            if not wm:
+                break
+            params.append(wm.group(1))
+            consumed += leading_ws + len(wm.group(1))
+            rest = stripped[len(wm.group(1)):]
+        resolved = resolve_builtin_ability_text(name, params, {name: doc}) or ""
+        out.append(resolved)
+        pos = m.end() + consumed
+    out.append(s[pos:])
+    return "".join(out)
 
 
 def collect_ability_texts(lines, ability_docs):
@@ -248,49 +325,105 @@ def text_width(d, s, f):
     return bbox[2] - bbox[0]
 
 
-def wrap_to_width(d, s, f, max_width):
-    words, lines, cur = s.split(" "), [], ""
-    for w in words:
-        trial = (cur + " " + w).strip()
-        if text_width(d, trial, f) <= max_width or not cur:
-            cur = trial
-        else:
-            lines.append(cur)
-            cur = w
-    if cur:
-        lines.append(cur)
-    return lines
+COLOR_START_RE = re.compile(r'\\C(\d+) (\d+) (\d+)')
+MANA_WORD_RE = re.compile(r'\bmana\b', re.IGNORECASE)
 
 
-def wrap_paragraph(d, s, f, max_width):
-    if s == "":
-        return [""]
-    # "\N" is the game's own real forced-line-break marker inside Text:/
-    # Description: fields (confirmed via real base-game usage, e.g.
-    # Main/3GeneralCubes.c.txt) -- split on it first so each point renders
-    # as its own line here too, matching what the actual tooltip shows,
-    # rather than printing the two literal characters "\N".
-    lines = []
-    for segment in s.split("\\N"):
-        segment = segment.strip()
-        if segment.startswith("- "):
-            hang = "  "
-            hang_w = text_width(d, hang, f)
-            wrapped = wrap_to_width(d, segment[2:], f, max_width - hang_w)
-            lines.extend(("- " if i == 0 else hang) + line for i, line in enumerate(wrapped))
-        else:
-            lines.extend(wrap_to_width(d, segment, f, max_width))
-    return lines
-
-
-def draw_colored_line(d, pos, s, f, default_color):
-    x, y = pos
-    for part in re.split(r'(\bmana\b)', s, flags=re.IGNORECASE):
-        if not part:
+def tokenize_colored(s, default_color):
+    """Split a raw Text:/Description: string (with \\A already resolved) into
+    a flat stream of ('WORD', word, color, glue) and ('BREAK',) tokens,
+    tracking \\C R G B / \\CMANA / \\CN color-span state and \\B
+    no-space-before-next-token markers as we go -- these are real tooltip
+    escapes the game's own renderer honors (see cube-chaos-rule-text), not
+    plain characters, so they're resolved into actual on-card color/spacing
+    here rather than stripped. A bare 'mana' word always renders in the
+    engine's own mana-blue, overriding any active span -- matches real
+    observed engine behavior (see cube-chaos-rule-text)."""
+    tokens = []
+    color = default_color
+    glue_next = False
+    for chunk in re.split(r'(\\C\d+ \d+ \d+|\\CMANA|\\CN|\\B|\\N)', s):
+        if not chunk:
             continue
-        color = MANA_BLUE if part.lower() == "mana" else default_color
-        d.text((x, y), part, font=f, fill=color)
-        x += text_width(d, part, f)
+        m = COLOR_START_RE.fullmatch(chunk)
+        if m:
+            color = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+            continue
+        if chunk == '\\CMANA':
+            color = MANA_BLUE
+            continue
+        if chunk == '\\CN':
+            color = default_color
+            continue
+        if chunk == '\\B':
+            glue_next = True
+            continue
+        if chunk == '\\N':
+            tokens.append(('BREAK',))
+            glue_next = False
+            continue
+        for word in chunk.split(' '):
+            if word == '':
+                continue
+            word_color = MANA_BLUE if MANA_WORD_RE.search(word) else color
+            tokens.append(('WORD', word, word_color, glue_next))
+            glue_next = False
+    return tokens
+
+
+def wrap_colored_tokens(d, tokens, f, max_width):
+    """Word-wrap a tokenize_colored() stream to max_width, preserving each
+    word's color/glue. A ('BREAK',) token (from \\N) always starts a new
+    segment; a segment whose first word is a literal '-' gets its wrapped
+    continuation lines hang-indented 2 spaces, matching real base-game
+    bullet-list Text:/Description: usage (see cube-chaos-rule-text's \\N
+    section) -- same behavior the old plain-string wrap_paragraph had.
+    Returns a list of (indent_px, [(word, color, glue), ...]) lines."""
+    if not tokens:
+        return [(0, [])]
+    space_w = text_width(d, ' ', f)
+    hang_w = text_width(d, '  ', f)
+
+    segments, cur_seg = [], []
+    for tok in tokens:
+        if tok[0] == 'BREAK':
+            segments.append(cur_seg)
+            cur_seg = []
+        else:
+            cur_seg.append(tok)
+    segments.append(cur_seg)
+
+    out_lines = []
+    for seg in segments:
+        if not seg:
+            out_lines.append((0, []))
+            continue
+        hang = seg[0][1] == '-'
+        cur, cur_width, first_line_of_seg = [], 0, True
+        for _, word, color, glue in seg:
+            w = text_width(d, word, f)
+            is_first_tok = not cur
+            gap = 0 if (is_first_tok or glue) else space_w
+            indent = hang_w if (hang and not first_line_of_seg) else 0
+            if not is_first_tok and cur_width + gap + w > max_width - indent:
+                out_lines.append((hang_w if (hang and not first_line_of_seg) else 0, cur))
+                first_line_of_seg = False
+                cur, cur_width = [], 0
+                is_first_tok, gap = True, 0
+            cur.append((word, color, glue and not is_first_tok))
+            cur_width += gap + w
+        out_lines.append((hang_w if (hang and not first_line_of_seg) else 0, cur))
+    return out_lines
+
+
+def draw_colored_tokens_line(d, pos, indent, tokens, f):
+    x, y = pos[0] + indent, pos[1]
+    space_w = text_width(d, ' ', f)
+    for i, (word, color, glue) in enumerate(tokens):
+        if i > 0 and not glue:
+            x += space_w
+        d.text((x, y), word, font=f, fill=color)
+        x += text_width(d, word, f)
 
 
 def humanize(s):
@@ -310,12 +443,19 @@ def render_card(title, description, value, icon_img, extra_lines=None):
     icon_w, icon_h = icon_img.size
     text_area_w = W - MARGIN - 30 - icon_w - MARGIN
 
+    def prep(raw):
+        # \A must resolve before humanize() (it matches on the literal
+        # underscored ability name, e.g. \A Take_Off) -- humanize() then
+        # underscore->space's the fully-resolved text, same as it always has.
+        resolved = resolve_inline_abilities(raw, COMPOUND_DOCS)
+        return tokenize_colored(humanize(resolved), WHITE)
+
     body_lines = []
     if extra_lines:
         for p in extra_lines:
-            body_lines.extend(wrap_paragraph(dummy, humanize(p), f_body, text_area_w))
+            body_lines.extend(wrap_colored_tokens(dummy, prep(p), f_body, text_area_w))
     if description:
-        body_lines.extend(wrap_paragraph(dummy, humanize(description), f_body, text_area_w))
+        body_lines.extend(wrap_colored_tokens(dummy, prep(description), f_body, text_area_w))
 
     text_block_h = TITLE_SIZE + TITLE_GAP + len(body_lines) * (BODY_SIZE + LINE_GAP)
     icon_block_h = icon_h + ((BODY_SIZE + 16) if value is not None else 0)
@@ -336,8 +476,8 @@ def render_card(title, description, value, icon_img, extra_lines=None):
     d.text((MARGIN, TOP_MARGIN), title.upper(), font=f_title, fill=WHITE)
 
     y = TOP_MARGIN + TITLE_SIZE + TITLE_GAP
-    for line in body_lines:
-        draw_colored_line(d, (MARGIN, y), line, f_body, WHITE)
+    for indent, line in body_lines:
+        draw_colored_tokens_line(d, (MARGIN, y), indent, line, f_body)
         y += BODY_SIZE + LINE_GAP
 
     return im
@@ -389,9 +529,21 @@ def build_synergies():
     return cards
 
 
+def perks_source_basename():
+    """DJ/General name their perk file `_Perks.c.txt`; a species mod (e.g. Unholy)
+    names its equivalent `_Species.c.txt` instead -- check for either, preferring
+    `_Perks` when (implausibly) both exist."""
+    if os.path.exists(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Perks.c.txt")):
+        return "Perks"
+    if os.path.exists(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Species.c.txt")):
+        return "Species"
+    return "Perks"
+
+
 def build_perks():
-    blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Perks.c.txt"), PERK_HEADER)
-    sheet = load_sheet(f"{MOD_PREFIX}_Perks.c.png")
+    basename = perks_source_basename()
+    blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_{basename}.c.txt"), PERK_HEADER)
+    sheet = load_sheet(f"{MOD_PREFIX}_{basename}.c.png")
     cols = grid_cols(len(blocks))
     name_to_idx = {b["header"].group(1): i for i, b in enumerate(blocks)}
 
@@ -468,10 +620,11 @@ BUILDERS = {
 
 
 def render_mod(mod_dir, mod_prefix):
-    global MOD_DIR, SPRITES, OUT_DIR, MOD_PREFIX
+    global MOD_DIR, SPRITES, OUT_DIR, MOD_PREFIX, COMPOUND_DOCS
     MOD_DIR, MOD_PREFIX = mod_dir, mod_prefix
     SPRITES = os.path.join(MOD_DIR, "Sprites")
     OUT_DIR = os.path.join(MOD_DIR, "Preview")
+    COMPOUND_DOCS = load_mod_compound_docs(MOD_DIR)
     os.makedirs(OUT_DIR, exist_ok=True)
     # One PNG per item (not one stacked image per category) -- editing a
     # single perk/cube then only touches that one file, instead of forcing
@@ -479,7 +632,10 @@ def render_mod(mod_dir, mod_prefix):
     seen_prefixes = set()
     written = set()
     for category, builder in BUILDERS.items():
-        txt_path = os.path.join(MOD_DIR, f"{MOD_PREFIX}_{category}.c.txt")
+        # "Perks" may live under a `_Species.c.txt` basename instead (see
+        # perks_source_basename) -- resolve that before the existence check.
+        basename = perks_source_basename() if category == "Perks" else category
+        txt_path = os.path.join(MOD_DIR, f"{MOD_PREFIX}_{basename}.c.txt")
         if not os.path.exists(txt_path):
             continue  # this mod has no content of this category -- skip it
         prefix = f"{MOD_PREFIX}_{category}_"
@@ -505,3 +661,4 @@ def render_mod(mod_dir, mod_prefix):
 if __name__ == "__main__":
     render_mod(os.path.join(ROOT, "GameData", "DJ"), "DJ")
     render_mod(os.path.join(ROOT, "GameData", "General"), "General")
+    render_mod(os.path.join(ROOT, "GameData", "Unholy"), "Unholy")

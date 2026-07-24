@@ -31,7 +31,7 @@ End
 PERK: Air_Superiority_Mk2
 Ability: EveryXSeconds DoubleConstant 20 EveryCubeWhich And IsAllyToCaster Test HasAbilityWithName Test Flying
  GainAbility DoubleTimeX 10
-Description: Every 20 seconds, give all friendly units with Flying Double Time for 10 seconds End
+Description: Every 20 seconds, give all friendly units with Flying \C197 204 112 Double Time \CN for 10 seconds End
 IsUpgradeFrom: Air_Superiority 100
 End
 
@@ -82,7 +82,7 @@ PERK: Blinding_Faith
 Ability: AfterACubeTakesDamage If IsEnemyToCaster Victim If IsAllyToCaster Culprit If Not IsALeader Culprit
  Both TargetCube Culprit GainAbility FervorX 1
   TargetCube Victim GainAbility SplinterX 1
-Description: After a non leader ally deals damage to an enemy, it gains 1 fervor (increasing the next damage it deals by 1) and that enemy gains 1 splinter (increasing the next damage it takes by 1) End
+Description: After a non leader ally deals damage to an enemy, it gains \C255 38 0 Fervor 1 \CN and that enemy gains \C197 204 112 Splinter 1 \CN End
 IsUpgradeFrom: Believer 80
 End
 

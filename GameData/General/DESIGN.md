@@ -9,14 +9,33 @@ as decisions are revisited.
 
 A **Class** mod themed around a military/army general. Signature material is the **ammo-cube tier
 chain** `Shot → Shell → Bomb → Rocket`: each is both an independently obtainable self-flying missile
-when hand-placed (mana 5 / 8 / 12 / 17) *and* a token spawned by various cubes (`Bunker`, `Artillery`,
-`Rocket_Silo`, `Bombardier`, `Bomber`, etc.), with the `Arms_Race` upgrade chain substituting one tier
+when hand-placed (mana 5 / 8 / 12 / 25) *and* a token spawned by various cubes (`Bunker`, `Artillery`,
+`Rocket_Silo`, `Bombardement`, `Bomber`, etc.), with the `Arms_Race` upgrade chain substituting one tier
 for the next. Files: `General_Cubes`, `General_Perks`, `General_UpgradePerks` (dedicated sprite-less
 upgrade file), `General_Synergies` (`CLASSSPECIES`).
 
 ## Palette / sprites
 
-- Olive class color; gold star-outline accent; Shell-style bicolor bullets.
+- **`(107, 142, 35)`** — General class color (olive drab). Used for the `General` class perk's own
+  inner border + star icon fill, and reused as the inner border on `Arms_Race`/`Arms_Race_Mk2`/
+  `Arms_Race_Mk3` (all `BelongsTo: General`), per the same convention as DJ's class-purple border
+  extension (see `GameData/DJ/DESIGN.md`).
+- **`(255, 210, 0)`** gold — reused from DJ's own Note/Echo gold (see `GameData/DJ/DESIGN.md`) as a
+  cross-mod-consistent "gold accent" value. Used as a 1px outline around the `General` perk's star icon
+  (added on top of the olive fill, at the user's request for a sharper/more distinct star) — a deliberate
+  deviation from the base "icon fill == border color" convention (`cube-chaos-sprite-art`'s "Base
+  class/species icon style" section), not a base-game rule.
+- **Bullet/projectile bicolor look** (the 3 mini-bullets on the `Arms_Race` icon): dark cap/outline
+  `(60, 62, 66)`, brass/gold casing `(185, 145, 45)`, dark red tapering tip `(150, 60, 40)` — sampled
+  directly from the real `Shell` token cube's own icon in `General_Cubes.c.png` (nose-east: cap, then
+  casing, then a triangular tip taper). Reusing the exact `Shell` cube colors ties the `Arms_Race` perk
+  icon to the mechanic (it turns Bullets into Shells).
+- Background is the standard game-wide `(0, 148, 255)`, guide ring is the universal `(255, 0, 220)`
+  (see the `cube-chaos-sprite-art` skill).
+- **A non-`CLASS` `BelongsTo: General` reward perk icon doesn't need to be fully olive** — only the
+  border ring needs the class color; the interior can use a different (but existing, cataloged) palette
+  like the bullet bicolor above, per explicit user guidance ("doesn't need to be fully of that color and
+  can even not contain the color except for the border").
 - **`Faction_Colours`** tint (a mod-defined `COMPOUND: ABILITY`) recolors placed cubes to the owner's
   faction — the underlying sprites are repainted flat grayscale so the tint reads clean (plain
   luminosity, no contrast boost — see `cube-chaos-scripting`'s `CubeColourShift` notes).
