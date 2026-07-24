@@ -1,7 +1,19 @@
-CUBE: Microphone 15 0 0
+COMPOUND: ABILITY
+Rhythmic
+EveryTick Both
+ EveryCubeInHandOfFactionWhich FactionOfThis And IsSmaller ManaCostOfCube Test DoubleConstant 1
+  IsLarger AmountOfAbilitiesOfCubeWhich Test Not AbilityHasName Test Rhythmic DoubleConstant 0
+  SetStorage Test If X%Chance GenericConstant TargetCube Caster GainRandomAbilityOfCube Storage
+ RemoveThisAbility
+Text: \C255 255 0 Rhythmic CODE 1 \B : \CN \N \C96 96 96 (For each 0 mana cost cube in your hand that has an ability, CODE 1 \B % chance to gain one random ability of that cube, then lose this ability) \CN End
+NORANDOM
+End
+
+CUBE: Microphone 15 1 1
 IDENT 1 0 0 15 10
 TYPE Modifier
 TYPE Starter
+Ability: Flying
 Ability: AfterThisIsCreated AddCubeToHandOfThis CubeConstant Record
 Text: After this is created add a Record to your hand End
 Ability: BeforeACubeIsAddedToYourHand If CubeHasName Victim Record
@@ -19,37 +31,34 @@ CUBE: Speaker 50 15 15
 IDENT 3 10 0 30 40
 TYPE Factory
 TYPE Starter
-Ability: Every10Seconds CreateCubeOnPosition CopyWithAction CubeConstant Note Both GainAbility Flying PlaySound Coin PositionInDirectionFromThis Forwards
-Text: Every 10 seconds creates a flying Note in front of this End
-Ability: AfterThisCreates EveryCubeInHandOfFactionWhich FactionOfThis And IsSmaller ManaCostOfCube Test DoubleConstant 1
- IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
- SetStorage Test If X%Chance DoubleConstant 50 TargetCube Victim GainRandomAbilityOfCube Storage
-Text: For each 0 mana cost cube in your hand that has an ability, 50% chance to give the creation one random ability of that cube End
+Ability: Every10Seconds CreateCubeOnPosition CopyWithAction CubeConstant Note PlaySound Coin PositionInDirectionFromThis Forwards
+Text: Every 10 seconds creates a Note in front of this End
 Ability: Unique
 Visual: Square 1 0 96 96 96
 AiPlacementRule: And And AiStacking AiBackline AiEmptyInfront
 End
 
-CUBE: Record 0 0 0
+CUBE: Record 0 1 1
 TOKEN
 End
 
-CUBE: Note 0 0 0
+CUBE: Note 0 1 1
 TOKEN
+Ability: Flying
+Ability: HomingX 120
+Ability: ProjectileX 2
+Ability: DieAfterX 7200
 End
 
-CUBE: Keyboard 45 12 12
+CUBE: Keyboard 50 12 12
 IDENT 2 5 0 25 15
 TYPE Factory
 Ability: EveryXSeconds DoubleConstant 20 SetStorage ARandomEnemy
  If CubeExists Storage
-  CreateCubeOnPosition CopyWithAction CubeConstant Note Both GainAbility Flying PlaySound Coin
+  CreateCubeOnPosition CopyWithAction CubeConstant Note PlaySound Coin
    TopPositionAboveCube Storage
-Text: Every 20 seconds create a flying Note at the top of the column above a random enemy End
-Ability: AfterThisCreates EveryCubeInHandOfFactionWhich FactionOfThis And IsSmaller ManaCostOfCube Test DoubleConstant 1
- IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
- SetStorage Test If X%Chance DoubleConstant 50 TargetCube Victim GainRandomAbilityOfCube Storage
-Text: For each 0 mana cost cube in your hand that has an ability, 50% chance to give the creation one random ability of that cube End
+Text: Every 20 seconds create a Note at the top of the column above a random enemy End
+Ability: Unique
 Visual: Square 1 0 96 96 96
 AiPlacementRule: And AiStacking AiBackline
 End

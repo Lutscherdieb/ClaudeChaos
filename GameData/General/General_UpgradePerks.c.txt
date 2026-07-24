@@ -56,18 +56,18 @@ Ability: AfterACubeTakesDamage If And IsAllyToCaster Victim IsALeader Victim
  Cooldown 600
   Randomly CreateCubeOnPosition CopyWithAction CubeConstant Bomber GainAbility Take_Off ARandomLeftPosition
    CreateCubeOnPosition CopyWithAction CubeConstant Drop_Helicopter GainAbility Take_Off ARandomLeftPosition
-AbilityText: After an allied leader takes damage, create a Bomber or Drop_Helicopter in a random left_side_position, giving it Take Off, cooldown 10 seconds End
+AbilityText: After an allied leader takes damage, create a Bomber or Drop_Helicopter in a random left_side_position, giving it \A Take_Off \B , cooldown 10 seconds End
 Ability: EveryMinute Randomly CreateCubeOnPosition CopyWithAction CubeConstant Bomber GainAbility Take_Off ARandomLeftPosition
  CreateCubeOnPosition CopyWithAction CubeConstant Drop_Helicopter GainAbility Take_Off ARandomLeftPosition
-AbilityText: Every minute, create a Bomber or Drop_Helicopter in a random left_side_position, giving it Take Off End
-Description: After an allied leader takes damage, create a Bomber or Drop_Helicopter in a random left_side_position, giving it Take Off, cooldown 10 seconds \N Every minute, create a Bomber or Drop_Helicopter in a random left_side_position, giving it Take Off End
+AbilityText: Every minute, create a Bomber or Drop_Helicopter in a random left_side_position, giving it \A Take_Off End
+Description: After an allied leader takes damage, create a Bomber or Drop_Helicopter in a random left_side_position, giving it \A Take_Off \B , cooldown 10 seconds \N Every minute, create a Bomber or Drop_Helicopter in a random left_side_position, giving it \A Take_Off End
 IsUpgradeFrom: Air_Support 80
 End
 
 PERK: Heroic_Warrior
 Ability: AfterACubeDies If IsAllyToCaster Culprit If IsEnemyToCaster Victim
  TargetCube Culprit GainAbility StrengthX 2
-Description: After an ally kills an enemy, it gains 2 strength End
+Description: After an ally kills an enemy, it gains \C255 38 0 Strength 2 \CN End
 IsUpgradeFrom: Experienced_Fighter 60
 End
 

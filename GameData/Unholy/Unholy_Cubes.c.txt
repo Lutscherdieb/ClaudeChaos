@@ -1,0 +1,116 @@
+CUBE: Ritual 30 0 0
+IDENT 1 20 0 0 10
+TYPE Attacker
+TYPE Starter
+Ability: AfterThisIsCreated CreateCubeOnPosition CubeConstant Imp PositionInDirectionFromPosition North PositionOfThis
+Text: When this is created, create an allied Imp above End
+Ability: AfterThisDies CreateCubeOnPosition CubeConstant Imp PositionOfCube Caster
+Text: After this dies, create an allied Imp on its now empty position End
+Visual: Square 0 -1 96 96 96
+AiPlacementRule: And AiEmptyNorth AiStacking
+End
+
+CUBE: Imp 0 4 4
+TOKEN
+Ability: ChargeEveryX 60
+Ability: EveryXAcidicY 60 2
+Ability: Hovering
+End
+
+CUBE: Cultist 5 3 3
+IDENT 1 4 0 0 4
+TYPE Attacker
+TYPE Starter
+Ability: ChargeEveryX 180
+Ability: EveryXMeleeY 180 1
+Ability: AfterACubeDies If IsAllyToCaster Victim If CubeHasName Victim Cultist If Not IsSameCube Victim Caster If X%Chance DoubleConstant 5
+ SetStorage ARandomCubeInHandOfFactionWhich FactionOfCube Caster IsSmaller HpOfCube Test DoubleConstant 1
+  Both Exile
+   If CubeExists Storage CreateCubeOnPosition CopyWithAction Storage Nothing PositionOfCube Caster
+Text: After another allied Cultist dies, 5% chance to sacrifice itself and create a copy of a random 0 hp cube from your hand on its position End
+Visual: Sword 1 0 255 0 0 1
+AiPlacementRule: And AiFrontline AiStacking
+End
+
+CUBE: Hellhound 20 3 3
+IDENT 2 12 0 0 0
+TYPE Attacker
+TYPE Starter
+Ability: ChargeEveryX 30
+Ability: EveryXMeleeY 60 2
+Visual: Sword 1 0 255 0 0 1
+AiPlacementRule: And AiFrontline AiStacking
+End
+
+CUBE: Plague_Imp 32 4 4
+IDENT 2 10 0 0 8
+TYPE Attacker
+TYPE Starter
+Ability: ChargeEveryX 60
+Ability: EveryXAcidicY 60 2
+Ability: Hovering
+Ability: AfterThisDies EveryCubeTouchingPosition PositionOfCube Caster If Not HasNameOfCube Target Caster GainAbility PoisonX 2
+Text: After this dies, all touching cubes that aren't Plague_Imps gain \C0 255 144 Poison 2 \CN End
+AiPlacementRule: And AiFrontline AiStacking
+End
+
+CUBE: Damned_Soul 38 4 4
+IDENT 2 8 0 8 4
+TYPE Attacker
+TYPE Starter
+Ability: ChargeEveryX 60
+Ability: EveryXMeleeY 90 2
+Ability: DieAfterX 3600
+Ability: Inspatial
+Ability: AfterThisDies CreateCubeOnPosition CubeConstant Imp PositionOfCube Caster
+Text: After this dies, create an allied Imp on its position End
+Visual: Sword 1 0 255 0 0 1
+AiPlacementRule: And AiFrontline AiStacking
+End
+
+CUBE: Martyr 5 3 3
+IDENT 1 4 0 0 4
+TYPE Attacker
+TYPE Starter
+Ability: ChargeEveryX 180
+Ability: EveryXMeleeY 180 1
+Ability: AfterThisDies EveryCubeTouchingPosition PositionOfCube Caster If IsAllyToCaster Target GainXExtraHp DoubleConstant 1
+Text: After this dies, touching allies gain 1 extra hp End
+Visual: Sword 1 0 255 0 0 1
+AiPlacementRule: And AiFrontline AiStacking
+End
+
+CUBE: Molten_Brimstone 0 25 25
+TOKEN
+Ability: EverySecond Both TargetCube Caster TakeXDamage DoubleConstant 1 EveryCubeTouchingPosition PositionOfThis TakeXDamage DoubleConstant 1
+Text: Every second deal 1 damage to this and every touching cube End
+Ability: EveryXAcidicY 60 1
+End
+
+CUBE: Brimstone 40 0 0
+IDENT 3 15 0 10 5
+TYPE Attacker
+TYPE Starter
+Ability: AfterThisDies CreateCubeOnPosition CopyWithAction CubeConstant Molten_Brimstone SetFaction DoubleConstant 0 TopPositionAboveCube Caster
+Text: After this dies, create a neutral Molten_Brimstone at the top of its column, which falls from there End
+AiPlacementRule: True
+End
+
+CUBE: Plague_Ritual 90 0 0
+IDENT 4 20 0 25 25
+TYPE Attacker
+TYPE Starter
+Ability: AfterThisDies Both
+ If And PositionExists PositionInDirectionFromPosition North PositionOfCube Caster IsPositionEmpty PositionInDirectionFromPosition North PositionOfCube Caster
+  CreateCubeOnPosition CopyWithAction CubeConstant Plague_Imp GainAbilityStacking StrengthX 0 AmountOfCubesWhich And IsPositionTouchingPosition PositionOfCube Test PositionOfCube Caster Not CubeHasName Test Plague_Imp PositionInDirectionFromPosition North PositionOfCube Caster
+ Both
+  If And PositionExists PositionInDirectionFromPosition South PositionOfCube Caster IsPositionEmpty PositionInDirectionFromPosition South PositionOfCube Caster
+   CreateCubeOnPosition CopyWithAction CubeConstant Plague_Imp GainAbilityStacking StrengthX 0 AmountOfCubesWhich And IsPositionTouchingPosition PositionOfCube Test PositionOfCube Caster Not CubeHasName Test Plague_Imp PositionInDirectionFromPosition South PositionOfCube Caster
+  Both
+   If And PositionExists PositionInDirectionFromPosition East PositionOfCube Caster IsPositionEmpty PositionInDirectionFromPosition East PositionOfCube Caster
+    CreateCubeOnPosition CopyWithAction CubeConstant Plague_Imp GainAbilityStacking StrengthX 0 AmountOfCubesWhich And IsPositionTouchingPosition PositionOfCube Test PositionOfCube Caster Not CubeHasName Test Plague_Imp PositionInDirectionFromPosition East PositionOfCube Caster
+   If And PositionExists PositionInDirectionFromPosition West PositionOfCube Caster IsPositionEmpty PositionInDirectionFromPosition West PositionOfCube Caster
+    CreateCubeOnPosition CopyWithAction CubeConstant Plague_Imp GainAbilityStacking StrengthX 0 AmountOfCubesWhich And IsPositionTouchingPosition PositionOfCube Test PositionOfCube Caster Not CubeHasName Test Plague_Imp PositionInDirectionFromPosition West PositionOfCube Caster
+Text: After this dies, create an allied Plague_Imp on each empty touching position, each gaining 1 \C255 38 0 Strength \CN per touching cube that isn't a Plague_Imp End
+AiPlacementRule: True
+End

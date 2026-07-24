@@ -1,9 +1,9 @@
 PERK: DJ
 BelongsTo: CLASS
 LevelRequirement: 1
-Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller HpOfCube Victim DoubleConstant 1
- TargetCube Victim Both SetHp DoubleConstant 1 Both GainAbility ChargeEveryX 120 GainAbility EveryXMeleeY 120 1
-Description: Whenever an allied cube would be created with 0 hp or less, it is instead created with 1 hp, and every 2 seconds moves forward and deals 1 melee damage to touching enemies End
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller ManaCostOfCube Victim DoubleConstant 1
+ TargetCube Victim GainAbility Rhythmic 50
+Description: Whenever an allied 0 mana cost cube is created it gains \A Rhythmic 50 End
 ObtainAction: AddCubeToInventory CubeConstant Microphone
 ObtainAction: AddCubeToInventory CubeConstant Speaker
 End
@@ -13,15 +13,10 @@ BelongsTo: DJ
 Ability: AfterACubeDies If And IsAllyToCaster Victim Not CubeHasName Victim Note If X%Chance DoubleConstant 10
  CreateCubeOnPosition CopyWithAction CubeConstant Note
   Both SetFaction FactionOfThis
-  GainAbilityText AfterThisIsCreated Both
-   XTimes AmountOfPerksInInventoryWhich IsSameString NameOfPerk Test StringConstant Echo
-    EveryCubeInHandOfFactionWhich FactionOfThis And IsSmaller ManaCostOfCube Test DoubleConstant 1
-     IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
-     SetStorage Test If X%Chance DoubleConstant 50 TargetCube Caster GainRandomAbilityOfCube Storage
-   RemoveThisAbility
-  For each 0 mana cost cube in your hand that has an ability, 50% chance to give this one random ability of that cube. Additional copies of this perk repeat this scan End
+  XTimes Subtraction AmountOfPerksInInventoryWhich IsSameString NameOfPerk Test StringConstant Echo DoubleConstant 1
+   GainAbility Rhythmic 50
  PositionOfCube Victim
-Description: After a non-Note ally dies, 10% chance you create a Note in its place. For each 0 mana cost cube in your hand that has an ability, 50% chance to give the creation one random ability of that cube. Additional copies of this perk repeat this scan End
+Description: After a non-Note ally dies, 10% chance you create an allied Note in its place. Additional copies of this perk give it another \A Rhythmic 50 End
 End
 
 PERK: Symphony
@@ -51,7 +46,7 @@ Ability: BeforeACubeIsAddedToYourHand TargetCube Victim
       RemoveAbility NthAbilityOfCubeWhich GetVariableOnCube IDX Target Target True
      ChangeVariable IDX DoubleConstant -1
     Nothing
-   XTimes Subtraction GetVariableOnCube OVAR Target AmountOfAbilitiesOfCube Target GainRandomAbilityOfCube ARandomCubeInLibraryWhich IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
+   XTimes Subtraction GetVariableOnCube OVAR Target AmountOfAbilitiesOfCube Target GainRandomAbilityOfCube ARandomCubeInLibraryWhich IsLarger AmountOfAbilitiesOfCubeWhich Test Not AbilityHasName Test Rhythmic DoubleConstant 0
 Description: Before a cube is added to your hand, remove all but one copy of each of its abilities, then add a random ability of a random cube in game to it for each ability removed this way. Additional copies of this perk repeat this End
 End
 
@@ -74,7 +69,7 @@ PERK: Bass_Drop
 BelongsTo: DJ
 Ability: EveryMinute EveryCubeWhich And IsAllyToCaster Test IsSmaller ManaCostOfCube Test DoubleConstant 1
  GainAbility StrengthX 1
-Description: Every minute every allied 0 mana cost cube gains 1 strength End
+Description: Every minute every allied 0 mana cost cube gains \C255 38 0 Strength 1 \CN End
 End
 
 PERK: Sampling

@@ -3,6 +3,7 @@
 #   - GameData/DJ/     the DJ mod we've built (our own content, including its
 #                      own README.md and Preview/ sprite-preview images)
 #   - GameData/General/ the General mod (same deal)
+#   - GameData/Unholy/  the Unholy species mod (same deal)
 #   - README.md        repo-level docs
 # Everything else (game binaries, base-game GameData folders, and any other
 # mod folders that come and go as you subscribe/unsubscribe on the Workshop)
@@ -21,6 +22,7 @@
 /GameData/*
 !/GameData/DJ/
 !/GameData/General/
+!/GameData/Unholy/
 
 # Personal/machine-local Claude Code settings - contains local permission rules
 # with absolute paths tied to whoever's machine set them up (usernames, drive

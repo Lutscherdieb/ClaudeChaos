@@ -7,6 +7,14 @@ description: Use whenever picking numeric stats for a new or edited CUBE (mana c
 
 This skill is about **picking the actual numbers**, not the DSL that uses them (see `cube-chaos-scripting` for `Ability:` syntax) or the wording that describes them (see `cube-chaos-rule-text`). It exists because "what mana cost/hp/rarity should this be" is a real design question this repo used to answer by ad hoc analogy to one or two existing cubes (or by asking the user each time) rather than from any systematic reference — this catalogs the actual empirical distribution across all 546 real `IDENT` cubes in the base game plus both mods (`Modding_Example` excluded — its stats are deliberately absurd teaching placeholders, e.g. a 188,000 hp cube), so a new cube's numbers can be chosen deliberately, and checked against the whole population, not just whichever cube happened to be open at the time.
 
+## Research protocol — this skill first, base game second, write back always
+
+1. **Check this skill first.** The `IDENT` field meanings and the empirical ranges by rarity are below. If the question is covered, use it and stop.
+2. **If not covered, derive it from real numbers, not intuition.** Neither `ModdingInfo.txt` nor `ModdingExplanation.txt` says anything about what a *good* value is — they only define the fields — so the ground truth is the distribution across real base-game entries. Grep the whole corpus for the relevant field and aggregate (`sort | uniq -c | sort -rn`) rather than reading two or three cubes; and **filter to the right comparison class first** — same rarity, same `TYPE`, same `BelongsTo:` kind. Matching against the wrong class is the failure mode this skill exists to prevent (see the `Value:` audit in `cube-chaos-scripting`, where 167 real class perks disproved a pattern copied from an unrelated category).
+3. **Write the finding back into this skill, in the same edit** — the number, the sample size it came from, and the filter that defined the comparison class. A range without its N can't be trusted or refined later.
+
+**Never edit base-game files** while researching (see `CLAUDE.md`) — read freely, write never.
+
 ## `IDENT rarity aggressive defensive scaling weirdness` — what each number actually means
 
 Straight from `ModdingExplanation.txt`'s own worked example (`Dwarven_Warrior`, `IDENT 1 20 0 0 0`, manacost 25): **rarity does NOT affect power** — it only controls how often the cube is offered (1 = common ... 4 = legendary). The other four numbers are the *designer's own estimate*, in mana-equivalent units, of how much of this cube's manacost is realized as each flavor of value to the AI's own cube-evaluation logic:

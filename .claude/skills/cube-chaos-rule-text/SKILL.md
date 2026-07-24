@@ -1,6 +1,6 @@
 ---
 name: cube-chaos-rule-text
-description: Use whenever writing or reviewing the Text:/Description: prose that accompanies a CUBE:/PERK: Ability: in a Cube Chaos mod - covers phrasing/wording conventions distinct from DSL syntax (see cube-chaos-scripting for that). Trigger on "Text:", "Description:", "rule text", "ability text", "how should I word this", or when double-checking that written prose accurately and idiomatically matches what an Ability: chain actually does.
+description: Use whenever writing or reviewing the Text:/Description: prose that accompanies a CUBE:/PERK: Ability: in a Cube Chaos mod - covers phrasing/wording conventions distinct from DSL syntax (see cube-chaos-scripting for that). Also covers the tooltip escape codes (\C \CN \CMANA \B \N \A \D), the \A inline-ability idiom that keeps a keyword's explanation attached everywhere it is referenced, and the standard keyword header + dim parenthesised explanation shape. Trigger on "Text:", "Description:", "rule text", "ability text", "keyword", "tooltip formatting", "how should I word this", or when double-checking that written prose accurately and idiomatically matches what an Ability: chain actually does.
 ---
 
 # Cube Chaos ability text (Text:/Description:) wording conventions
@@ -10,6 +10,20 @@ These are prose/wording conventions, reverse-engineered by grepping thousands of
 The core discipline: **always compare the prose against what the Ability: chain literally does**, token by token, not just against general style. Style-only checks miss real bugs (e.g. a description that names an ability but omits a real numeric effect it grants).
 
 **Rule text is never edited independently — it always derives from the effect.** Whenever you change an existing `Ability:`/`WorldAbility:` chain (a direction, a number, a condition, anything mechanical), updating its paired `Text:`/`Description:` to match is part of the same edit, not a separate optional follow-up — never leave a changed effect with stale prose describing the old behavior, even for a one-word change (e.g. changing a spawn direction from `North` to `East` means the word "above" in the text must become "to the east", not just the DSL token). Treat "the effect changed" as the trigger for a text update, the same way "wrote a new custom Ability:" is the trigger for adding a `Text:`/`Description:` at all (see `cube-chaos-scripting`'s Text:/Description: requirement).
+
+## Research protocol — this skill first, base game second, write back always
+
+Follow this order every time you need to word something and aren't certain of the convention. The point is to stop re-deriving the same answers: each trip to the base game must leave this skill richer than it found it.
+
+1. **Check this skill first.** The Fixed-term sections, the hard formatting rules, and the trigger→opening-phrase table below already settle most questions. If it's covered here, use it and stop — don't re-research something already decided.
+2. **If this skill doesn't cover it, go to the base game.** Two sources, in this order:
+   - **`ModdingInfo.txt` (repo root, ~760 lines).** Every registered built-in is listed as `Name [ARGTYPES]` followed by **its exact tooltip string in quotes** — e.g. `StrengthX STACKING     "\C255 38 0 Strength STACKING 1 \B : \CN This deals \C255 38 0 STACKING 1 \CN more damage "`. This is the canonical phrasing *and* canonical colour for every concept the game already has a word for, and it's the fastest possible lookup. Use it before grepping anything. `ModdingExplanation.txt` (~75 lines) is a prose walkthrough of how a definition is parsed — useful for structure, not phrasing.
+   - **Real `Text:`/`Description:` lines under `GameData/Base_Core|Main|Characters|Extra_Mechanics`.** Grep for the closest analog by *trigger and effect shape*, not by topic, and prefer a pattern with many occurrences over a single example. Counts matter: "113 vs 16" is what makes "give it" the idiom rather than a coin flip.
+3. **Write the finding back into this skill, in the same edit that uses it.** Add a `## Fixed term:` section for a settled word choice, or a new convention section for a pattern, and **record the evidence** — file:line for a decisive example, and the occurrence counts if the conclusion rests on frequency. A finding recorded without its evidence can't be re-checked later and will get re-litigated.
+
+Step 3 is not optional bookkeeping — it's the mechanism that keeps step 1 useful. Skipping it means the next session repeats step 2 from scratch.
+
+**Never edit `ModdingInfo.txt`/`ModdingExplanation.txt` or anything under the base-game `GameData/` folders** — they're read-only ground truth (see `CLAUDE.md`).
 
 ## Forcing a real line break for a multi-point list: `\N`
 
@@ -24,6 +38,62 @@ Use it whenever a `Text:`/`Description:` needs to read as a genuine list of sepa
 
 **You do not need the source `.txt` file's own physical line breaks to match the rendered ones.** `\N` is just a two-character marker inside the field's string content — write the whole field on one physical source line with `\N` embedded inline wherever you want a break (e.g. `Description: Point one \N Point two End`). This also matters for this repo's own tooling: `render_preview_cards.py` (`cube-chaos-sprite-art`) only extracts a `Description:`/`Text:` field from a single physical source line (see that script's `field()` function) — a field genuinely split across physical source lines (as some real base-game examples are) would silently lose its continuation when parsed by our own script, even though the real game engine's own parser tolerates it. Keeping the whole field on one physical line with inline `\N` sidesteps that gap entirely and is simpler to write besides. The script itself now splits on `\N` before word-wrapping (so generated preview cards show the same line breaks the real tooltip would) — if you ever see literal `\N` characters in a generated preview card image, that split logic has regressed.
 
+## The complete escape-code vocabulary — there is no italic and no font size
+
+Grepping every escape sequence across `Base_Core/`, `Main/` and `Extra_Mechanics/` turns up exactly seven, and nothing else exists:
+
+| Code | Meaning |
+|---|---|
+| `\C<R> <G> <B>` | start colored text |
+| `\CN` | reset to normal color |
+| `\CMANA` | the game's own mana-colored word (used as `\CMANA mana \CN`) |
+| `\B` | suppress the space before the next character — `CODE 1 \B %` renders `50%`, `Name \B :` renders `Name:` |
+| `\N` | forced line break (see above) |
+| `\A <Ability> <params>` | render that ability's own registered `Text:` inline |
+| `\D <DOUBLE expr>` | render a computed number inline (e.g. `\D AmountOfCubesInInventoryWhich True`) |
+
+**There is no italic, bold, or font-size control.** If a request asks for "smaller" or "cursive" text to visually de-emphasize a block, the only levers are color (a dimmer gray) and a `\N` break to make it a separate block — say so rather than approximating, because there is no code to find.
+
+## Referencing a keyword: `\A` for our own, colour-only for base-game ones
+
+**This repo's rule, decided deliberately:**
+
+| Keyword defined by | How to reference it in prose |
+|---|---|
+| **This mod** (`COMPOUND: ABILITY` in `GameData/<Mod>/`) | `\A <Name> <params>` — pulls in the full dim explanation |
+| **The base game** (`StrengthX`, `GrowthX`, `Swarm`, `ChargeEveryX`, …) | Just the coloured name, no explanation — `\C255 38 0 Strength 1 \CN` |
+
+The reason is that **`\A` renders the *defining* file's text, so a base-game keyword always arrives in base-game styling** — coloured header plus a normal-brightness explanation (`ModdingInfo.txt:227`, `StrengthX` → `"\C255 38 0 Strength STACKING 1 \B : \CN This deals \C255 38 0 STACKING 1 \CN more damage"`). It cannot be restyled from a mod, because its text lives in `Base_Core`/`ModdingInfo.txt` and base-game files are never edited. Using `\A` on base keywords therefore produced tooltips where our keywords dimmed their explanation and base ones didn't — the user noticed this immediately on the General class perk and chose colour-only for base keywords rather than either the mismatch or hand-copying base text.
+
+Colour-only also keeps our descriptions short: the player can hover the ability on the cube itself for the detail. Grab the exact colour and display name from the ability's own entry in `ModdingInfo.txt` rather than guessing — real values include `StrengthX` `255 38 0` "Strength N", `GrowthX` `0 127 14` "Growth N", `ChargeEveryX` `155 238 255` "Charging", `Swarm` `255 0 220` "Swarm", `Flying` `109 209 228` "Flying". **Don't append a hand-written parenthetical explaining a base keyword** — that's the duplication this rule exists to avoid.
+
+### Why `\A` for our own keywords
+
+`\A <AbilityName> <params>` substitutes that ability's own registered `Text:`, parameters resolved per call site. It's the base game's own idiom — `Characters/2TokenCubes.c.txt:609`, `Characters/Classes/Warrior.c.txt:34`, `Characters/Species/Crystal.c.txt:33`, `Characters/GeneralCubes.c.txt:399`, `Main/3GeneralCubes.c.txt:1250`. Two things go wrong without it, both found in this repo's own mods:
+
+- **The explanation silently goes missing at the reference site.** A description that hand-colors a keyword name (`gains \C255 255 0 Rhythmic 50 \CN`) shows the player a bare word with no indication of what it does. Caught by the user reading the DJ class perk tooltip in-game — the keyword's own definition had a full explanation, but nothing carried it across to the perk that grants it.
+- **The explanation drifts.** Hand-written parentheticals duplicate text that already exists on the ability, so tuning the ability leaves every reference stale. `\A Rhythmic 50` can't drift; editing the compound's own `Text:` updates every site that grants it.
+
+`\A` also resolves parameters per call site, so one definition serves every caller: `\A Rhythmic 50` and `\A Rhythmic 20` render the same sentence with different numbers.
+
+Two mechanical cautions:
+- **Never leave punctuation glued to the ability name.** `\A Take_Off, cooldown 10 seconds` risks the parser reading `Take_Off,` as the name. Separate it and close the gap visually with `\B`: `\A Take_Off \B , cooldown 10 seconds`.
+- **Don't use `\A` for an ability being *removed* or *tested* rather than granted** (`lose Swarm`, `an ally without Charging`) — the inline text is phrased as an effect the cube currently has, which reads wrong under "loses" or "without". Use the coloured name there, base-game style, regardless of who defined the ability.
+
+## Keyword abilities: header line, then a dim parenthesised explanation
+
+The standard shape for any mod-defined `COMPOUND: ABILITY` meant to read as a named keyword:
+
+```
+Text: \C<R> <G> <B> <Keyword Name> [CODE 1] \B : \CN \N \C96 96 96 (<full explanation>) \CN End
+```
+
+The colored name plus `\B :` gives the header; `\N` drops the explanation onto its own line; `96 96 96` (the game's own marker gray) dims it so a player who already knows the keyword can skip the whole block, while a player who doesn't can read it. Parenthesised, and the parentheses stay inside the gray.
+
+Pick the header color from the base game's existing vocabulary rather than inventing one — `155 238 255` movement, `255 0 0` / `182 0 0` damage, `0 254 33` healing, `255 255 0` and `255 238 0` yellow for tag/status keywords, `255 0 220` magenta for meta/system abilities (`LEADER`, `TheInheritor`, `ElementalFriend`). For a **parameterized** compound the placeholder in the text matches the body's generic: `CODE 1` for `GenericConstant`/`GenericDouble`/`GenericTime`, `STACKING 1` for `GenericStacking`.
+
+**A purely cosmetic tag ability still gets the treatment**, with the explanation opening "Cosmetic only," so the player knows there's no effect to hunt for — e.g. `(Cosmetic only, marks a Note that gained all abilities of a random perk)`. This is not a contradiction of "never mention purely cosmetic effects" below: that rule is about not cluttering a *mechanical* ability's text with its sound/particle side effects. A tag ability whose entire existence is the marker has nothing else to describe, and its tooltip line renders whether you like it or not (there is no way to hide an ability from the tooltip — see `cube-chaos-scripting`), so the honest move is to say what the marker means.
+
 ## Hard formatting rules
 
 - **Never put a period before the closing `End`.** Checked ~3070 real `Text:`/`Description:` lines: only 1 has a period before `End`. End the sentence and put `End` directly after — e.g. `Text: Heals the cube in front for 2 hp End`.
@@ -36,6 +106,8 @@ Use it whenever a `Text:`/`Description:` needs to read as a genuine list of sepa
 ## Spell out the numbers when granting a built-in parameterized ability
 
 When your custom `Ability:` chain does `GainAbility SomeBuiltIn <TIME/STACKING/CONSTANT literal>` as part of a bigger effect, don't just name-drop the ability — state its concrete resulting effect. The base game's own `Forged_Coalition_Swords` grants `GainAbility EveryXMeleeY 60 1` and describes it as "a melee attack for 1 damage per second" (60 ticks = 1 second — see `cube-chaos-scripting` for the confirmed 60-ticks-per-second rate), not just "...and Melee". Convert the raw TIME value to "every N seconds" phrasing rather than leaving the reader to infer it from the ability's own separate tooltip.
+
+**This applies only to abilities granted *inside* a larger custom effect that you are describing in your own words** — e.g. a chain that creates a cube and also gives it a melee attack. It does **not** override the keyword-reference rule above: a sentence whose whole point is "it gains \<keyword\>" uses `\A` for our own keywords and a bare coloured name for base-game ones, never a hand-written restatement of what the keyword does.
 
 ## Referring back to a cube mentioned earlier in the same sentence
 

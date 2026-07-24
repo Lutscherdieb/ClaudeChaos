@@ -22,7 +22,7 @@ Ask with `AskUserQuestion` unless it's already obvious from the request (e.g. th
 To find existing mods: read `GameData/Loading_Order.txt`, then drop the known base-game/example package names (`Base_Core`, `Extra_Mechanics`, `Characters`, `Main`, `Modding_Example`) from that list — what's left is the custom mod(s) in this repo. If exactly one remains, confirm it with the user rather than asking which one ("I'll work in the `DJ` mod — let me know if you meant a different one"). If several remain, ask which.
 
 If "new mod" → go to `workflows/new-mod.md`.
-If "existing mod" → note which mod folder is active for the rest of the session, then go to Step B.
+If "existing mod" → note which mod folder is active for the rest of the session, **read its `GameData/<Mod>/DESIGN.md` if one exists** (mod-specific design/balance decisions live there — read them so you don't re-litigate settled calls), then go to Step B.
 
 ## Step B — what does the user want to do?
 
@@ -46,6 +46,8 @@ If they picked "perk-like thing" and it's still unclear which exact category, as
 | *Editing* something that already exists (any type above) | Same workflow file as the content type, but read `workflows/editing-checklist.md` first — it has rules that only apply to edits, not fresh creation | Same as above |
 
 Every path ends the same way: **`cube-chaos-mod-setup`'s launch-and-check-`Log.txt` loop, at least once since the last edit, before anything is reported as done.** A change that "should work" but hasn't been launched and checked is not done.
+
+**Also part of "done": any mod-specific design/balance decision made this session is recorded in `GameData/<Mod>/DESIGN.md`** (create it if the mod doesn't have one yet). This is a governance rule from `CLAUDE.md` — the core concept, deliberate design choices, per-cube/perk balance anchors, and palette/sprite conventions belong there so the next session inherits them instead of re-deriving them. It's the mod-scoped counterpart to the skill-writeback rule (Step D): skills hold *general* modding knowledge, `DESIGN.md` holds *this mod's* specific decisions.
 
 **Exception: a pure sprite-pixel edit or a pure `Text:`/`Description:` wording edit needs no test-launch.** If the session's only changes are (a) repainting pixels inside an already-correctly-sized/sliced sheet (no resize, no new/removed tile, no slot-count change) and/or (b) rewording the *content* of an existing `Text:`/`Description:` field while leaving its structure intact (same field keyword, same trailing `End`, no argument/token change) — there is no DSL parse path or mechanical logic for either edit to break. The launch loop exists to catch parse errors and silent logic bugs in `Ability:`/`WorldAbility:` chains and sheet-slot mismatches; neither of those exists for a content-only pixel or wording change. Still launch-and-check whenever the same edit touches sheet dimensions/slot count, or any `Ability:`/trigger-chain/argument-count territory, even if it also happens to touch a sprite or some text.
 
@@ -82,7 +84,27 @@ Every path ends the same way: **`cube-chaos-mod-setup`'s launch-and-check-`Log.t
 
 4. **Only sprites and file writes happen after the OK.** Mechanics (ability + numbers + rule text) are what the gate approves; the sprite is drawn *after*, once the design is locked, so no pixel work is wasted on a design that gets reshaped. The per-workflow "Sequence" steps run only past this point.
 
+5. **Sanity-check the logic before showing it, and pre-empt silent-failure shapes in the preview itself.** Don't just transcribe the user's literal ask into DSL and wait for them to catch a mechanical break — actively ask "does this actually make sense in play?" If the design has a known silent-failure pattern (create-on-occupied-tile no-op, two spawns targeting the same tile, `Forwards`/`East` faction-flip, an order-of-operations trap — see `cube-chaos-scripting`), **flag it AND print a concrete already-fixed rule that circumvents it**, so the user approves a de-risked design rather than the naive one. Real precedent: `Ritual` first spawned both Imps on the tile above (the on-death one silently no-op'd onto the occupied tile) — that should have been caught and fixed in the preview, not left for the user to spot. See the `feedback_sanity_check_spawn_logic` memory.
+
+6. **If a "simple" approach balloons into unexpected complexity, stop and ask before building the complex version.** The moment an approach crosses from a small edit into a new compound / new state / notably more moving parts than assumed, surface the tradeoff at that fork and let the user choose — "the clean version needs a custom compound because <reason>; the simpler option is <X> with <minor downside>; which do you want?" (via `AskUserQuestion` for a clean either/or). Don't silently build the complex thing. Real precedent: turning "3x Explode 1" into a single "Explode X" quietly required a whole custom `GenericStacking` clone compound; that complexity should have been raised before implementing, not after the user intervened to revert it. See the `feedback_escalate_when_simple_turns_complex` memory (and note the game *does* auto-collapse repeated identical instances into one `Nx <ability>` tooltip line, so "just repeat the stock ability" is usually the simpler right answer anyway).
+
 This gate sits *before* the launch-and-check gate — approve the design, then implement, then launch-and-check.
+
+## Step D — the research protocol every domain skill shares
+
+Each domain skill opens with a `## Research protocol` section, and they all follow the same three steps: **check that skill first → if it doesn't cover the question, go to the base game (read-only) → write the finding back into the skill in the same edit.** Only the middle step differs, because each skill has a different ground truth:
+
+| Skill | Ground truth when this skill comes up short |
+|---|---|
+| `cube-chaos-scripting` | `ModdingInfo.txt` production lists → `ModdingExplanation.txt` → a real working example grepped from `GameData/**/*.c.txt` |
+| `cube-chaos-rule-text` | `ModdingInfo.txt`'s quoted tooltip string for each built-in (canonical phrasing *and* colour) → real `Text:`/`Description:` lines, compared by frequency |
+| `cube-chaos-sprite-art` | Pixels measured from real `GameData/*/Sprites/*.c.png`, confirmed across several files (nothing about sprites is documented) |
+| `cube-chaos-balancing` | The distribution of real values across the right comparison class, not two or three sampled cubes |
+| `cube-chaos-mod-setup` | Real package layouts, then `%APPDATA%/CubeChaos/Log.txt` after an actual launch — the log outranks what the files imply |
+
+**Enforce the write-back.** The research step is only worth its cost once, so a session that had to go to the base game for an answer does not end until that answer is a section in the relevant skill, with its evidence (`file:line`, error text, sample size, or occurrence counts as appropriate). Treat an un-written-back finding the same as an unlaunched content change — the work isn't finished. This is what makes step 1 progressively cheaper instead of every session re-deriving the same conventions.
+
+Note the two root reference files are small enough to consult freely — `ModdingInfo.txt` is ~760 lines and `ModdingExplanation.txt` ~75. Reading them is cheap; the expensive part is rediscovering what they *don't* say, which is exactly what the skills accumulate.
 
 ## Notes for extending this orchestrator
 

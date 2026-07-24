@@ -1,21 +1,15 @@
 PERK: DJ-Dwarf
 BelongsTo: CLASSSPECIES
 Ability: EveryMinute EveryCubeWhich And IsAllyToCaster Test CubeHasName Test Stone
- CreateCubeOnPosition CopyWithAction CubeConstant Note
-  Both SetFaction FactionOfThis
-  GainAbilityText AfterThisIsCreated Both
-   EveryCubeInHandOfFactionWhich FactionOfThis And IsSmaller ManaCostOfCube Test DoubleConstant 1 IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
-    SetStorage Test If X%Chance DoubleConstant 50 TargetCube Caster GainRandomAbilityOfCube Storage
-   RemoveThisAbility
-  For each 0 mana cost cube in your hand that has an ability, 50% chance to give this one random ability of that cube End
+ CreateCubeOnPosition CopyWithAction CubeConstant Note SetFaction FactionOfThis
  PositionInDirectionFromPosition Forwards PositionOfCube Test
-Description: Every minute each of your Stone cubes creates an allied Note in front of it. For each 0 mana cost cube in your hand that has an ability, 50% chance to give the creation one random ability of that cube End
+Description: Every minute each of your Stone cubes creates an allied Note in front of it End
 End
 
 PERK: DJ-Plant
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim TargetCube Victim GainAbility GrowthX 1
-Description: Created allies gain 1 Growth (1 extra hp per minute) End
+Description: Created allies gain \C0 127 14 Growth 1 \CN End
 End
 
 PERK: DJ-Crystal
@@ -28,16 +22,9 @@ End
 PERK: DJ-Shadow
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeDies If CubeHasName Victim Solid_Shadow If X%Chance DoubleConstant 50
- CreateCubeOnPosition CopyWithAction CubeConstant Note
-  Both SetFaction FactionOfThis
-  GainAbilityText AfterThisIsCreated Both
-   EveryCubeInHandOfFactionWhich FactionOfThis And IsSmaller ManaCostOfCube Test DoubleConstant 1
-    IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
-    SetStorage Test If X%Chance DoubleConstant 50 TargetCube Caster GainRandomAbilityOfCube Storage
-   RemoveThisAbility
-  For each 0 mana cost cube in your hand that has an ability, 50% chance to give this one random ability of that cube End
+ CreateCubeOnPosition CopyWithAction CubeConstant Note SetFaction FactionOfThis
  PositionOfCube Victim
-Description: After a Solid_Shadow dies, 50% chance to create an allied Note in its place. For each 0 mana cost cube in your hand that has an ability, 50% chance to give the creation one random ability of that cube End
+Description: After a Solid_Shadow dies, 50% chance to create an allied Note in its place End
 End
 
 PERK: DJ-Devourer
@@ -45,7 +32,7 @@ BelongsTo: CLASSSPECIES
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsPlaced If HasAbilityWithName Victim Swarm
  EveryCubeInHandOfFactionWhich FactionOfThis HasNameOfCube Test Victim
   Both RemoveAbilityWithName Swarm GainAbility StrengthX 1
-Description: When an ally with Swarm is placed, cubes in your hand with the same name lose Swarm and gain 1 Strength End
+Description: When an ally with \C255 0 220 Swarm \CN is placed, cubes in your hand with the same name lose \C255 0 220 Swarm \CN and gain \C255 38 0 Strength 1 \CN End
 End
 
 PERK: DJ-Remnant
@@ -62,14 +49,14 @@ End
 PERK: DJ-Undead
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If HasAbilityWithName Victim Undead
- TargetCube Victim GainRandomAbilityOfCube ARandomCubeInLibraryWhich IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
+ TargetCube Victim GainRandomAbilityOfCube ARandomCubeInLibraryWhich IsLarger AmountOfAbilitiesOfCubeWhich Test Not AbilityHasName Test Rhythmic DoubleConstant 0
 Description: After an Undead ally is created it gains a random ability of a random cube in the game End
 End
 
 COMPOUND: ABILITY
 Moil_Rhythm
 Nothing
-Text: \C255 238 0 Moil Rhythm \CN End
+Text: \C255 238 0 Moil Rhythm \B : \CN \N \C96 96 96 (Cosmetic only, marks a Note that gained all abilities of a random perk) \CN End
 NO_DUPLICATES
 NORANDOM
 CubeColourShift: 0.9 0 0 0
@@ -89,14 +76,14 @@ End
 PERK: DJ-Chaos
 BelongsTo: CLASSSPECIES
 Ability: EveryMinute EveryCubeWhich And IsAllyToCaster Test Not IsALeader Test
- GainRandomAbilityOfCube ARandomCubeInLibraryWhich IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
+ GainRandomAbilityOfCube ARandomCubeInLibraryWhich IsLarger AmountOfAbilitiesOfCubeWhich Test Not AbilityHasName Test Rhythmic DoubleConstant 0
 Description: Every minute each non-leader ally gains a random ability of a random cube in the game (a different one for each) End
 End
 
 COMPOUND: ABILITY
 Fungus_Rhythm
 Nothing
-Text: \C255 238 0 Fungus Rhythm \CN End
+Text: \C255 238 0 Fungus Rhythm \B : \CN \N \C96 96 96 (Cosmetic only, marks a Mycelium that was given the DJ's rhythm) \CN End
 NO_DUPLICATES
 NORANDOM
 CubeColourShift: 0.5 255 238 0
@@ -105,10 +92,8 @@ End
 PERK: DJ-Fungus
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Mycelium
- EveryCubeInHandOfFactionWhich FactionOfThis And IsSmaller ManaCostOfCube Test DoubleConstant 1
-  IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
-  SetStorage Test If X%Chance DoubleConstant 20 TargetCube Victim Both GainAbility Fungus_Rhythm GainRandomAbilityOfCube Storage
-Description: Whenever an ally Mycelium is created, for each 0 mana cost cube in your hand that has an ability, 20% chance to give it one random ability of that cube End
+ TargetCube Victim Both GainAbility Fungus_Rhythm GainAbility Rhythmic 20
+Description: After an ally Mycelium is created it gains \A Rhythmic 20 End
 End
 
 PERK: DJ-Elemental
@@ -121,7 +106,7 @@ End
 PERK: DJ-No_Species
 BelongsTo: CLASSSPECIES
 Ability: Every30Seconds SetStorage ARandomCubeInHandOfFactionWhich FactionOfThis And IsSmaller ManaCostOfCube Test DoubleConstant 1
-  IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
+  IsLarger AmountOfAbilitiesOfCubeWhich Test Not AbilityHasName Test Rhythmic DoubleConstant 0
  If CubeExists Storage GainRandomAbilityOfCube Storage
 Description: Every 30 seconds, your starting leader gains a random ability of a random 0 mana cost cube from your hand End
 End

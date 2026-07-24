@@ -2,7 +2,7 @@ COMPOUND: ABILITY
 General_Inherited_Strength
 StrengthX 1
 ExtraTrigger: Inheritable
-Text: \C255 38 0 Strength 1 \CN , Inheritable End
+Text: \C255 38 0 Inherited Strength \B : \CN \N \C96 96 96 (Before this deals damage deal 1 more damage, and cubes this creates or adds to your hand also gain this ability) \CN End
 NO_DUPLICATES
 NORANDOM
 End
@@ -56,7 +56,7 @@ PERK: General-Fungus
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If Not HasAbilityWithName Victim ChargeEveryX
  TargetCube Victim GainAbility ChargeEveryX 120
-Description: Whenever an ally without charging is created, it gains charging (moves forwards every 2 seconds) End
+Description: Whenever an ally without \C155 238 255 Charging \CN is created, it gains \C155 238 255 Charging \CN End
 End
 
 PERK: General-Moil
@@ -89,7 +89,7 @@ PERK: General-Remnant
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeIsCreated If And IsAllyToCaster Victim IsPlaced
  TargetCube Victim GainAbility General_Inherited_Strength
-Description: Placed allies gain strength 1, inherited by cubes they create End
+Description: Placed allies gain \A General_Inherited_Strength End
 End
 
 PERK: General-Dwarf
@@ -104,7 +104,7 @@ PERK: General-Plant
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
  TargetCube Victim GainAbility GrowthX 3
-Description: Whenever an ally is created in friendly territory, it gains 3 growth (gaining 3 extra hp per minute) End
+Description: Whenever an ally is created in friendly territory, it gains \C0 127 14 Growth 3 \CN End
 End
 
 PERK: General-No_Species

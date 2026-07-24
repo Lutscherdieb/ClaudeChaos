@@ -7,6 +7,14 @@ description: Use whenever creating or resizing pixel-art sprite sheets for a Cub
 
 These facts were reverse-engineered empirically (by measuring real game files pixel-by-pixel), not guessed. Trust them over any formula involving `ceil(sqrt(count))` — that coincidentally matches some files but is NOT how the game actually slices sprites.
 
+## Research protocol — this skill first, base game second, write back always
+
+1. **Check this skill first.** Tile sizes, the safe interior zone, the border pattern library and the default colors are already settled below. If it's covered, use it and stop.
+2. **If not covered, measure the base game's own sprite sheets** — they are the ground truth for anything visual, and neither `ModdingInfo.txt` nor `ModdingExplanation.txt` documents sprite conventions at all (`Visual:` and `CubeColourShift:` are undocumented there too — see `cube-chaos-scripting`). Sample actual pixels from `GameData/*/Sprites/*.c.png` with a throwaway script rather than eyeballing a screenshot, and confirm a measurement across **several independent files** before treating it as a rule — a single sheet can be an outlier.
+3. **Write the finding back into this skill, in the same edit** — the measured numbers, which files you sampled, and how many agreed. A color or offset recorded without its source can't be re-verified.
+
+Two standing constraints while researching: **base-game sprite sheets are read-only** (see `CLAUDE.md`), and **never derive a border by color-matching against a content-bearing reference tile** — generate it from the pattern library below instead.
+
 ## Fixed tile sizes (confirmed across many independent real files)
 
 - **CUBE icons: 17×17 px.** Confirmed via `Main/Sprites/3GeneralCubes.c.png` (714÷17=42), `Characters/Sprites/2TokenCubes.c.png` (306÷17=18), `Modding_Example/Sprites/GeneralCubes.c.png` (272÷17=16).
@@ -255,6 +263,17 @@ YXXXXXXXXXXXXXY
 YYXXXXYYYXXXXYY
 ```
 This leaves nearly the full tile clear for the icon itself (draw it large, not scaled down for a border that barely intrudes).
+
+## Color composition: don't ship flat single-color icons — shade them like the real cubes
+
+**A finished cube/perk icon should use ~3–5 colors, not one flat fill.** User-confirmed direction ("the image must not contain only one color, look at how color composition is in our other mods") after an early Unholy pass shipped flat single-blood-red icons. Verified by sampling real mod tiles (`GameData/General/Sprites/General_Cubes.c.png`, `GameData/DJ/Sprites/DJ_Cubes.c.png`): almost every real cube tile uses **3–5 distinct non-background colors** — e.g. General's tiles run gunmetal `(80,80,85)` + light-olive `(160,181,118)` + olive `(107,142,35)` + dark `(45,45,50)`; DJ's run gray `(70,70,75)` + white highlight `(255,255,255)` + light-gray + near-black outline + a blue-gray. The recurring recipe is **base body color + a darker outline/shadow + a lighter highlight + (often) one small bright accent** — pick shades within the mod's own palette family (see the mod's palette memory) rather than unrelated hues.
+
+Two reliable techniques for turning a single silhouette mask into a shaded multi-color tile (both used for the Unholy `Imp`/`Cultist`, `scratchpad`-style generator):
+
+- **Edge-outline + highlight/accent overlays (for filled silhouettes).** Paint the mask in the base color, but set any mask pixel that has a background 4-neighbour (or sits on the tile edge) to the dark outline color — this gives a clean 1px dark rim for free. Then overlay a separately-drawn highlight sub-mask (a lit region: forehead, shoulder, wing-top) in a lighter shade over *interior* pixels only, a `void` sub-mask (a shadowed recess like a hood interior) in a very dark shade, and a tiny `accent` sub-mask (glowing eyes) in a bright color painted last so it wins. Draw each sub-mask with the same high-res-`LANCZOS`-threshold pipeline; use a **lower threshold (~60) for very small accents** (1px eyes) so they survive the downscale, and if two tiny accents merge into one blob at 17px, post-process the row to keep only the outer pixels and re-void the middle (guarantees two distinct eyes).
+- **Layered line widths (for line-art like a sigil/pentagram).** Draw the same path 2–3 times at *decreasing* stroke width, painting widest-first: widest in the dark outline color, a middle width in the base color, a thin core in a bright color — yields a glowing outlined line. Keep the widths genuinely thin at 17px (a black ~2px / red ~1px pair reads as a clean outlined line; go thicker and the strokes blob together and the shape is lost — a real first-attempt failure on the Unholy `Ritual` pentagram, fixed by thinning). **For dense line-art like a pentagram, stop at two tones (dark outline + base) — adding a third bright-core layer over-crowds the interior at 17px and reads worse, not richer** (user-rejected on the Unholy `Ritual`; the clean black-outline+red version was the keeper). The 3-layer glowing-core trick is for sparse/isolated lines, not a busy star-in-circle.
+
+Still verify the result by reading the upscaled PNG back before calling it done (see the workflow below) — shading mistakes are visual, not logged.
 
 ## Getting clean icon silhouettes from vector shapes
 
