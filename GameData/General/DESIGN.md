@@ -90,6 +90,15 @@ of flying a dead-straight mechanical line — a deliberate flavor choice the use
 stock Bomber. Current timing/damage numbers: `General_Cubes.c.txt`. Splash/combined-total balance still
 applies to the dropped Rockets — see the projectile-balance note above.
 
+**Sprite (2026-07-25, revised after the Adult originally shipped as a palette-swap of the same generic
+silhouette used by `Bass_Dragon`/`Hell_Dragon` — see `cube-chaos-sprite-art`'s dragon-line corollary):**
+the Adult `War_Dragon` reads as a heavily-armed flying mecha-jet rather than a standing mecha-Godzilla —
+nose cone, swept delta wings, no legs at all (it's always airborne, `Ability: Flying`), a tapered
+tail/exhaust, and a small rocket shape visibly dropping from underneath, matching its actual
+`CreateCubeOnPosition CubeConstant Rocket` drop ability. The Baby keeps the earlier standing
+mini-mecha-Godzilla look (antenna, blocky head, stubby legs) — only the Adult was revised to the
+flying-jet read. Adult fills the tile near edge-to-edge.
+
 > Open playtest items: the drop cadence (100% × per-move over enemies + fast charge) is intentionally
 > strong per the user; watch for Rocket-flooding in practice and add a `Cooldown` gate if it's too much.
 

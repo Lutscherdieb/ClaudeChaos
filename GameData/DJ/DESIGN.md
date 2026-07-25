@@ -66,6 +66,16 @@ teleports to the top of a random enemy's column (`SetStorage ARandomEnemy` →
 explicitly). Current cadence numbers: `DJ_Cubes.c.txt`. Because `Note` is a homing projectile (see
 above), each spawned Note flies off to strike enemies — the adult is a multi-way music battery.
 
+**Sprite (2026-07-25, revised after the Baby/Adult originally shipped as a palette-swap of the same
+generic silhouette used by `War_Dragon`/`Hell_Dragon` — see `cube-chaos-sprite-art`'s dragon-line
+corollary):** `Bass_Dragon` reads as a subwoofer/amp/e-guitar beast, not a generic winged lizard —
+concentric-ring speaker-cone face, boxy amp-cabinet torso, a guitar-neck tail with fret ticks and a
+headstock tip, and small sound-wave arcs floating off both sides of the head. Both the baby and adult
+also carry a small ripple mark directly above the head, deliberately placed there because that's where
+each one's own `Ability:` actually spawns its Note (baby: north; adult: also north, though it spawns on
+all 4 sides — the icon only marks the one direction to keep it readable, not all 4). Adult fills the
+tile near edge-to-edge; baby is deliberately smaller/rounder with no sound-wave arcs or guitar neck yet.
+
 ## Docs
 
 Has a `README.md` + `Preview/` cards — keep them in sync on every content/sprite change

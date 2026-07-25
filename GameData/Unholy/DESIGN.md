@@ -206,6 +206,16 @@ convention, no `\A`. Note: because `Burning` is a binary keyword (no stack level
 frequency only controls how fast newly-created enemies get ignited — the burn rate itself is fixed by
 the keyword (quoted above).
 
+**Sprite (2026-07-25, revised after the Baby/Adult originally shipped as a palette-swap of the same
+generic silhouette used by `Bass_Dragon`/`War_Dragon` — see `cube-chaos-sprite-art`'s dragon-line
+corollary):** `Hell_Dragon` reads as a red lizard fire-dragon with a demonic touch — curved horns, bat
+wings, a flame-tipped tail — deliberately in the Pokémon Charmeleon→Charizard body-plan family per the
+user's own reference. Adult fills the tile near edge-to-edge; baby is smaller with horn nubs and a tiny
+flame wisp instead of full horns/wings/tail. Wingspan and leg thickness went through one round of
+"bigger wings, thicker legs" that the user then asked to revert — the shipped version keeps the original
+(smaller-winged, thinner-legged) proportions; don't re-apply the bigger-wing/thicker-leg pass without
+asking again first.
+
 ## Sprite notes
 
 - **Species identity color: `RGB(150, 20, 20)`** (blood red) — the `Unholy` base-perk icon fill AND
