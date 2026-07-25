@@ -9,7 +9,7 @@ End
 PERK: Lichdom
 Ability: AfterACubeDies If Not CubeHasName Victim Damned_Soul If X%Chance DoubleConstant 20
  AddCubeToHandOfThis CopyWithAction CubeConstant Damned_Soul GainAbility SoulMemory
-Description: Whenever a cube (other than a Damned Soul) dies, 20% chance to add a Damned Soul to your hand End
+Description: Whenever a non-Damned Soul cube dies, 20% chance to add a Damned Soul to your hand End
 IsUpgradeFrom: Phylactery 80
 ReferenceCube: Damned_Soul
 ReferenceCube: Plague_Imp
