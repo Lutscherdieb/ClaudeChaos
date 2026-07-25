@@ -9,10 +9,18 @@ as decisions are revisited.
 
 A **Class** mod themed around a military/army general. Signature material is the **ammo-cube tier
 chain** `Shot → Shell → Bomb → Rocket`: each is both an independently obtainable self-flying missile
-when hand-placed (mana 5 / 8 / 12 / 25) *and* a token spawned by various cubes (`Bunker`, `Artillery`,
-`Rocket_Silo`, `Bombardement`, `Bomber`, etc.), with the `Arms_Race` upgrade chain substituting one tier
-for the next. Files: `General_Cubes`, `General_Perks`, `General_UpgradePerks` (dedicated sprite-less
-upgrade file), `General_Synergies` (`CLASSSPECIES`).
+when hand-placed *and* a token spawned by various cubes (`Bunker`, `Artillery`, `Rocket_Silo`,
+`Bombardement`, `Bomber`, etc.), with the `Arms_Race` upgrade chain substituting one tier for the next.
+Current mana costs: see `General_Cubes.c.txt`. Files: `General_Cubes`, `General_Perks`,
+`General_UpgradePerks` (dedicated sprite-less upgrade file), `General_Synergies` (`CLASSSPECIES`).
+
+> **Numbers in this file are illustrative, not authoritative — the `.c.txt` is.** Mana costs, hp,
+> timers, and other stat/parameter numbers are deliberately not restated here; a rebalance edits the
+> `.c.txt` and has no reason to touch this doc, so a copied-in number silently goes stale. **Real
+> incident:** this exact list — the ammo-cube mana costs — drifted from the real `25` to a stale `17`
+> not once but twice (fixed 2026-07-25, having already been "fixed" once before on 2026-07-22 without
+> the fix sticking anywhere but a memory file). Read the *shape* of a design here; read the *current
+> numbers* from the `.c.txt`.
 
 ## Palette / sprites
 
@@ -51,8 +59,9 @@ upgrade file), `General_Synergies` (`CLASSSPECIES`).
   the now-redundant dynamic grant removed or the new baked ability stripped at that spawn site (e.g.
   `Bomber`'s dropped `Bomb` strips `Flying`/`ChargeEveryX` so it falls straight down). Full rationale in
   `cube-chaos-scripting`.
-- **`General_Inherited_Strength`** (an `Inheritable` `StrengthX 1` compound) is granted by the
-  `General-Remnant` synergy so a placed ally and its whole creation tree deal +1.
+- **`General_Inherited_Strength`** (an `Inheritable` `StrengthX` compound) is granted by the
+  `General-Remnant` synergy so a placed ally and its whole creation tree get a damage buff (current
+  amount: `General_Synergies.c.txt`).
 - Several perks (`Thirst_for_Blood`, `Experienced_Fighter`, `Wartime_Logistics`, `Believer` + upgrades)
   are reworked shapes absorbed from the removed Cubehammer40k mod.
 
@@ -62,23 +71,24 @@ Mimics the base-game per-class Dragon line (reference: Cryomancer's `Icy_Dragon_
 `GameData/Characters/Classes/Cryomancer.c.txt`, cubes in `Characters/2TokenCubes.c.txt`). Shared
 egg→baby→adult shape (see DJ's `DESIGN.md` for the full breakdown; same across all three mods):
 
-- **Egg** `War_Dragon_Egg` (TOKEN 10/7/7) → **Baby** `Baby_War_Dragon` (TOKEN 5/15/15,
-  `GrowingUp 40`) → **Adult** `War_Dragon` (TOKEN 200/**25**/25 — lowest-hp of the three dragons,
-  a deliberate glass-cannon since its bombardment is the strongest).
+- **Egg** `War_Dragon_Egg` → **Baby** `Baby_War_Dragon` (`GrowingUp`) → **Adult** `War_Dragon` —
+  deliberately the **lowest-hp of the three dragons**, a glass-cannon tradeoff since its bombardment is
+  the strongest (see "supercharged Bomber" below). Current stats: `General_Cubes.c.txt`.
 - **Grant**: `PERK: War_Dragon_Egg BelongsTo: General` (`General_Perks`); upgrade
-  `PERK: Baby_War_Dragon IsUpgradeFrom: War_Dragon_Egg 60` (`General_UpgradePerks`, sprite-less).
+  `PERK: Baby_War_Dragon IsUpgradeFrom: War_Dragon_Egg` (`General_UpgradePerks`, sprite-less; see that
+  file for the current forge cost).
 
 **General signature — supercharged Bomber.** Built on this mod's own `Bomber` "fly into enemy
 territory → drop payload" loop, but: **100% drop (no chance roll)**, the payload is a self-flying
 `Rocket` (baby drops `Shell`) instead of a falling Bomb (so it's NOT stripped of `Flying`/`ChargeEveryX`
-— it flies on into the enemy line), and it repositions with `TeleportToPosition` to the top of a random
-enemy column every 12s. Drop fires per column-advance while over an enemy (`AfterThisMoves` + enemy-
-territory + `TheFirstCubeInDirectionFromPositionWhich South … IsEnemyToCaster` — the base Bomber's exact
-condition, at 100%). **`RandomMovementX 120`** (baby 150) is layered on so it drifts organically instead
+— it flies on into the enemy line), and it periodically repositions with `TeleportToPosition` to the
+top of a random enemy column. Drop fires per column-advance while over an enemy (`AfterThisMoves` +
+enemy-territory + `TheFirstCubeInDirectionFromPositionWhich South … IsEnemyToCaster` — the base
+Bomber's exact condition, at 100%). **`RandomMovementX`** is layered on so it drifts organically instead
 of flying a dead-straight mechanical line — a deliberate flavor choice the user asked for. Balanced by a
-**deliberately weak melee** (`EveryXMeleeY 300 2` = 2 dmg/5s, weakest of the three dragons). Charge speed
-`ChargeEveryX 45` (baby 60), slightly faster than a stock Bomber (60). Splash/combined-total balance
-still applies to the dropped Rockets — see the projectile-balance note above.
+**deliberately weak melee, the weakest of the three dragons**, and a charge speed slightly faster than a
+stock Bomber. Current timing/damage numbers: `General_Cubes.c.txt`. Splash/combined-total balance still
+applies to the dropped Rockets — see the projectile-balance note above.
 
 > Open playtest items: the drop cadence (100% × per-move over enemies + fast charge) is intentionally
 > strong per the user; watch for Rocket-flooding in practice and add a `Cooldown` gate if it's too much.

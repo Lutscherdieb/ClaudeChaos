@@ -7,11 +7,17 @@ as decisions are revisited.
 
 ## Core concept
 
-A **Class** mod themed around a DJ / music. Signature material is the **`Note`** — a `0 1 1` `TOKEN`
-homing-projectile cube (`Flying`/`HomingX 120`/`ProjectileX 2`/`DieAfterX 7200`) generated and consumed
+A **Class** mod themed around a DJ / music. Signature material is the **`Note`** — a `TOKEN`
+homing-projectile cube (see `DJ_Cubes.c.txt` for its current stats/abilities) generated and consumed
 by DJ cubes/perks — plus **`Echo`**-style ability duplication and fusion/combination perks. Files:
 `DJ_Cubes`, `DJ_Perks`, `DJ_UpgradePerks` (dedicated sprite-less upgrade file), `DJ_Synergies`
 (`CLASSSPECIES`), `DJ_Consumables`, `DJ_Curses`.
+
+> **Numbers in this file are illustrative, not authoritative — the `.c.txt` is.** Mana costs, hp,
+> timers, and other stat/parameter numbers are deliberately not restated here; a rebalance edits the
+> `.c.txt` and has no reason to touch this doc, so a copied-in number silently goes stale (real incident:
+> General's ammo-cube mana list drifted out of sync twice — see that mod's `DESIGN.md` history). Read
+> the *shape* of a design here; read the *current numbers* from the `.c.txt`.
 
 ## Palette / sprites
 
@@ -22,8 +28,8 @@ by DJ cubes/perks — plus **`Echo`**-style ability duplication and fusion/combi
 
 ## Deliberate design decisions
 
-- **`Note` is a `0 1 1` homing projectile, not a zero-ability `NORANDOM` donor tag** (that was an
-  earlier design, since replaced — see `DJ_Cubes.c.txt`). It carries no `NORANDOM` tag, so it's a
+- **`Note` is a homing projectile, not a zero-ability `NORANDOM` donor tag** (that was an
+  earlier design, since replaced — see `DJ_Cubes.c.txt` for current stats). It carries no `NORANDOM` tag, so it's a
   normal (if usually unwanted) ability-donor candidate at any random-ability-scan site; nothing in this
   mod currently relies on it being excluded. The `Bass_Dragon` line below leans on its current homing
   behavior: spawned Notes fly off and home enemies.
@@ -41,22 +47,24 @@ Mimics the base-game per-class Dragon line (reference: Cryomancer's `Icy_Dragon_
 `GameData/Characters/Classes/Cryomancer.c.txt`, cubes in `Characters/2TokenCubes.c.txt`). The 3-stage
 shape is shared by all three mods in this repo (General's `War_Dragon`, Unholy's `Hell_Dragon`):
 
-- **Egg** `Bass_Dragon_Egg` (TOKEN 10/7/7, `ArmorX 1`): base compound `Dragon_Egg CubeConstant <baby>`
-  — after 4 min on the field it dies and drops the baby into hand.
-- **Baby** `Baby_Bass_Dragon` (TOKEN 5/15/15): `GrowingUp 40 CubeConstant <adult>` + `GrowthX 5` +
-  `RegenerationX 2` + `WorthXMore 25`. Grows maxhp past 40 (~5 min) then becomes the adult
-  (egg 4 min + baby ~5 min ≈ full dragon by ~9 min — deliberately a late-game payoff, matching base).
-- **Adult** `Bass_Dragon` (TOKEN 200/30/30) + `Flying`/`GrowthX 2`/`EveryXMeleeY 120 4`.
+- **Egg** `Bass_Dragon_Egg`: base compound `Dragon_Egg CubeConstant <baby>` — hatches after a fixed
+  time on the field (the shared base-game `Dragon_Egg` compound's own built-in constant, ~4 min across
+  all three mods' dragon lines) and drops the baby into hand.
+- **Baby** `Baby_Bass_Dragon`: `GrowingUp <threshold> CubeConstant <adult>` plus growth/regen — grows
+  into the adult once its maxhp climbs past the threshold, deliberately timed as a late-game payoff,
+  matching the base game's own dragon lines. Current threshold/growth/regen numbers: `DJ_Cubes.c.txt`.
+- **Adult** `Bass_Dragon` — see `DJ_Cubes.c.txt` for current stats/abilities.
 - **Grant**: `PERK: Bass_Dragon_Egg BelongsTo: DJ` (reward perk, `DJ_Perks`) adds the egg at battle
-  start; `PERK: Baby_Bass_Dragon IsUpgradeFrom: Bass_Dragon_Egg 60` (`DJ_UpgradePerks`, sprite-less)
-  starts you with the baby, forge cost 60.
+  start; `PERK: Baby_Bass_Dragon IsUpgradeFrom: Bass_Dragon_Egg` (`DJ_UpgradePerks`, sprite-less)
+  starts you with the baby — see that file for the current forge cost.
 
-**DJ signature — Note artillery.** Baby spawns 1 Note/10s (North). Adult spawns a Note on each of the
-4 touching positions every 6s (`North`/`South`/`Forwards`/`Backwards` — sideways two are faction-
-relative so an AI-owned dragon still fires the right way) **and** teleports to the top of a random
-enemy's column every 15s (`SetStorage ARandomEnemy` → `TeleportToPosition TopPositionAboveCube Storage`;
-teleport is NOT default on base dragons, built explicitly). Because `Note` is a homing projectile
-(see above), each spawned Note flies off to strike enemies — the adult is a 4-way music battery.
+**DJ signature — Note artillery.** The baby periodically spawns a Note to its north; the adult spawns a
+Note on each of the 4 touching positions on a faster cadence (`North`/`South`/`Forwards`/`Backwards` —
+sideways two are faction-relative so an AI-owned dragon still fires the right way) **and** periodically
+teleports to the top of a random enemy's column (`SetStorage ARandomEnemy` →
+`TeleportToPosition TopPositionAboveCube Storage`; teleport is NOT default on base dragons, built
+explicitly). Current cadence numbers: `DJ_Cubes.c.txt`. Because `Note` is a homing projectile (see
+above), each spawned Note flies off to strike enemies — the adult is a multi-way music battery.
 
 ## Docs
 

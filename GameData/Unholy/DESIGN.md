@@ -4,6 +4,12 @@ Mod-specific design/balance rationale that isn't general enough for the shared s
 private session state. Kept in the repo so it travels with the mod. Update this whenever an Unholy
 design or balance decision is made (this is a governance requirement — see root `CLAUDE.md`).
 
+> **Numbers in this file are illustrative, not authoritative — the `.c.txt` is.** Mana costs, hp,
+> timers, and other stat/parameter numbers are deliberately not restated here where a pointer will do; a
+> rebalance edits the `.c.txt` and has no reason to touch this doc, so a copied-in number silently goes
+> stale (real incident: General's ammo-cube mana list drifted twice — see that mod's `DESIGN.md`). Read
+> the *shape* of a design here; read the *current numbers* from the `.c.txt`.
+
 ## Core concept: the 0HP mechanic
 
 The `Unholy` species (`Unholy_Species.c.txt`) intercepts any **allied cube created with 0 hp** —
@@ -48,18 +54,20 @@ territory. `Brimstone` is built on exactly this.
 ## Cube roster & balance anchors
 
 The signature 0HP cubes (`Ritual`, `Brimstone`) live alongside regular demon-themed bodies obtainable
-by any class. Balance is anchored to real base-game analogs, not invented from scratch:
+by any class. Balance is anchored to real base-game analogs, not invented from scratch. **Exact current
+mana/hp for every cube: `Unholy_Cubes.c.txt`** — deliberately not restated below, see the note at the
+top of this file:
 
-| Cube | Mana / HP | 0HP? | Balance anchor / notes |
-|---|---|---|---|
-| `Ritual` | 30 / 0 | yes | Species starter; teleports + explodes (boom 3), spawns Imps |
-| `Cultist` | 5 / 3 | no | Species starter; cheap charging attacker + sacrifice |
-| `Hellhound` | 20 / 3 | no | Fast rusher — `Small_Warrior_Slime` charge speed (30) with a 2/s bite |
-| `Plague_Imp` | 32 / 4 | no | The `Imp` token's kit made obtainable + green; poisons touching non-Imps on death (Imp-body ≈25 + death poison) |
-| `Damned_Soul` | 38 / 4 | no | `Medium_Warrior_Slime` body; Temporary (1 min) + Inspatial, leaves an allied Imp on death (≈25 Imp + ~13 own body) |
-| `Martyr` | 5 / 3 | no | A holy-recolored `Cultist` (same stats) minus the sacrifice; on death buffs touching allies +1 hp |
-| `Brimstone` | 40 / 0 | **yes** | 0HP one-shot; on death spawns a neutral `Molten_Brimstone` (25 hp, burns 1/sec to itself + all touching, plus Acidic 1/sec) at the column top (enemy column for Unholy) |
-| `Plague_Ritual` | 90 / 0 | **yes** | 0HP legendary; on death creates an allied `Plague_Imp` on each empty touching position, each buffed +1 Strength per cube that was touching this at death |
+| Cube | 0HP? | Balance anchor / notes |
+|---|---|---|
+| `Ritual` | yes | Species starter; teleports + explodes, spawns Imps |
+| `Cultist` | no | Species starter; cheap charging attacker + sacrifice |
+| `Hellhound` | no | Fast rusher — priced off the `Small_Warrior_Slime` charge speed with a fast bite |
+| `Plague_Imp` | no | The `Imp` token's kit made obtainable + green; poisons touching non-Imps on death (priced as Imp-body value + death poison) |
+| `Damned_Soul` | no | `Medium_Warrior_Slime` body; Temporary + Inspatial, leaves an allied Imp on death (priced as Imp value + own body) |
+| `Martyr` | no | A holy-recolored `Cultist` (same stats) minus the sacrifice; on death buffs touching allies' hp |
+| `Brimstone` | **yes** | 0HP one-shot; on death spawns a neutral `Molten_Brimstone` (burns itself + all touching, plus Acidic) at the column top (enemy column for Unholy) |
+| `Plague_Ritual` | **yes** | 0HP legendary; on death creates an allied `Plague_Imp` on each empty touching position, each buffed +Strength per cube that was touching this at death |
 
 ### `Plague_Ritual` implementation notes
 
@@ -73,8 +81,9 @@ by any class. Balance is anchored to real base-game analogs, not invented from s
 - Regular charging attackers price off the `Warrior_Slime` ladder: `Small 5/1/1` charge30,
   `Medium 13/4/4` charge60 melee2, `Large 25/5/5` charge90 melee5.
 - **The `Imp` token is treated as ≈25 mana of value** when pricing anything that spawns or embodies it
-  (`Plague_Imp` = Imp-body + death poison → 32; `Damned_Soul` = 25 Imp + its own body → 38). This is a
-  design anchor the user set, not a base-game measured figure.
+  (`Plague_Imp` = Imp-body value + death poison; `Damned_Soul` = Imp value + its own body — see
+  `Unholy_Cubes.c.txt` for the resulting final costs). This is a design anchor the user set, not a
+  base-game measured figure.
 
 ### Starting cubes — deliberately 8, above the base-game 2 convention
 
@@ -95,21 +104,24 @@ Mimics the base-game per-class/species Dragon line (reference: Cryomancer's `Icy
 attach theirs the same way, e.g. `Chaos_Dragon_Egg BelongsTo: Chaos`). Shared egg→baby→adult shape
 (see DJ's `DESIGN.md` for the full breakdown; same across all three mods):
 
-- **Egg** `Hell_Dragon_Egg` (TOKEN 10/7/7) → **Baby** `Baby_Hell_Dragon` (TOKEN 5/15/15,
-  `GrowingUp 40`) → **Adult** `Hell_Dragon` (TOKEN 200/30/30) + `Flying`/`GrowthX 2`/`EveryXMeleeY 120 4`.
+- **Egg** `Hell_Dragon_Egg` → **Baby** `Baby_Hell_Dragon` (`GrowingUp`) → **Adult** `Hell_Dragon` — see
+  `Unholy_Cubes.c.txt` for current stats/abilities.
 - **Grant**: `PERK: Hell_Dragon_Egg BelongsTo: Unholy` (appended to `Unholy_Species.c.txt`);
-  upgrade `PERK: Baby_Hell_Dragon IsUpgradeFrom: Hell_Dragon_Egg 60` in the **new**
-  `Unholy_UpgradePerks.c.txt` (this mod had no upgrade-perks file before — added for this line).
+  upgrade `PERK: Baby_Hell_Dragon IsUpgradeFrom: Hell_Dragon_Egg` in the **new**
+  `Unholy_UpgradePerks.c.txt` (this mod had no upgrade-perks file before — added for this line; see
+  that file for the current forge cost).
 
 **Unholy signature — Hellfire Breath.** Applies the base-game `Burning` **keyword** (0-arg; "after 5s
-deal 1 dmg to every touching cube and this", `ModdingInfo.txt:89`) to enemies — chosen over direct
-damage because it's literally "burning" and spreads between adjacent burning enemies, fitting the
-chaotic-demon theme (cf. the Imp/`Acidic` "hits allies too" choice above). Adult lights **all** enemies
-every 5s (`EveryCubeWhich IsEnemyToCaster Test GainAbility Burning`); baby lights a **single random**
-enemy every 8s (baby→adult escalation, mirroring the other two lines). Rule text references `Burning`
-colour-only (`\C255 106 0`) per the base-keyword convention, no `\A`. Note: because `Burning` is a
-binary keyword (no stack level), re-application frequency only controls how fast newly-created enemies
-get ignited — the 1 dmg/5s burn rate itself is fixed by the keyword.
+deal 1 dmg to every touching cube and this", `ModdingInfo.txt:89`, an immutable base-game constant safe
+to cite directly) to enemies — chosen over direct damage because it's literally "burning" and spreads
+between adjacent burning enemies, fitting the chaotic-demon theme (cf. the Imp/`Acidic` "hits allies
+too" choice above). Adult lights **all** enemies on a periodic tick
+(`EveryCubeWhich IsEnemyToCaster Test GainAbility Burning`); baby lights a **single random** enemy on a
+slower cadence (baby→adult escalation, mirroring the other two lines; current cadence numbers:
+`Unholy_Cubes.c.txt`). Rule text references `Burning` colour-only (`\C255 106 0`) per the base-keyword
+convention, no `\A`. Note: because `Burning` is a binary keyword (no stack level), re-application
+frequency only controls how fast newly-created enemies get ignited — the burn rate itself is fixed by
+the keyword (quoted above).
 
 ## Sprite notes
 
