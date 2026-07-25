@@ -40,6 +40,11 @@ by DJ cubes/perks — plus **`Echo`**-style ability duplication and fusion/combi
   suspect in a reported freeze when combined with the base-game `Reciprocity` perk (unguarded
   ability-grant recursion). See the freeze-investigation memory; use `Silent` for any new
   ability-grant-reacting perk.
+- **`Note` carries `RandomMovementX 480` alongside its `HomingX 120`** (2026-07-25) so a swarm of Notes
+  flying at a distant enemy doesn't read as a perfectly uniform row — a large interval relative to the
+  120 homing retarget keeps the drift subtle rather than fighting the homing (precedent:
+  `Main/2TokenCubes.c.txt`'s `Bee`, which layers the same two abilities at a 4:1 ratio; Note uses a wider
+  ratio for a more subtle effect given it's a mass-produced artillery projectile, not a single unit).
 
 ## Dragon evolution line — `Bass_Dragon`
 
