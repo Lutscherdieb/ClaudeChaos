@@ -2,10 +2,14 @@ CUBE: Ritual 30 0 0
 IDENT 1 20 0 0 10
 TYPE Attacker
 TYPE Starter
-Ability: AfterThisIsCreated CreateCubeOnPosition CubeConstant Imp PositionInDirectionFromPosition North PositionOfThis
-Text: When this is created, create an allied Imp above End
-Ability: AfterThisDies CreateCubeOnPosition CubeConstant Imp PositionOfCube Caster
-Text: After this dies, create an allied Imp on its now empty position End
+Ability: AfterThisIsCreated IfElse IsPositionEmpty PositionInDirectionFromPosition North PositionOfThis
+ CreateCubeOnPosition CubeConstant Imp PositionInDirectionFromPosition North PositionOfThis
+ CreateCubeOnPosition CubeConstant Imp PositionInDirectionFromPosition North PositionOfCube TheFirstCubeInDirectionFromPositionWhich North PositionOfThis IsPositionEmpty PositionInDirectionFromPosition North PositionOfCube Test
+Text: When this is created, create an allied Imp in the first empty space above End
+Ability: AfterThisDies IfElse IsPositionEmpty PositionInDirectionFromPosition North PositionOfCube Caster
+ CreateCubeOnPosition CubeConstant Imp PositionInDirectionFromPosition North PositionOfCube Caster
+ CreateCubeOnPosition CubeConstant Imp PositionInDirectionFromPosition North PositionOfCube TheFirstCubeInDirectionFromPositionWhich North PositionOfCube Caster IsPositionEmpty PositionInDirectionFromPosition North PositionOfCube Test
+Text: After this dies, create an allied Imp on the first empty space above End
 Visual: Square 0 -1 96 96 96
 AiPlacementRule: And AiEmptyNorth AiStacking
 End
@@ -86,8 +90,10 @@ Ability: Flying
 Ability: ChargeEveryX 60
 Ability: EveryXSeconds DoubleConstant 10 GainAbility Burning
 Text: Every 10 seconds this gains \C255 106 0 Burning \CN End
-Ability: AfterThisDies CreateCubeOnPosition CopyWithAction CubeConstant Molten_Brimstone SetFaction DoubleConstant 0 TopPositionAboveCube Caster
-Text: After this dies, create a neutral Molten_Brimstone at the top of its column, which falls from there End
+Ability: AfterThisDies IfElse IsPositionEmpty TopPositionAboveCube Caster
+ CreateCubeOnPosition CopyWithAction CubeConstant Molten_Brimstone SetFaction DoubleConstant 0 TopPositionAboveCube Caster
+ CreateCubeOnPosition CopyWithAction CubeConstant Molten_Brimstone SetFaction DoubleConstant 0 PositionInDirectionFromPosition South PositionOfCube TheFirstCubeInDirectionFromPositionWhich South TopPositionAboveCube Caster IsPositionEmpty PositionInDirectionFromPosition South PositionOfCube Test
+Text: After this dies, create a neutral Molten_Brimstone at the top of its column (or the first empty space below that if it's blocked), which falls from there End
 End
 
 CUBE: Plague_Ritual 90 0 0
@@ -155,36 +161,106 @@ CUBE: Hellstorm 50 0 0
 IDENT 3 15 0 20 20
 TYPE Attacker
 TYPE Starter
-Ability: AfterThisIsCreated Both GainXExtraHp DoubleConstant 1
- Both HealXDamage DoubleConstant 1
-  Both TeleportToPosition ARandomPositionWhich And IsPositionEmpty Test Not IsEqual PlacabilityOfPosition Test FactionOfCube Caster
-   XTimes RoundedDown Division ManaCostOfCube Caster DoubleConstant 10 GainAbility ExplodesX 1
-Text: After this is created, gain 1 hp, teleport to a random empty position on the enemy's side, and explode for 1 damage to touching cubes per 10 mana it costs when it dies End
-Ability: AfterThisDies
- CreateCubeOnPosition
-  CopyWithAction CubeConstant Molten_Brimstone
-   Both
-    SetFaction DoubleConstant 0
-    GainAbilityText
-     EveryXSeconds DoubleConstant 8
+Ability: AfterThisIsCreated SetStorage ARandomEnemy If CubeExists Storage
+  IfElse IsPositionEmpty TopPositionAboveCube Storage
+   CreateCubeOnPosition
+    CopyWithAction CubeConstant Molten_Brimstone
      Both
-      RemoveThisAbility
-      CreateCubeOnPosition
-       CopyWithAction CubeConstant Molten_Brimstone
-        Both
-         SetFaction DoubleConstant 0
-         GainAbilityText
-          EveryXSeconds DoubleConstant 8
-          Both
-           RemoveThisAbility
-           CreateCubeOnPosition
-            CopyWithAction CubeConstant Molten_Brimstone
-             SetFaction DoubleConstant 0
-            TopPositionAboveCube Caster
-          After 8 seconds create the final wave of Molten_Brimstone End
-       TopPositionAboveCube Caster
-     After 8 seconds create the next wave of Molten_Brimstone End
-  TopPositionAboveCube Caster
-Text: After this dies, create a neutral Molten_Brimstone at the top of the column, then two more every 8 seconds after that End
+      SetFaction DoubleConstant 0
+      GainAbilityText
+       EveryXSeconds DoubleConstant 8
+       Both
+        RemoveThisAbility
+        IfElse IsPositionEmpty TopPositionAboveCube Caster
+         CreateCubeOnPosition
+          CopyWithAction CubeConstant Molten_Brimstone
+           Both
+            SetFaction DoubleConstant 0
+            GainAbilityText
+             EveryXSeconds DoubleConstant 8
+             Both
+              RemoveThisAbility
+              IfElse IsPositionEmpty TopPositionAboveCube Caster
+               CreateCubeOnPosition
+                CopyWithAction CubeConstant Molten_Brimstone
+                 SetFaction DoubleConstant 0
+                TopPositionAboveCube Caster
+               CreateCubeOnPosition
+                CopyWithAction CubeConstant Molten_Brimstone
+                 SetFaction DoubleConstant 0
+                PositionInDirectionFromPosition South PositionOfCube TheFirstCubeInDirectionFromPositionWhich South TopPositionAboveCube Caster IsPositionEmpty PositionInDirectionFromPosition South PositionOfCube Test
+             After 8 seconds create the final wave of Molten_Brimstone End
+          TopPositionAboveCube Caster
+         CreateCubeOnPosition
+          CopyWithAction CubeConstant Molten_Brimstone
+           Both
+            SetFaction DoubleConstant 0
+            GainAbilityText
+             EveryXSeconds DoubleConstant 8
+             Both
+              RemoveThisAbility
+              IfElse IsPositionEmpty TopPositionAboveCube Caster
+               CreateCubeOnPosition
+                CopyWithAction CubeConstant Molten_Brimstone
+                 SetFaction DoubleConstant 0
+                TopPositionAboveCube Caster
+               CreateCubeOnPosition
+                CopyWithAction CubeConstant Molten_Brimstone
+                 SetFaction DoubleConstant 0
+                PositionInDirectionFromPosition South PositionOfCube TheFirstCubeInDirectionFromPositionWhich South TopPositionAboveCube Caster IsPositionEmpty PositionInDirectionFromPosition South PositionOfCube Test
+             After 8 seconds create the final wave of Molten_Brimstone End
+          PositionInDirectionFromPosition South PositionOfCube TheFirstCubeInDirectionFromPositionWhich South TopPositionAboveCube Caster IsPositionEmpty PositionInDirectionFromPosition South PositionOfCube Test
+       After 8 seconds create the next wave of Molten_Brimstone End
+    TopPositionAboveCube Storage
+   CreateCubeOnPosition
+    CopyWithAction CubeConstant Molten_Brimstone
+     Both
+      SetFaction DoubleConstant 0
+      GainAbilityText
+       EveryXSeconds DoubleConstant 8
+       Both
+        RemoveThisAbility
+        IfElse IsPositionEmpty TopPositionAboveCube Caster
+         CreateCubeOnPosition
+          CopyWithAction CubeConstant Molten_Brimstone
+           Both
+            SetFaction DoubleConstant 0
+            GainAbilityText
+             EveryXSeconds DoubleConstant 8
+             Both
+              RemoveThisAbility
+              IfElse IsPositionEmpty TopPositionAboveCube Caster
+               CreateCubeOnPosition
+                CopyWithAction CubeConstant Molten_Brimstone
+                 SetFaction DoubleConstant 0
+                TopPositionAboveCube Caster
+               CreateCubeOnPosition
+                CopyWithAction CubeConstant Molten_Brimstone
+                 SetFaction DoubleConstant 0
+                PositionInDirectionFromPosition South PositionOfCube TheFirstCubeInDirectionFromPositionWhich South TopPositionAboveCube Caster IsPositionEmpty PositionInDirectionFromPosition South PositionOfCube Test
+             After 8 seconds create the final wave of Molten_Brimstone End
+          TopPositionAboveCube Caster
+         CreateCubeOnPosition
+          CopyWithAction CubeConstant Molten_Brimstone
+           Both
+            SetFaction DoubleConstant 0
+            GainAbilityText
+             EveryXSeconds DoubleConstant 8
+             Both
+              RemoveThisAbility
+              IfElse IsPositionEmpty TopPositionAboveCube Caster
+               CreateCubeOnPosition
+                CopyWithAction CubeConstant Molten_Brimstone
+                 SetFaction DoubleConstant 0
+                TopPositionAboveCube Caster
+               CreateCubeOnPosition
+                CopyWithAction CubeConstant Molten_Brimstone
+                 SetFaction DoubleConstant 0
+                PositionInDirectionFromPosition South PositionOfCube TheFirstCubeInDirectionFromPositionWhich South TopPositionAboveCube Caster IsPositionEmpty PositionInDirectionFromPosition South PositionOfCube Test
+             After 8 seconds create the final wave of Molten_Brimstone End
+          PositionInDirectionFromPosition South PositionOfCube TheFirstCubeInDirectionFromPositionWhich South TopPositionAboveCube Caster IsPositionEmpty PositionInDirectionFromPosition South PositionOfCube Test
+       After 8 seconds create the next wave of Molten_Brimstone End
+    PositionInDirectionFromPosition South PositionOfCube TheFirstCubeInDirectionFromPositionWhich South TopPositionAboveCube Storage IsPositionEmpty PositionInDirectionFromPosition South PositionOfCube Test
+Text: After this is created, create a neutral Molten_Brimstone at the top of the column (or the first empty space below that if it's blocked) above a random enemy, then two more every 8 seconds after that, same fallback each time End
 AiPlacementRule: True
 End

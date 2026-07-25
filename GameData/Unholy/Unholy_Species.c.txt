@@ -9,12 +9,9 @@ End
 PERK: Unholy
 BelongsTo: SPECIES
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller HpOfCube Victim DoubleConstant 1
- If Not CubeHasName Victim Hellstorm
-  If IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Victim
-   CreateCubeOnPosition
-    CopyWithAction Victim Nothing
-    ARandomPositionWhich And IsPositionEmpty Test Not IsEqual PlacabilityOfPosition Test FactionOfCube Victim
-Description: After an allied cube is created with 0 hp on your own side, create a true copy of it on a random empty position on the enemy's side End
+ If Or Not CubeExists Culprit Not IsSmaller HpOfCube Culprit DoubleConstant 1
+  TargetCube Victim GainAbility ExtraLife
+Description: After an allied cube is created with 0 hp by a non-0-hp source, give it ExtraLife End
 ObtainAction: AddCubeToInventory CubeConstant Ritual
 ObtainAction: AddCubeToInventory CubeConstant Cultist
 ObtainAction: AddCubeToInventory CubeConstant Hellhound
