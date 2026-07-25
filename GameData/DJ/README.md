@@ -23,8 +23,8 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 <img src="Preview/DJ_Perks_Echo.png" width="700" alt="Echo perk card">
 <img src="Preview/DJ_Perks_Symphony.png" width="700" alt="Symphony perk card">
 <img src="Preview/DJ_Perks_Inspiration.png" width="700" alt="Inspiration perk card">
-<img src="Preview/DJ_Perks_Added_Variance.png" width="700" alt="Added Variance perk card">
-<img src="Preview/DJ_Perks_Added_Focus.png" width="700" alt="Added Focus perk card">
+<img src="Preview/DJ_Perks_Finetuning.png" width="700" alt="Finetuning perk card">
+<img src="Preview/DJ_Perks_Mastering.png" width="700" alt="Mastering perk card (upgrade of Finetuning)">
 <img src="Preview/DJ_Perks_Bass_Drop.png" width="700" alt="Bass Drop perk card">
 <img src="Preview/DJ_Perks_Sampling.png" width="700" alt="Sampling perk card">
 <img src="Preview/DJ_Perks_Super_Sampling.png" width="700" alt="Super Sampling perk card (upgrade of Sampling)">

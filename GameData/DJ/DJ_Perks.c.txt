@@ -35,34 +35,11 @@ RemoveThisAbility
 Description: At the start of the battle, exile the first cube with infinite uses from your hand and add three 0 mana cost copies of it to your hand End
 End
 
-PERK: Added_Variance
+PERK: Finetuning
 BelongsTo: DJ
-Ability: BeforeACubeIsAddedToYourHand TargetCube Victim
- Both SetVariable OVAR AmountOfAbilitiesOfCube Target
-  Both SetVariable IDX AmountOfAbilitiesOfCube Target
-   Both Until IsSmaller GetVariableOnCube IDX Target DoubleConstant 1
-    Both
-     If IsLarger AmountOfAbilitiesOfCubeWhich Target IsSameAbility Test NthAbilityOfCubeWhich GetVariableOnCube IDX Target Target True DoubleConstant 1
-      RemoveAbility NthAbilityOfCubeWhich GetVariableOnCube IDX Target Target True
-     ChangeVariable IDX DoubleConstant -1
-    Nothing
-   XTimes Subtraction GetVariableOnCube OVAR Target AmountOfAbilitiesOfCube Target GainRandomAbilityOfCube ARandomCubeInLibraryWhich IsLarger AmountOfAbilitiesOfCubeWhich Test Not AbilityHasName Test Rhythmic DoubleConstant 0
-Description: Before a cube is added to your hand, remove all but one copy of each of its abilities, then add a random ability of a random cube in game to it for each ability removed this way. Additional copies of this perk repeat this End
-End
-
-PERK: Added_Focus
-BelongsTo: DJ
-Ability: AfterACubeIsCreated If IsAllyToCaster Victim TargetCube Victim
- Both SetVariable OVAR AmountOfAbilitiesOfCube Target
-  Both SetVariable IDX AmountOfAbilitiesOfCube Target
-   Both Until IsSmaller GetVariableOnCube IDX Target DoubleConstant 2
-    Both
-     RemoveAbility NthAbilityOfCubeWhich GetVariableOnCube IDX Target Target True
-     ChangeVariable IDX DoubleConstant -1
-    Nothing
-   If IsLarger GetVariableOnCube OVAR Target DoubleConstant 0
-    XTimes Subtraction GetVariableOnCube OVAR Target DoubleConstant 1 GainAbility FirstAbilityOfCubeWhich Target True
-Description: After an ally is created, remove all but one ability, then add a copy of that ability to it for each ability removed this way. Additional copies of this perk repeat this End
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsPlaced
+ CreateCubeOnPosition CubeConstant Note ARandomLeftPosition
+Description: Whenever an ally is placed, create a Note on a random left_side_position End
 End
 
 PERK: Bass_Drop

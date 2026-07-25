@@ -4,6 +4,13 @@ Description: Before a cube is added to your hand, create a copy of it in a rando
 IsUpgradeFrom: Sampling 100
 End
 
+PERK: Mastering
+Ability: AfterACubeIsCreated If And IsAllyToCaster Victim Not CubeHasName Victim Note
+ CreateCubeOnPosition CubeConstant Note ARandomLeftPosition
+Description: Whenever a non-Note ally is created, create a Note on a random left_side_position End
+IsUpgradeFrom: Finetuning 100
+End
+
 PERK: Grand_Finale
 Ability: Every30Seconds XTimes DoubleConstant 2 TargetCube ARandomNotLeaderEnemy SetHp DoubleConstant 1
 Description: Every 30 seconds set two random non leader enemies hp to 1 End

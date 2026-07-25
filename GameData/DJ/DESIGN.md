@@ -46,6 +46,8 @@ by DJ cubes/perks — plus **`Echo`**-style ability duplication and fusion/combi
   `Main/2TokenCubes.c.txt`'s `Bee`, which layers the same two abilities at a 4:1 ratio; Note uses a wider
   ratio for a more subtle effect given it's a mass-produced artillery projectile, not a single unit).
 
+- **`Added_Focus` was removed and `Added_Variance` was redesigned into `Finetuning`/`Mastering`** (2026-07-25) — a deliberate headcount trim so DJ's reward-perk roster stays in line with a base-game class's typical size, not a design flaw in the removed perk. `Finetuning` fires only on a *placed* ally (`IsPlaced`, meaning hand-placed onto the board — see `cube-chaos-scripting`'s `perk-economy.md`) to create a Note; its upgrade `Mastering` drops that restriction to fire on *any* non-Note ally creation, matching this mod's established narrow-to-broad upgrade shape (`Sampling`→`Super_Sampling`). The `IsPlaced` restriction is why the base tier needs no explicit Note-exclusion guard — ability-spawned Notes never satisfy `IsPlaced` — while `Mastering` does need one (`Not CubeHasName Victim Note`), since broadening to all creations reintroduces the self-recursion risk. `Finetuning`'s sprite (a tuning-dial knob + the mod's established gold Note glyph, reused from `Echo`'s tile rather than redrawn) replaced `Added_Variance`'s old icon at the same sheet slot; removing `Added_Focus` shifted every later `DJ_Perks.c.png` slot up by one — see `cube-chaos-sprite-art` for the general mid-file-removal resequencing consequence.
+
 ## Dragon evolution line — `Bass_Dragon`
 
 Mimics the base-game per-class Dragon line (reference: Cryomancer's `Icy_Dragon_Egg` in
