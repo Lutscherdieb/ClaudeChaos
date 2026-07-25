@@ -79,16 +79,27 @@ egg→baby→adult shape (see DJ's `DESIGN.md` for the full breakdown; same acro
   file for the current forge cost).
 
 **General signature — supercharged Bomber.** Built on this mod's own `Bomber` "fly into enemy
-territory → drop payload" loop, but: **100% drop (no chance roll)**, the payload is a self-flying
-`Rocket` (baby drops `Shell`) instead of a falling Bomb (so it's NOT stripped of `Flying`/`ChargeEveryX`
-— it flies on into the enemy line), and it periodically repositions with `TeleportToPosition` to the
-top of a random enemy column. Drop fires per column-advance while over an enemy (`AfterThisMoves` +
+territory → drop payload" loop. Drop fires per column-advance while over an enemy (`AfterThisMoves` +
 enemy-territory + `TheFirstCubeInDirectionFromPositionWhich South … IsEnemyToCaster` — the base
-Bomber's exact condition, at 100%). **`RandomMovementX`** is layered on so it drifts organically instead
-of flying a dead-straight mechanical line — a deliberate flavor choice the user asked for. Balanced by a
+Bomber's exact condition), and it periodically repositions with `TeleportToPosition` to the top of a
+random enemy column. **`RandomMovementX`** is layered on so it drifts organically instead of flying a
+dead-straight mechanical line — a deliberate flavor choice the user asked for. Balanced by a
 **deliberately weak melee, the weakest of the three dragons**, and a charge speed slightly faster than a
 stock Bomber. Current timing/damage numbers: `General_Cubes.c.txt`. Splash/combined-total balance still
 applies to the dropped Rockets — see the projectile-balance note above.
+
+- **Baby drops `Shell` at 50%, stripped of `Flying`/`ChargeEveryX`** (2026-07-25) — matches the base
+  `Bomber`'s exact "50% chance, `CopyWithAction` + strip-and-fall" shape (`General_Cubes.c.txt`'s
+  `Bomber`). This reverses the original launch design (self-flying, 100%, no strip) — it read as a bug
+  in play (the falling payload looked like it should behave like Bomber's) and the user asked for it to
+  match. **The Adult's `Rocket` drop is unchanged**: still 100% chance, still self-flying/homing (not
+  stripped) — only the Baby's payload behavior changed.
+- **Adult's `Rocket` drop no longer requires enemy territory** (2026-07-25) — the `AfterThisMoves`
+  trigger dropped the `If Not IsEqual PlacabilityOfPosition PositionOfThis FactionOfThis` guard that
+  `Bomber`/Baby still keep; it now fires purely off "enemy anywhere below," even while the Adult is still
+  over allied territory. Deliberate widening of the Adult's drop window, on top of its existing 100%
+  chance — asked for explicitly, not a bug fix. Text updated to match ("After this moves with an enemy
+  any distance below this...").
 
 **Sprite (2026-07-25, revised after the Adult originally shipped as a palette-swap of the same generic
 silhouette used by `Bass_Dragon`/`Hell_Dragon` — see `cube-chaos-sprite-art`'s dragon-line corollary):**

@@ -277,8 +277,13 @@ Ability: GrowingUp 40 CubeConstant War_Dragon
 Ability: Flying
 Ability: ChargeEveryX 60
 Ability: RandomMovementX 150
-Ability: AfterThisMoves If Not IsEqual PlacabilityOfPosition PositionOfThis FactionOfThis If CubeExists TheFirstCubeInDirectionFromPositionWhich South PositionOfThis IsEnemyToCaster Test CreateCubeOnPosition CubeConstant Shell PositionInDirectionFromPosition South PositionOfThis
-Text: After this moves into enemy territory with an enemy below, create a Shell below this End
+Ability: AfterThisMoves If Not IsEqual PlacabilityOfPosition PositionOfThis FactionOfThis
+ If CubeExists TheFirstCubeInDirectionFromPositionWhich South PositionOfThis IsEnemyToCaster Test
+  If X%Chance DoubleConstant 50
+   CreateCubeOnPosition CopyWithAction CubeConstant Shell
+    Both RemoveAbilityWithName Flying RemoveAbilityWithName ChargeEveryX
+    PositionInDirectionFromPosition South PositionOfThis
+Text: After this moves in enemy territory with an enemy any distance below this, 50% chance to create a Shell below this and remove Flying and Charging from it End
 Ability: GrowthX 5
 Ability: RegenerationX 2
 Ability: WorthXMore 25
@@ -290,8 +295,8 @@ TOKEN
 Ability: Flying
 Ability: ChargeEveryX 45
 Ability: RandomMovementX 120
-Ability: AfterThisMoves If Not IsEqual PlacabilityOfPosition PositionOfThis FactionOfThis If CubeExists TheFirstCubeInDirectionFromPositionWhich South PositionOfThis IsEnemyToCaster Test CreateCubeOnPosition CubeConstant Rocket PositionInDirectionFromPosition South PositionOfThis
-Text: After this moves into enemy territory with an enemy below, create a Rocket below this End
+Ability: AfterThisMoves If CubeExists TheFirstCubeInDirectionFromPositionWhich South PositionOfThis IsEnemyToCaster Test CreateCubeOnPosition CubeConstant Rocket PositionInDirectionFromPosition South PositionOfThis
+Text: After this moves with an enemy any distance below this, create a Rocket below this End
 Ability: EveryXSeconds DoubleConstant 12 SetStorage ARandomEnemy If CubeExists Storage TeleportToPosition TopPositionAboveCube Storage
 Text: Every 12 seconds teleport to the top of the column above a random enemy End
 Ability: EveryXMeleeY 300 2
