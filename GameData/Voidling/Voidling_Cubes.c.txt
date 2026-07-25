@@ -1,0 +1,9 @@
+CUBE: True_Void 0 100 100
+TOKEN
+Ability: EveryXSeconds DoubleConstant 5 Both
+ EveryCubeInRadiusXAroundTarget DoubleConstant 3
+  If Not IsSameCube Target Caster
+   TakeXDamage Subtraction DoubleConstant 4 DistanceOfPositions PositionOfThis PositionOfCube Target
+ CreateAoEParticlesColourRadiusPosition DoubleConstant 16738816 DoubleConstant 3 PositionOfThis
+Text: Every 5 seconds deal damage to every other cube within 3 spaces, reduced by 1 per space of distance (3 damage touching, 2 at range 2, 1 at range 3) End
+End
