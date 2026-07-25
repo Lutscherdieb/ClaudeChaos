@@ -67,6 +67,32 @@ Real precedents: `ExplodesX`/`EveryXMeleeY`/`ChargeEveryX` (`Base_Core/1Compound
 
 See `cube-chaos-rule-text` for the standard keyword header/explanation text shape and for `\A`, which renders a compound's whole `Text:` inline at every site that grants it.
 
+### A mod-authored `COMPOUND: ABILITY`'s own declared name should not contain `_`
+
+Runtime-confirmed by isolation testing (Unholy mod, 2026-07-25, same session as the `GenericCube` finding below): a brand-new `COMPOUND: ABILITY` whose bare name line contains an underscore — tested with both `Soul_Memory` and a deliberately generic-word control, `Foo_Bar` — produces `ERROR: character: (_) cannot be represented numericly but is in one of the defined abilities` at boot (one instance for the definition, a second for each `GainAbility <Name>` grant site referencing it), **even with a minimal body that's a token-for-token copy of a real working `Ability:` line** (`AfterThisDies CreateCubeOnPosition CubeConstant Imp PositionOfCube Caster`, identical to `Ritual`'s own working ability in the same mod). Renaming to remove the underscore (`TESTFOO`, then the real `SoulMemory`) — no other change — made the error disappear completely, confirmed by a full clean 0-`ERROR` boot-to-exit log. File position (before vs. after the package's own `BelongsTo: SPECIES`/`CLASS` perk) was also tested and ruled out as a factor.
+
+**This appears to contradict real underscored compound names that work fine elsewhere** (`Dragon_Egg`, `Take_Off`, `General_Inherited_Strength`, `Moil_Rhythm`) — the likely explanation is that this is a latent, silent, non-fatal parse-time error that's always been there for those too, just never isolated: the ability still registers and functions correctly (as the whole rest of this mod's history of underscored compounds confirms), so nobody had reason to grep `Log.txt` for an unlabeled `ERROR` line sitting harmlessly among hundreds of others. It has not been proven harmless for every case, so don't rely on that — it just hasn't been observed to break anything beyond the log line itself, in this specific isolation test.
+
+**Practical rule: give any new mod-authored `COMPOUND: ABILITY` an underscore-free name** (`SoulMemory`, `PascalCase`/`CAPSNOSPACE`, matching `ARCING`/`OVAR`/`IDX`/`DJRMAX`-style `SetVariable` names elsewhere in this codebase) — cheap, zero downside, and confirmed clean. This does **not** apply to `CUBE:`/`PERK:` names (`Damned_Soul`, `Plague_Imp`, `Hell_Dragon_Egg` all coexist error-free in the very same file/test) or to `SetVariable` variable names (`MYCELIUM_DIR` in the base game's own `Fungus.c.txt` has an underscore and works) — isolation testing narrowed this specifically to a `COMPOUND: ABILITY`'s own declared name line, nothing else.
+
+### `GenericCube` is NOT usable in a mod-authored `COMPOUND: ABILITY` — despite being a real, listed production
+
+`ModdingInfo.txt:561` lists `GenericCube` in the CUBE production list alongside every other `Generic*` placeholder, and the base game's own `Dragon_Egg`/`GrowingUp` compounds (`Characters/1Compounds.c.txt:1-11`, used by every dragon-egg line including this repo's own `Hell_Dragon_Egg`) use it exactly like any other generic parameter — which reads as strong precedent that it's a normal, modder-usable mechanism. **It is not.** Runtime-confirmed by isolation testing (Unholy mod, 2026-07-25): defining a mod's own `COMPOUND: ABILITY` with a `GenericCube` placeholder —
+
+```
+COMPOUND: ABILITY
+Soul_Memory
+AfterThisDies CreateCubeOnPosition CopyWithAction GenericCube Nothing PositionOfCube Caster
+Text: After this dies, create an allied CODE 1 on its position End
+End
+```
+
+— produces `ERROR: character: (_) cannot be represented numericly but is in one of the defined abilities` at boot, **just from the definition existing**, whether or not anything ever grants it (`GainAbility Soul_Memory Victim` added one more instance of the same error on top; removing only that dynamic-grant call still left the error, and it only reached zero once the whole `COMPOUND:` block was deleted). The error text itself is the tell: the engine's generic-parameter storage is fundamentally numeric internally (works fine for `GenericConstant`/`GenericDouble`/`GenericStacking`/`GenericTime`), and a CUBE-typed value — or a name/identifier containing `_`, going by the exact wording — can't be encoded into it. `Dragon_Egg`/`GrowingUp` presumably work because they're hardcoded engine-side, not because `GenericCube` is a working general mechanism reachable from mod-authored DSL.
+
+**Consequence for "remember which cube type X was, act on it later" mod mechanics: there is no working dynamic-parameter path for this.** Zero real usage of `GenericCube` exists anywhere in the base game or any mod in this repo (confirmed by grep before this incident) — that absence is now explained, not just unexplored. Reach for one of these instead:
+- **A finite, known set of possible cube types**: define one non-parameterized helper compound per specific type (`AfterThisDies CreateCubeOnPosition CubeConstant <ThatOneType> ... PositionOfCube Caster`, no generic needed), then branch on `CubeHasName` at the grant site to pick which one to `GainAbility`. Scales linearly with roster size, zero risk, but only covers types you explicitly enumerated — needs a sensible fallback (e.g. a generic default) for anything outside that set. Real usage: Unholy's `Phylactery` perk (`Unholy_Species.c.txt`) — one `Soul_Memory_<CubeName>` compound per starter cube in its own species roster, defaulting to `Soul_Memory_Imp` for anything unrecognized.
+- **If the recreation can happen immediately instead of after a delay** (same trigger, no need to survive to a *later*, independent death event), skip the whole generic-parameter problem: act on the live cube reference directly in the same chain (`CopyWithAction <live-cube-ref> Action`, per `references/creation-and-copying.md`'s "duplicating a specific live cube" section) rather than trying to bake its identity into a granted ability for later.
+
 ## Making an ability propagate to created cubes: the base-game `Inheritable` modifier
 
 For "cubes created by this also get ability X (recursively)," don't hand-roll an `AfterThisCreates TargetCube Victim GainAbility X` grant — the base game already has a reusable modifier, `Inheritable` (`Base_Core/1Compounds.c.txt:567`, `NORANDOM`), whose tooltip (`Base_Core/ToolTipText.c.txt:73`) reads *"Cube created/added to a players hand by this also gain this ability"*:

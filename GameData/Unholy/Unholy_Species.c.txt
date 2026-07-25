@@ -1,3 +1,11 @@
+COMPOUND: ABILITY
+SoulMemory
+AfterThisDies IfElse X%Chance DoubleConstant 30
+ CreateCubeOnPosition CubeConstant Plague_Imp PositionOfCube Caster
+ CreateCubeOnPosition CubeConstant Imp PositionOfCube Caster
+Text: After this dies, 30% chance to create an allied Plague_Imp, otherwise create an allied Imp End
+End
+
 PERK: Unholy
 BelongsTo: SPECIES
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller HpOfCube Victim DoubleConstant 1
@@ -11,7 +19,6 @@ ObtainAction: AddCubeToInventory CubeConstant Ritual
 ObtainAction: AddCubeToInventory CubeConstant Cultist
 ObtainAction: AddCubeToInventory CubeConstant Hellhound
 ObtainAction: AddCubeToInventory CubeConstant Plague_Imp
-ObtainAction: AddCubeToInventory CubeConstant Damned_Soul
 ObtainAction: AddCubeToInventory CubeConstant Martyr
 ObtainAction: AddCubeToInventory CubeConstant Brimstone
 ObtainAction: AddCubeToInventory CubeConstant Plague_Ritual
@@ -24,4 +31,14 @@ Description: Start with a free Hell_Dragon_Egg in your hand End
 ReferenceCube: Hell_Dragon_Egg
 ReferenceCube: Baby_Hell_Dragon
 ReferenceCube: Hell_Dragon
+End
+
+PERK: Phylactery
+BelongsTo: Unholy
+Ability: AfterACubeDies If IsAllyToCaster Victim If Not CubeHasName Victim Damned_Soul If X%Chance DoubleConstant 10
+ AddCubeToHandOfThis CopyWithAction CubeConstant Damned_Soul GainAbility SoulMemory
+Description: Whenever an allied cube (other than a Damned Soul) dies, 10% chance to add a Damned Soul to your hand End
+ReferenceCube: Damned_Soul
+ReferenceCube: Plague_Imp
+ReferenceCube: Imp
 End

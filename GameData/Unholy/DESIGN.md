@@ -64,7 +64,6 @@ at the top of this file:
 | `Cultist` | no | Species starter; cheap charging attacker + sacrifice |
 | `Hellhound` | no | Fast rusher — priced off the `Small_Warrior_Slime` charge speed with a fast bite |
 | `Plague_Imp` | no | The `Imp` token's kit made obtainable + green; poisons touching non-Imps on death (priced as Imp-body value + death poison) |
-| `Damned_Soul` | no | `Medium_Warrior_Slime` body; Temporary + Inspatial, leaves an allied Imp on death (priced as Imp value + own body) |
 | `Martyr` | no | A holy-recolored `Cultist` (same stats) minus the sacrifice; on death buffs touching allies' hp |
 | `Brimstone` | **yes** | 0HP one-shot; on death spawns a neutral `Molten_Brimstone` (burns itself + all touching, plus Acidic) at the column top (enemy column for Unholy) |
 | `Plague_Ritual` | **yes** | 0HP legendary; on death creates an allied `Plague_Imp` on each empty touching position, each buffed +Strength per cube that was touching this at death |
@@ -81,21 +80,67 @@ at the top of this file:
 - Regular charging attackers price off the `Warrior_Slime` ladder: `Small 5/1/1` charge30,
   `Medium 13/4/4` charge60 melee2, `Large 25/5/5` charge90 melee5.
 - **The `Imp` token is treated as ≈25 mana of value** when pricing anything that spawns or embodies it
-  (`Plague_Imp` = Imp-body value + death poison; `Damned_Soul` = Imp value + its own body — see
-  `Unholy_Cubes.c.txt` for the resulting final costs). This is a design anchor the user set, not a
-  base-game measured figure.
+  (`Plague_Imp` = Imp-body value + death poison — see `Unholy_Cubes.c.txt` for the resulting final
+  cost). This is a design anchor the user set, not a base-game measured figure. (`Damned_Soul` no
+  longer prices off this — see the `Phylactery` section below, it's a pure `SoulMemory` token now,
+  not obtainable.)
 
-### Starting cubes — deliberately 8, above the base-game 2 convention
+### Starting cubes — deliberately 7, above the base-game 2 convention
 
-The `Unholy` species perk grants **all 8 cubes** as starters (`Ritual`, `Cultist`, `Hellhound`,
-`Plague_Imp`, `Damned_Soul`, `Martyr`, `Brimstone`, `Plague_Ritual`), via one
+The `Unholy` species perk grants **all 7 obtainable cubes** as starters (`Ritual`, `Cultist`, `Hellhound`,
+`Plague_Imp`, `Martyr`, `Brimstone`, `Plague_Ritual`), via one
 `ObtainAction: AddCubeToInventory` line each. This is a deliberate departure from the base-game convention of exactly 2 starters per
 class/species — chosen so the full demon kit is guaranteed in hand (the new cubes were effectively
 unfindable as rare drops in the global pool) and so the species reads as a complete themed toolbox.
 There is no hard engine limit on starter count (`ObtainAction:` is repeatable); this just sits above
-the base power/variety baseline. Revisit and trim to a curated few if it plays too strong. The six
+the base power/variety baseline. Revisit and trim to a curated few if it plays too strong. The five
 new starters (all but `Ritual`/`Cultist`) also carry `TYPE Starter` (inventory-sorting only), matching
 `Ritual`/`Cultist`.
+
+## `Phylactery` — soul-echo perk
+
+A droppable `BelongsTo: Unholy` reward perk (`Unholy_Species.c.txt`), not a species-wide passive.
+Whenever an allied cube other than `Damned_Soul` itself dies, 10% chance to add a `Damned_Soul` to
+hand — a 0hp/5-mana `TOKEN` whose only baked ability is `Flying`. On creation it's also granted
+`SoulMemory`, a small helper compound (`AfterThisDies IfElse X%Chance 30 (...) (...)`) — when the
+`Damned_Soul` later dies, 30% chance to create an allied `Plague_Imp`, otherwise an allied `Imp`.
+
+- **Abandoned design 1: originally meant to recreate the *exact* ally that died** (via `GenericCube`,
+  baking `Victim`'s type into the helper compound at grant time). **Runtime-confirmed broken** —
+  `GenericCube` is not usable in a mod-authored `COMPOUND: ABILITY` at all, even just defining one
+  throws `ERROR: character: (_) cannot be represented numericly...` at boot, independent of whether
+  it's ever granted. See `cube-chaos-scripting/references/authoring-and-inheritance.md`'s `GenericCube`
+  section for the full isolation-tested writeup — despite being a real listed production and despite
+  the base game's own `Dragon_Egg`/`GrowingUp` using it, it's evidently hardcoded-engine-only, not a
+  general modding mechanism. The Imp/Plague_Imp weighted-roll design (above) is the fallback the user
+  chose over a curated per-cube-name branch, once the literal ask turned out to be unbuildable.
+- **Abandoned design 2: the helper compound was first named `Soul_Memory`.** Also threw the identical
+  `character: (_) cannot be represented numericly` error — turned out to be unrelated to `GenericCube`,
+  isolated (via a `Foo_Bar`-named control) to **any underscore in a mod-authored `COMPOUND: ABILITY`'s
+  own declared name**, not just this one. Renamed to the underscore-free `SoulMemory` and confirmed
+  clean. See the same skill section for the full writeup — likely a long-standing latent issue in every
+  other underscored compound name in this codebase too (`Dragon_Egg`, `Take_Off`), just never isolated
+  since it doesn't break the ability's actual function.
+- **Deliberately excludes `Damned_Soul` itself from re-triggering Phylactery** (`If Not CubeHasName
+  Victim Damned_Soul`), so a dying `Damned_Soul` can't roll its own 10% chance to spawn a fresh
+  `Damned_Soul`. Not a supercritical-cascade risk either way (each hop is one independent 10% roll, not
+  a spawn-then-everyone-rolls shape like the old `Cultist` ripple bug — see `cube-chaos-scripting/
+  references/death-fusion-reactive.md`), just avoids an odd "soul of a soul" chain. User-confirmed
+  choice, made before the `GenericCube` failure was discovered but still applicable to the current
+  design (a dying `Damned_Soul` would otherwise still roll its own 10% chance for a fresh one).
+- **`Damned_Soul` still gets caught by the species' own 0hp rescue** (top of this file) since it's
+  created at 0hp for an Unholy player — it teleports to the enemy backline, gains 1 hp, and
+  `ExplodesX 0` (floor(5/10) = 0, negligible) before going on to do its actual job as a flying decoy
+  that spawns an Imp/Plague_Imp once something kills it. Intentional/thematic, not a bug.
+- `Damned_Soul` was previously an obtainable/starter attacker (`38 4 4`, melee, `AfterThisDies` created
+  a fixed `Imp`) — fully repurposed into a `Phylactery`-only summon token; no longer in `PERK: Unholy`'s
+  `ObtainAction:` starter list or the roster table above. The Imp/Plague_Imp echo on its own death
+  loosely rhymes with that original behavior.
+- **Upgrade: `Lichdom`** (`Unholy_UpgradePerks.c.txt`, `IsUpgradeFrom: Phylactery 80`) — drops the
+  `IsAllyToCaster Victim` check entirely (triggers on *any* cube dying, not just allies) and doubles the
+  chance to 20%. Priced at the "major scope/power jump" tier (`80`, not the standard `60`) specifically
+  because of the scope drop, not just the doubled percentage — deaths happen on both sides of the board,
+  so this is a bigger jump than "2x" sounds like. User-confirmed.
 
 ## Dragon evolution line — `Hell_Dragon`
 
@@ -149,6 +194,20 @@ the keyword (quoted above).
     `(197,72,62)→(255,255,255)`, gold `(255,205,70)` kept.
   - `Molten_Brimstone`: dark rock `(40,20,15)` + rock body `(100,50,35)` + orange glow `(255,110,0)`
     + gold core `(255,205,70)`.
+- **`Phylactery` perk icon** (`Unholy_Species.c.png`, PERK slot 2 — row1/col0 of the 2×2 sheet, no
+  resize needed): a lich's soul-jar — stone-gray urn (`(95,88,82)` base, `(20,18,16)` outline,
+  `(150,140,128)` highlight) with a ghostly green soul-flame escaping its neck (`(110,235,140)` base,
+  `(35,120,70)` shadow, `(225,255,230)` core). Deliberately breaks from the demon-red family palette
+  above (thematically a lich/undead item, not a demon) while keeping the shared blood-red `(150,20,20)`
+  perk border — see next bullet. `Lichdom` (its upgrade) needs no icon of its own, reuses this one
+  automatically per `IsUpgradeFrom:` convention.
+- **Ordinary Unholy reward perks (`Hell_Dragon_Egg`, `Phylactery`) extend the class/species border style
+  to non-`BelongsTo:SPECIES` perks** — plain 2-ring border (magenta guide, gap, then a `(150,20,20)`
+  ring at offset 2), same construction as `cube-chaos-sprite-art`'s "Optionally extending the class-color
+  border" note, confirmed by re-measuring `Hell_Dragon_Egg`'s existing tile pixel-for-pixel before
+  drawing `Phylactery`'s to match. This is a deliberate whole-mod style choice (ties every Unholy perk
+  icon visually to the species), not an engine requirement — apply it to any future Unholy reward perk
+  icon for consistency.
 
 ## Docs
 

@@ -54,18 +54,9 @@ Text: After this dies, all touching cubes that aren't Plague_Imps gain \C0 255 1
 AiPlacementRule: And AiFrontline AiStacking
 End
 
-CUBE: Damned_Soul 38 4 4
-IDENT 2 8 0 8 4
-TYPE Attacker
-TYPE Starter
-Ability: ChargeEveryX 60
-Ability: EveryXMeleeY 90 2
-Ability: DieAfterX 3600
-Ability: Inspatial
-Ability: AfterThisDies CreateCubeOnPosition CubeConstant Imp PositionOfCube Caster
-Text: After this dies, create an allied Imp on its position End
-Visual: Sword 1 0 255 0 0 1
-AiPlacementRule: And AiFrontline AiStacking
+CUBE: Damned_Soul 5 0 0
+TOKEN
+Ability: Flying
 End
 
 CUBE: Martyr 5 3 3
