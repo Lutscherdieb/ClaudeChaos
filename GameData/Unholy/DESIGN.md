@@ -55,8 +55,8 @@ territory. `Brimstone` is built on exactly this.
 
 The signature 0HP cubes (`Ritual`, `Brimstone`) live alongside regular demon-themed bodies obtainable
 by any class. Balance is anchored to real base-game analogs, not invented from scratch. **Exact current
-mana/hp for every cube: `Unholy_Cubes.c.txt`** — deliberately not restated below, see the note at the
-top of this file:
+mana/hp for every cube lives in `Unholy_Cubes.c.txt`** — deliberately not restated below, see the note
+at the top of this file:
 
 | Cube | 0HP? | Balance anchor / notes |
 |---|---|---|
