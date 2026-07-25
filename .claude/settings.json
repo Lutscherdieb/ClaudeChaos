@@ -26,6 +26,13 @@
             "command": "bash .claude/hooks/check-launch-log.sh",
             "timeout": 15,
             "statusMessage": "Checking launch/Log.txt freshness..."
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash .claude/hooks/check-sprite-coverage.sh",
+            "timeout": 15,
+            "statusMessage": "Checking sprite coverage for new PERK:/CUBE: blocks..."
           }
         ]
       }
