@@ -5,7 +5,7 @@ description: The folder-scaffolding/load-order mechanics specifically - GameData
 
 # Cube Chaos mod scaffolding & testing workflow
 
-For the DSL used inside the `.c.txt` files themselves (CUBE:/PERK:/Ability: syntax), see the `cube-chaos-scripting` skill. For sprite sheet sizing/coloring, see `cube-chaos-sprite-art`. This skill is just the surrounding plumbing: folder layout, activation, and the test loop.
+For the DSL used inside the `.c.txt` files themselves (CUBE:/PERK:/Ability: syntax), see the `cube-chaos-scripting` skill. For sprite sheet sizing/coloring, see `cube-chaos-sprite-art`. This skill is just the surrounding plumbing: folder layout, activation, and the test loop. For getting a finished mod onto the Steam Workshop (the game's own in-game publishing UI, its `Image.png`/tag requirements), see `references/workshop-publishing.md`.
 
 **Always add new content inside the active mod's own package folder (e.g. `GameData/DJ/`), never into a base-game package (`Base_Core`, `Extra_Mechanics`, `Characters`, `Main`) or another mod's folder — even for content that's conceptually "attached" to a base-game class/species (a new reward perk `BelongsTo:` an existing species, a new synergy for an existing cube, etc).** Cross-package references work fine for this — `BelongsTo: <SpeciesName>` correctly attributes a perk to a species defined in a totally different package with no special syntax, confirmed by adding a DJ-mod perk with `BelongsTo: Fungus` (Fungus itself is defined in `Characters/Species/Fungus.c.txt`) and seeing it picked up cleanly, including the engine's own reward-perk count for that species going up by one. If you catch yourself editing a file under `Base_Core/`, `Characters/`, `Main/`, or `Extra_Mechanics/`, stop and re-home that change into the mod folder instead — do not leave modded content living in the base game's own files, and don't forget to revert any base-game file you already touched by mistake (including any sprite sheet you painted into) back to its original state.
 
@@ -40,10 +40,11 @@ To create a new mod:
    ```
    ID: <random unique 10-digit number>
    Name: <YourModName>
-   Tag: <FreeformTag>
-   Tag: <AnotherTag>
+   Tag: <TagFromWorkshopList>
+   Tag: <AnotherTagFromWorkshopList>
    End
    ```
+   The `Tag:` values aren't actually freeform — the game validates them against a fixed 12-value list at Workshop-publish time (`Classes/Species`, `Perks`, `Cubes`, `Terrain`, `Scenarios`, `Curses`, `Events`, `Consumables`, `Modding`, `Resprite`, `Balance`, `NodeMap`) and warns on anything else. See `references/workshop-publishing.md` for the full picture; picking real values from that list up front avoids a rename pass later.
 3. Add one or more `.c.txt` files containing your `CUBE:`/`PERK:` definitions (see `cube-chaos-scripting`).
 4. Add a `Sprites/` subfolder with `.c.png` files matching each `.c.txt` file's basename (see `cube-chaos-sprite-art`).
 5. **Append your folder name as a new line at the end of `GameData/Loading_Order.txt`.** Without this step nothing you wrote will ever load, no matter how correct it is. It's still not *active* until also toggled on in the in-game Mods screen (main menu) — see above.

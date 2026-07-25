@@ -11,7 +11,8 @@ Exactly one of these per class/species — it's what grants the starting cubes.
 3. **`cube-chaos-scripting`** — the `PERK:` block, `Ability:` + `Text:` if it has a passive effect, `ObtainAction:` lines for starting cubes.
 4. **`cube-chaos-rule-text`** — review the `Description:`.
 5. **`cube-chaos-sprite-art`** — draw the icon: solid-filled in the chosen color, centered in the ~19×19 interior, then Style 1 border (`plain_class_border(chosen_color)`) from the border-pattern library — generate it, don't hand-copy pixels from another tile.
-6. **Test-launch.**
+6. **Generate/refresh `GameData/<Mod>/Image.png` from this same tile** — this is the mod's Steam Workshop thumbnail, and for a single-class/single-species mod it defaults to that class/species's own base-perk icon (the tile just drawn in step 5), not something separately commissioned. Crop the tile, strip the 1px magenta guide-ring border (fine as an in-game tile edge, reads as an unwanted pink frame standalone), nearest-neighbor upscale to ~500×500 — exact recipe and rationale in `cube-chaos-mod-setup`'s `references/workshop-publishing.md`, don't duplicate it here, just follow it. Re-run this step any time the base-perk icon itself changes. If the mod already has more than one class/species (no single obvious "default" icon), skip the auto-default and ask the user what `Image.png` should show instead.
+7. **Test-launch.**
 
 If this mod wants to extend the class color as a family-branding border onto its *other* reward perks too (not just the one base perk), that's a deliberate, optional style choice — see `cube-chaos-sprite-art`'s "Optionally extending the class-color border" section — reuse the exact same RGB, don't invent a near-miss shade.
 
