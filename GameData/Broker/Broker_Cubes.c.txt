@@ -1,0 +1,47 @@
+COMPOUND: ABILITY
+Gamble
+AfterEndOfTheBattle Both SetVariable GAMBLEX GenericStacking
+ ChangeCurrency RandomRoundBetweenXtoY GetVariableOnCube GAMBLEX Caster
+  Multiplication DoubleConstant 2 GetVariableOnCube GAMBLEX Caster
+Text: \C200 140 20 Gamble STACKING 1 \B : \CN \N \C96 96 96 (If this survives to the end of the battle, gain a random amount of gold between STACKING 1 and STACKING 1 \B *\B 2) \CN End
+End
+
+CUBE: All_In 15 0 0
+IDENT 1 0 0 0 15
+TYPE Starter
+Ability: FreePlacement
+Ability: AfterThisIsCreated SetStorage CubeInDirectionFromCube South Caster
+ If CubeExists Storage
+  If Not IsALeader Storage
+   Both
+    TargetCube Storage GainAbilityStacking Gamble 0 ManaCostOfCube Storage
+    ChangeCurrency Minus ManaCostOfCube Storage
+Text: After this is created, if the cube below isn't a leader, lose gold equal to its mana cost and give it Gamble equal to its mana cost End
+AiPlacementRule: AiStacking
+End
+
+CUBE: Skyscraper 20 20 20
+IDENT 2 0 5 15 0
+TYPE Starter
+Ability: Every30Seconds ChangeCurrency Addition DoubleConstant 1
+ AmountOfCubesWhich And CubeHasName Test Skyscraper
+  And IsEqual XOfPosition PositionOfCube Test XOfPosition PositionOfThis
+   IsLarger YOfPosition PositionOfCube Test YOfPosition PositionOfThis
+Text: Every 30 seconds, gain 1 gold plus 1 more for each other Skyscraper below this one in the same column End
+Ability: Every30Seconds If Not CubeExists
+ TheFirstCubeInDirectionFromPositionWhich North PositionOfThis IsAllyToCaster Test
+  CreateCubeOnPosition CopyWithAction ARandomCubeInLibraryWhich True
+   Both GainAbility ChargeEveryX 120 GainAbility EveryXMeleeY 120 5
+   PositionInDirectionFromPosition Forwards PositionOfThis
+Text: Every 30 seconds, if there is no ally anywhere above this in the column, create a random ally from your library on the space in front of this with Charging and Melee End
+AiPlacementRule: AiStacking
+End
+
+CUBE: Construction_Site 45 12 12
+IDENT 3 0 5 30 0
+TYPE Utility
+Ability: Burrowing
+Ability: EveryMinute CreateCubeOnPosition CubeConstant Skyscraper TopPositionAboveCube Caster
+Text: Every minute, create a Skyscraper at the first empty position above this End
+AiPlacementRule: AiStacking
+End

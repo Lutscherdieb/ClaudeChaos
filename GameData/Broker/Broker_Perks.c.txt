@@ -1,0 +1,27 @@
+PERK: Broker
+BelongsTo: CLASS
+Ability: BeforeACubeGainsAnAbility If IsAllyToCaster Victim If AbilityHasName AffectedAbility RegeneratingUsesX NegateX DoubleConstant 1
+AbilityText: Cubes you upgrade keep infinite uses instead of the usual limited uses End
+CampaignAbility: AfterAMapIsGenerated ReadAScenario Broker_Cube_Forge
+AbilityText: At the start of each map, enter a Forge offering only Cube Upgrades End
+Description: Broker: Cubes you upgrade keep infinite uses, and each map starts with a Forge offering only Cube Upgrades End
+ObtainAction: AddCubeToInventory CubeConstant All_In
+ObtainAction: AddCubeToInventory CubeConstant Skyscraper
+End
+
+SCENARIO: Broker_Cube_Forge
+Info: Forge: Upgrade random cubes End
+CubeImage: Forge
+End
+PERK_SELECTION:
+TYPE: 0
+ACTION: SetCampaignVariable FORGEDALREADY 1
+COSTMULT: 1
+PERKREQ: False
+CUBEUPGRADEAMOUNT: RoundedDown Division AmountOfCubesInInventoryWhich True 2
+CUBECOST: Addition Multiplication 20 GetCampaignVariable FORGEDALREADY
+ Addition Minus 20
+  ValueOfPerk Target
+INFO: Spend gold to upgrade random cubes (first each run costs 20 less) End
+End
+SEnd
