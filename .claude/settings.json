@@ -10,6 +10,20 @@
     ]
   },
   "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash .claude/hooks/check-md-dsl-safety.sh",
+            "timeout": 15,
+            "statusMessage": "Checking .md file for DSL-unsafe bare keywords..."
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

@@ -151,11 +151,15 @@ Text: Every minute this deals 1 damage to itself and 1 damage to every cube on t
 AiPlacementRule: True
 End
 
-CUBE: Hellstorm 100 0 0
-IDENT 4 20 0 30 30
+CUBE: Hellstorm 50 0 0
+IDENT 3 15 0 20 20
 TYPE Attacker
 TYPE Starter
-Ability: FreePlacement
+Ability: AfterThisIsCreated Both GainXExtraHp DoubleConstant 1
+ Both HealXDamage DoubleConstant 1
+  Both TeleportToPosition ARandomPositionWhich And IsPositionEmpty Test Not IsEqual PlacabilityOfPosition Test FactionOfCube Caster
+   XTimes RoundedDown Division ManaCostOfCube Caster DoubleConstant 10 GainAbility ExplodesX 1
+Text: After this is created, gain 1 hp, teleport to a random empty position on the enemy's side, and explode for 1 damage to touching cubes per 10 mana it costs when it dies End
 Ability: AfterThisDies
  CreateCubeOnPosition
   CopyWithAction CubeConstant Molten_Brimstone

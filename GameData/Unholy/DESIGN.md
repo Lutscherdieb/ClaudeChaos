@@ -12,36 +12,60 @@ design or balance decision is made (this is a governance requirement — see roo
 
 ## Core concept: the 0HP mechanic
 
-The `Unholy` species (`Unholy_Species.c.txt`) intercepts any **allied cube created with 0 hp** —
-which would normally die instantly — and instead rescues it into a **teleporting bomb**: +1 hp, an
-instant `TeleportToPosition` to a random empty tile on the enemy's half, and
-`ExplodesX floor(manacost / 10)` on death. So for an Unholy player a 0HP cube is delivered straight
-into the enemy backline and explodes there, with blast damage scaling off its mana cost. **The
-explosion hits all touching cubes, allies included — self-damage is a deliberate subtheme.** (Changed
-from the original `ChargeEveryX` charge-forward delivery — teleport lands the payload behind enemy
-lines instead of walking it there. The teleport uses `ARandomPositionWhich And IsPositionEmpty Test
-Not IsEqual PlacabilityOfPosition Test FactionOfCube Victim` = a random empty position the enemy owns;
-it's uncharted DSL, verify in playtest.)
+**This section describes the concept only — read `Unholy_Species.c.txt` for the actual trigger/guard
+logic, don't treat this prose as a mirror of it.** The exact mechanism has already changed shape twice in
+one day as bugs got caught; restating the DSL here would just be one more copy to keep in sync.
+
+The `Unholy` species intercepts any allied cube created with 0 hp on the player's own side (which would
+normally die instantly) and additionally creates a true, unmodified copy of it on a random empty position
+on the enemy's side. The original cube is untouched and still dies normally wherever it was placed (see
+"dual-use" below) — the species reaction is a bonus on top of that, not a replacement for it. So a 0HP
+cube gives an Unholy player **both** effects: the normal local one-shot, **plus** a second copy that,
+being genuinely 0 hp itself, resolves the exact same one-shot again — deep in enemy territory this time.
+
+**History, in brief:** originally this teleported the *same* cube instance to the enemy's side instead of
+copying it, so delivery and the local effect were mutually exclusive — changed to the copy-based version
+by user request, a deliberate power increase. Two follow-up corrections, both user-caught in play: an
+early copy-based draft gave the copy a small survival buff (so it wasn't a genuinely *true* copy anymore),
+and also granted it a bonus explosion on top of its own death effect — both were removed, since a true
+copy was the actual goal and the copy's own effect was judged strong enough without an added bonus.
+Whatever currently stops the copy's own creation from recursively spawning a further copy of itself lives
+entirely in the `.c.txt` — don't assume any specific mechanism without checking there first.
+
+**`Hellstorm` is excluded from this reaction** since it now carries its own dedicated self-teleport (see
+its own section below) — without the exclusion it would double-deliver itself. **`Ritual`/`Plague_Ritual`
+remain on the shared mechanic** — neither has `Hellstorm`'s "must always land in enemy territory or the
+cube is pointless" property, so for them the extra local trigger reads as a harmless-to-good bonus rather
+than a double-proc risk.
+
+**Known unresolved gap, flagged not fixed:** several base-game 0hp cubes (e.g. `Mindcontrol`, `Shovel`,
+`Cauterize`) target "the cube below them" as their whole effect, and a copy delivered onto an empty
+random enemy tile has no guarantee anything is there to hit — such a copy can whiff entirely. There's no
+general fix possible (the DSL can't rewrite another cube's own targeting from outside it, and these are
+base-game files this repo never edits anyway); the user explicitly chose to accept this rather than
+special-case a hand-picked list of known offenders (2026-07-25).
 
 ### 0HP cubes are dual-use (usable by ANY class)
 
 A 0HP cube is a legitimate **obtainable one-shot** for any class, not an Unholy-only card — the base
-game already ships these (`Freezing_Pain`, `15 0 0`, `IDENT 2`, fires on creation then dies). Model:
+game already ships these (`Freezing_Pain`, fires on creation then dies). Model:
 
 - **Non-Unholy player:** the 0HP cube is created, its effect fires, and it dies immediately — a
   one-time consumable, exactly like a Cryomancer starter cube (freeze 3 enemies, then die).
-- **Unholy player:** the species rescues it, so it *also* teleports to the enemy backline and explodes.
+- **Unholy player:** the cube does the exact same thing (fires locally, dies) — **plus** the species
+  delivers a true copy that resolves the same way again, in enemy territory.
 
-**Effect timing is the design lever.** An `AfterThisIsCreated` effect fires at the placement spot for
-everyone. An `AfterThisDies` effect fires at placement for a non-Unholy player (instant death), but
-for an **Unholy** player it fires wherever the cube dies — deep in enemy lines after teleporting there. So
-**death-timed payloads are the ones that reward the Unholy synergy** by delivering into enemy
-territory. `Brimstone` is built on exactly this.
+**Effect timing is the design lever.** An on-creation effect fires at the placement spot for everyone,
+and now fires *again* for the delivered copy (a fresh creation event) wherever it lands. A death-timed
+effect fires at placement for everyone (including now the Unholy player's own original), and
+*additionally* fires again wherever the delivered copy dies — deep in enemy lines, effectively
+instantly. So **death-timed payloads still specifically reward the Unholy synergy** with a bonus repeat
+in enemy territory, on top of (not instead of) the local trigger everyone gets. `Brimstone` was originally
+built on the old exclusive-delivery version of this; see its own redesign section below.
 
-> Open verify item: that `AfterThisDies`/`BeforeThisDies` reliably fire on the instant creation-death
-> of a 0HP cube for a **non-Unholy** player. High confidence (the whole 0HP mechanic + `ExplodesX`
-> depend on 0HP cubes dying and firing death hooks; `Ritual` already uses `AfterThisDies`), but it's
-> the one load-bearing assumption — confirm in a playtest.
+> Open verify item: that a death-timed effect reliably fires on the instant creation-death of a 0HP cube
+> for a **non-Unholy** player. High confidence (the whole 0HP mechanic depends on 0HP cubes dying and
+> firing death hooks), but it's the one load-bearing assumption — confirm in a playtest.
 
 ## Deliberate design choices
 
@@ -66,7 +90,7 @@ at the top of this file:
 | `Plague_Imp` | no | The `Imp` token's kit made obtainable + green; poisons touching non-Imps on death (priced as Imp-body value + death poison) |
 | `Martyr` | no | A holy-recolored `Cultist` (same stats) minus the sacrifice; on death buffs touching allies' hp |
 | `Brimstone` | no (2026-07-25, was yes) | Flying self-igniter — periodically re-applies base `Burning` to itself, so it ticks self+touching damage every 5s until it dies, then still drops a neutral `Molten_Brimstone` at its column top. See "Brimstone redesign" below. |
-| `Hellstorm` | **yes** | New 2026-07-25; 0HP legendary — on death, drops a neutral `Molten_Brimstone` at the column top, then two more every 5s (3 waves total). Effectively "what `Brimstone` used to do", now split into its own higher-cost cube. See its own section below. |
+| `Hellstorm` | **yes** | New 2026-07-25; 0HP — on creation, self-teleports to a random enemy-side position (own dedicated ability, excluded from the species' shared 0HP mechanic — see below); on death, drops a neutral `Molten_Brimstone` at the column top, then two more a few seconds apart (3 waves total). Effectively "what `Brimstone` used to do", now split into its own cube. See its own section below. |
 | `Plague_Ritual` | **yes** | 0HP legendary; on death creates an allied `Plague_Imp` on each empty touching position, each buffed +Strength per cube that was touching this at death |
 | `Blood_Totem` | no | Stationary sacrificial engine piece — see its own section below |
 
@@ -94,10 +118,22 @@ together are seen in motion.
 
 ### `Hellstorm` implementation notes
 
-Do-what-old-`Brimstone`-did-but-bigger: 100 mana, 0HP (so it *does* get the species' teleport+explode
-rescue — `ExplodesX floor(manacost/10)`, bigger payload than `Brimstone` ever had), `FreePlacement`,
-and on death drops 3 waves of neutral `Molten_Brimstone` at the column top (wave spacing tuned to 8s,
-2026-07-25, was 5s — user request; see `Unholy_Cubes.c.txt` for the current value).
+Do-what-old-`Brimstone`-did-but-bigger: 0HP, and on death drops 3 waves of neutral `Molten_Brimstone` at
+the column top (wave spacing tuned to 8s, 2026-07-25, was 5s — user request; see `Unholy_Cubes.c.txt`
+for the current value).
+
+**Redesign, 2026-07-25 (same day as the species mechanic rewrite above): reverted to a self-contained
+teleport instead of relying on the species.** Once the species mechanic changed from "teleport the
+original" to "spawn a surviving copy, leave the original in place," `Hellstorm` specifically didn't want
+the new behavior — its whole point is that it's *irrelevant where it's placed* since it's always meant
+to land on the enemy side, unlike `Ritual`/`Plague_Ritual` where a local bonus trigger is fine. So it
+now carries its own on-creation ability reproducing the *old* teleport package directly (survive, relocate
+to a random empty enemy-side position, gain a mana-scaled explosion-on-death) — see `Unholy_Cubes.c.txt`
+for the actual chain — and the species explicitly excludes `Hellstorm` by name from its own reaction to
+avoid double-delivering it. Consequence:
+`FreePlacement` is no longer needed (removed) since placement genuinely doesn't matter anymore, and mana
+cost dropped 100→50 to match (it's no longer also picking up the species' separate bonus-copy value that
+other 0hp cubes get) — `IDENT` scaled down alongside it, see `Unholy_Cubes.c.txt` for current numbers.
 
 - **Implemented as nested one-shot delayed grants, not a counter/stacking ability.** The user's original
   idea was an `Inheritable`-tagged ability that the first spawned `Molten_Brimstone` would pass to the
@@ -124,7 +160,7 @@ and on death drops 3 waves of neutral `Molten_Brimstone` at the column top (wave
 
 ### `Plague_Ritual` implementation notes
 
-- **Spawns in `AfterThisDies`, on purpose.** The species grants every 0HP cube `ExplodesX` (`BeforeThisDies`), and Plague_Ritual's imps spawn on its *touching* tiles — exactly where that blast lands. Putting the imp-spawn in `AfterThisDies` (a strictly later death phase) means the explosion fires while the imps don't exist yet, so it hits the surrounding enemies/allies (self-damage theme intact) and the imps appear afterward, unharmed. This is the fix for "the explosion killed the imps." Four explicit N/S/E/W creates, each guarded by `And PositionExists IsPositionEmpty` (no single "each empty touching position" iterator exists).
+- **Spawns in `AfterThisDies`.** Historical note: this was originally chosen because the species used to grant every 0HP cube `ExplodesX` (`BeforeThisDies`) and Plague_Ritual's imps spawn on its own *touching* tiles — exactly where that blast would land, so `AfterThisDies` (a strictly later death phase) let the explosion clear the tiles first without also killing the freshly-spawned imps. **The species no longer grants `ExplodesX` to anything (dropped 2026-07-25), so this specific ordering concern no longer applies** — kept as `AfterThisDies` anyway since there's no reason to move it, just noting the original motivating scenario is gone. Four explicit N/S/E/W creates, each guarded by `And PositionExists IsPositionEmpty` (no single "each empty touching position" iterator exists).
 - **No variable needed.** Each imp's Strength = `AmountOfCubesWhich And (IsPositionTouchingPosition PositionOfCube Test PositionOfCube Caster) (Not CubeHasName Test Plague_Imp)`, counted inline at each creation. Excluding `Plague_Imp` keeps the count stable as imps are created (they don't inflate it), so no `SetVariable` snapshot is needed, and it works with a dead `Caster` because it's position-based (`PositionOfCube Caster` persists after death). Applied via `GainAbilityStacking StrengthX 0 <count>` (computed → can't be inline `GainAbility`).
 - **Consequences of the ordering (both intended):** the blast *clears* touching tiles first, so a strong blast → more empty spots → often more imps; and Strength counts post-blast survivors (touching non-imp cubes still standing), so a big blast that kills the neighbors yields more imps but each with less Strength.
 - **Playtest checks:** (1) the teleport (species section) is uncharted DSL — verify it lands the cube on the enemy half and doesn't misbehave when no empty enemy tile exists; (2) whether `IsPositionTouchingPosition` counts only the 4 orthogonal neighbors (assumed, matching the game's "touching" convention).
@@ -225,10 +261,11 @@ hand — a 0hp/5-mana `TOKEN` whose only baked ability is `Flying`. On creation 
   references/death-fusion-reactive.md`), just avoids an odd "soul of a soul" chain. User-confirmed
   choice, made before the `GenericCube` failure was discovered but still applicable to the current
   design (a dying `Damned_Soul` would otherwise still roll its own 10% chance for a fresh one).
-- **`Damned_Soul` still gets caught by the species' own 0hp rescue** (top of this file) since it's
-  created at 0hp for an Unholy player — it teleports to the enemy backline, gains 1 hp, and
-  `ExplodesX 0` (floor(5/10) = 0, negligible) before going on to do its actual job as a flying decoy
-  that spawns an Imp/Plague_Imp once something kills it. Intentional/thematic, not a bug.
+- **`Damned_Soul` still gets caught by the species' own 0hp mechanic** (top of this file) since it's
+  created at 0hp on the player's own side when placed from hand — a true copy of it is delivered to a
+  random enemy-side position, which (also being 0hp) immediately resolves its own `SoulMemory` there,
+  turning into an Imp/Plague_Imp deep in enemy territory. The original, placed copy does the exact same
+  thing locally. Intentional/thematic, not a bug.
 - `Damned_Soul` was previously an obtainable/starter attacker (`38 4 4`, melee, `AfterThisDies` created
   a fixed `Imp`) — fully repurposed into a `Phylactery`-only summon token; no longer in `PERK: Unholy`'s
   `ObtainAction:` starter list or the roster table above. The Imp/Plague_Imp echo on its own death
@@ -280,8 +317,8 @@ warns `Missing: DJ-Unholy`/`Missing: General-Unholy`, which is expected and not 
   `Universal_Frozen_Statues`, `PerkFragments.c.txt`'s `Effect:_Add_Free_Copy`): both always pair
   `FreeCopy`/`CopyWithAction` with an explicit `SetFaction FactionOfThis` for exactly this reason — a
   bare `FreeCopy` never reassigns faction on its own. **General takeaway for any future "copy a cube
-  (especially an enemy's) into your own hand/board" ability: `SetFaction FactionOfThis` is not optional
-  window-dressing, it's required for the copy to actually be usable by the player.**
+  (especially an enemy's) into your own hand/board" effect** — `SetFaction FactionOfThis` is not optional
+  window-dressing, it's required for the copy to actually be usable by the player.
 - **Roboticist** reacts to a `RobotPartX` ally dying in enemy territory by copying a random 0-hp hand
   cube onto its death position — reuses the exact hand-search-then-`CopyWithAction`-onto-board shape
   already runtime-confirmed on this mod's own `Cultist` (see the death-sequencing skill reference for
