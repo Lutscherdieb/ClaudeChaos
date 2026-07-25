@@ -100,7 +100,7 @@ new starters (all but `Ritual`/`Cultist`) also carry `TYPE Starter` (inventory-s
 
 ### `Blood_Totem` implementation notes
 
-A stationary "feed it allies, it pays back scaling hp regen" engine piece — not a 0HP cube, not a
+A stationary "feed it allies, it pays back direct hp" engine piece — not a 0HP cube, not a
 combat body. Exact numbers live in `Unholy_Cubes.c.txt`; the design shape:
 
 - **Kill-on-contact uses `BeforeThisCollides`, matching the base game's own `Void` cube exactly**
@@ -113,15 +113,18 @@ combat body. Exact numbers live in `Unholy_Cubes.c.txt`; the design shape:
   (losing your leader = instant loss). The base game's own `DeadlyX` keyword independently excludes
   leaders from its own "kill" effect ("Kill the next STACKING 1 **non leader** cubes this damages",
   `ModdingInfo.txt:101`), which is the precedent this guard follows.
-- **Kill counter uses `EnergyX`, not an opaque internal `EveryXTimes` counter — user's own suggested
-  fix.** An earlier draft used `EveryXTimes 10` (fires every 10th matching trigger) to gate the Growth
-  grant; the user pointed out this hides the count from the player, and proposed reusing the base
-  game's own `EnergyX` `STACKING` ability as a *visible* counter instead (its own tooltip is just
-  `Energy: N`, ModdingInfo.txt:117 — no side effects of its own, i.e. exactly a generic display
-  counter). Implementation: `GainAbilityStacking EnergyX 0 1` on every kill, then
-  `If Not IsSmaller GetStackingOfAbilityOnCube EnergyX Caster 10` triggers
-  `ChangeAbilityStacking EnergyX -10` (reset) + `GainAbilityStacking GrowthX 0 1` (the payoff). Player
-  can now watch the totem's Energy stack climb toward the next Growth tick on its own tooltip.
+- **Kill payoff simplified from a visible `EnergyX`/`GrowthX` stacking counter to a direct,
+  ungated `HealXDamage 1` per kill — user request, 2026-07-25.** The original draft counted kills via
+  a visible `EnergyX` stacking ability and paid out `GrowthX` (permanent max-hp growth) every 10th
+  kill; the user asked to drop the counting entirely and have each kill just heal the totem 1 hp on
+  the spot, no cap. Net effect: the totem no longer grows permanently stronger over a game, it just
+  sustains its own hp off ally sacrifices, as often as it gets fed.
+- **The 1-minute rate limit lives on the periodic damage tick, not the kill-on-contact heal —
+  user correction, 2026-07-25.** An earlier draft put a `Cooldown 3600` on the `BeforeThisCollides`
+  kill+heal instead; the user clarified the cooldown belongs on the *other* ability (the one that
+  already had a periodic 20s cadence), so `EveryXSeconds DoubleConstant 20` became
+  `EveryXSeconds DoubleConstant 60` (that ability's own `DOUBLE` argument is literally seconds, not
+  ticks — unlike `Cooldown`) and the kill-on-contact heal is ungated again.
 - **"Enemy territory" (the periodic damage tick) implemented as position-based, not
   faction-of-cube-based** — `EveryCubeWhich Not IsEqual PlacabilityOfPosition PositionOfCube Test FactionOfCube Caster TakeXDamage 1`,
   reusing the same `PlacabilityOfPosition` check this mod's own
@@ -129,11 +132,14 @@ combat body. Exact numbers live in `Unholy_Cubes.c.txt`; the design shape:
   section above). This means a friendly cube that ends up pushed onto the enemy's side would also take
   the tick — a deliberate reading of "territory" as literal board geography, not "all enemy cubes",
   flagged to and accepted by the user at design time.
-- **Self-damage is a genuine soft-kill clock, not just flavor.** At 5 max hp and 1 self-damage per 20s
-  tick, the totem dies on its own in ~100 seconds unless the Growth payoff (healing over time) offsets
-  it — i.e. the totem only sustains itself if the player actually feeds it ally kills. This mirrors the
-  mod's existing self-damage subtheme (`Molten_Brimstone`'s self+touching tick, the Imp/`Acidic`
+- **Self-damage is a genuine soft-kill clock, not just flavor.** At 5 max hp and 1 self-damage per
+  minute tick, the totem dies on its own in ~5 minutes unless it's fed ally kills (each kill heals 1
+  hp, uncapped) — i.e. the totem only sustains itself if the player actually feeds it. This mirrors
+  the mod's existing self-damage subtheme (`Molten_Brimstone`'s self+touching tick, the Imp/`Acidic`
   friendly-fire choice) rather than being a new pattern.
+- **Mana cost halved 60 → 30 — user request, 2026-07-25**, alongside the above simplification
+  (no rationale given beyond the ask; the totem's kit is strictly weaker without the Growth payoff, so
+  the cheaper cost tracks that).
 
 ## `Phylactery` — soul-echo perk
 
