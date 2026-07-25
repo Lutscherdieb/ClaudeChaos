@@ -1,0 +1,82 @@
+PERK: Warrior-Unholy
+BelongsTo: CLASSSPECIES
+Ability: AtTheStartOfTheBattle TargetCube ARandomAlliedLeader GainAllAbilitiesOfCube CubeConstant Catapult
+Description: At the start of the battle your leader gains all abilities of a Catapult End
+End
+
+PERK: Chronomancer-Unholy
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Time_Warp
+ TargetCube ARandomCubeWhich And IsAllyToCaster Test Not IsALeader Test
+  AccelerateX TimeConstant 1200
+Description: After a Time_Warp is created, accelerate a random non-leader ally by 20 seconds End
+End
+
+PERK: Cryomancer-Unholy
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller HpOfCube Victim DoubleConstant 1
+ TargetCube ARandomEnemy Both GainAbility FrozenX 5
+  If IsLarger GetStackingOfAbilityOnCube FrozenX Target ManaCostOfCube Target Die
+Description: After an allied cube is created with 0 hp, freeze a random enemy for 5 seconds and if it has more frozen than mana cost it dies End
+End
+
+PERK: Engineer-Unholy
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeDies If IsAllyToCaster Victim If HasAbilityWithName Victim ExplodesX
+ AddCubeToHandOfThis FreeCopy ARandomCubeInLibraryWhich And HasCategory Test ATTACKER Not IsToken Test
+Description: After an allied cube with \C182 0 0 Explodes \CN dies, add a free random attacker cube to your hand End
+End
+
+PERK: Priest-Unholy
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller HpOfCube Victim DoubleConstant 1
+ TargetCube ARandomDamagedAlly HealXDamage DoubleConstant 3
+Description: After an allied cube is created with 0 hp, heal a random damaged ally for 3 hp End
+End
+
+PERK: Programmer-Unholy
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeDies If IsEnemyToCaster Victim If Not IsALeader Victim
+ If X%Chance DoubleConstant 10
+  AddCubeToHandOfThis FreeCopy Victim
+Description: After a non-leader enemy dies, 10% chance you add a free copy of it to your hand End
+End
+
+PERK: Pyromaniac-Unholy
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeDies If IsAllyToCaster Victim If HasAbilityWithName Victim ExplodesX
+ If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+  EveryCubeTouchingPosition PositionOfCube Victim If IsEnemyToCaster Target GainAbility Burning
+Description: After an allied \C182 0 0 Explodes \CN cube dies in enemy territory, all touching enemies gain \C255 106 0 Burning \CN End
+End
+
+PERK: Roboticist-Unholy
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeDies If IsAllyToCaster Victim If HasAbilityWithName Victim RobotPartX
+ If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+  SetStorage ARandomCubeInHandOfFactionWhich FactionOfCube Caster IsSmaller HpOfCube Test DoubleConstant 1
+   If CubeExists Storage CreateCubeOnPosition CopyWithAction Storage Nothing PositionOfCube Victim
+Description: After a RobotPart ally dies in enemy territory, create a random 0 hp cube from your hand at its position End
+End
+
+PERK: Rogue-Unholy
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller HpOfCube Victim DoubleConstant 1
+ If Not CubeHasName Victim Incursion
+  CreateCubeOnPosition CubeConstant Incursion ARandomRightPosition
+Description: After a non-Incursion allied cube is created with 0 hp, create an Incursion on a random right_side_position End
+End
+
+PERK: Wizard-Unholy
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Concentrate
+ AddCubeToHandOfThis FreeCopy CubeConstant Imp
+Description: After a Concentrate is created, add a free Imp to your hand End
+End
+
+PERK: No_Class-Unholy
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller HpOfCube Victim DoubleConstant 1
+ TargetCube Victim GainAbility ExtraLife
+Description: After an allied cube is created with 0 hp, it gains \C255 255 0 ExtraLife \CN End
+End

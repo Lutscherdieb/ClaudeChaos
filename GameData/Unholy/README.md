@@ -31,6 +31,20 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 <img src="Preview/Unholy_Perks_Phylactery.png" width="700" alt="Phylactery perk card">
 <img src="Preview/Unholy_Perks_Lichdom.png" width="700" alt="Lichdom perk card (upgrade of Phylactery)">
 
+### Class+Species synergies
+
+<img src="Preview/Unholy_Synergies_Warrior-Unholy.png" width="700" alt="Warrior + Unholy synergy card">
+<img src="Preview/Unholy_Synergies_Chronomancer-Unholy.png" width="700" alt="Chronomancer + Unholy synergy card">
+<img src="Preview/Unholy_Synergies_Cryomancer-Unholy.png" width="700" alt="Cryomancer + Unholy synergy card">
+<img src="Preview/Unholy_Synergies_Engineer-Unholy.png" width="700" alt="Engineer + Unholy synergy card">
+<img src="Preview/Unholy_Synergies_Priest-Unholy.png" width="700" alt="Priest + Unholy synergy card">
+<img src="Preview/Unholy_Synergies_Programmer-Unholy.png" width="700" alt="Programmer + Unholy synergy card">
+<img src="Preview/Unholy_Synergies_Pyromaniac-Unholy.png" width="700" alt="Pyromaniac + Unholy synergy card">
+<img src="Preview/Unholy_Synergies_Roboticist-Unholy.png" width="700" alt="Roboticist + Unholy synergy card">
+<img src="Preview/Unholy_Synergies_Rogue-Unholy.png" width="700" alt="Rogue + Unholy synergy card">
+<img src="Preview/Unholy_Synergies_Wizard-Unholy.png" width="700" alt="Wizard + Unholy synergy card">
+<img src="Preview/Unholy_Synergies_No_Class-Unholy.png" width="700" alt="No Class + Unholy synergy card">
+
 ## Installing this mod (to play it)
 
 1. Find your Cube Chaos install folder (Steam → right-click Cube Chaos → Manage → Browse local files). It's the folder containing `Cube Chaos.exe` and a `GameData/` subfolder.

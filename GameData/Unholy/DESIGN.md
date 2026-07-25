@@ -186,6 +186,88 @@ hand — a 0hp/5-mana `TOKEN` whose only baked ability is `Flying`. On creation 
   because of the scope drop, not just the doubled percentage — deaths happen on both sides of the board,
   so this is a bigger jump than "2x" sounds like. User-confirmed.
 
+## Class+Species synergies — `Unholy_Synergies.c.txt`
+
+11 `PERK: <Class>-Unholy BelongsTo: CLASSSPECIES` perks, one per base-game class (Warrior,
+Chronomancer, Cryomancer, Engineer, Priest, Programmer, Pyromaniac, Roboticist, Rogue, Wizard,
+No_Class). **Scope deliberately excludes this repo's own `DJ`/`General` classes** — user chose the
+11-base-class scope explicitly over 13 (the 2026-07-25 launch log confirms the engine notices and
+warns `Missing: DJ-Unholy`/`Missing: General-Unholy`, which is expected and not a bug to fix). See
+`Unholy_Synergies.c.txt` for the current `Ability:`/`Description:` of each — not restated here.
+
+- **Warrior** grants the leader all of `Catapult`'s abilities at battle start (`GainAllAbilitiesOfCube`).
+- **Chronomancer** reacts to a `Time_Warp` being created (same `CubeHasName Victim Time_Warp` idiom the
+  base game's own `Chronomancer-Plant`/`-Elemental`/`-Devourer`/`-No_Species` already use) and
+  accelerates a random non-leader ally.
+- **Cryomancer/Priest/Rogue/No_Class** all key off the species' own signature moment — `AfterACubeIsCreated
+  If IsAllyToCaster Victim If IsSmaller HpOfCube Victim DoubleConstant 1`, the exact same condition the
+  `Unholy` species perk itself reacts to. **Open verify item, flagged before implementation and accepted
+  by the user:** since the species' own reaction bumps that same cube's hp 0→1 in the same event
+  dispatch, there's a theoretical listener-ordering race — if the species' listener runs before a
+  synergy's, the synergy's hp-check could read hp=1 and silently never fire. Nothing in
+  `ModdingInfo.txt`/`ModdingExplanation.txt` documents cross-PERK listener order for the same trigger
+  (only same-cube death*-phase* order is documented — see `cube-chaos-scripting`'s death-sequencing
+  notes). Shipped as-is (matching this mod's existing precedent of shipping the teleport itself as
+  "uncharted DSL, verify in playtest" rather than blocking on an unconfirmed risk) — **user explicitly
+  deferred verification to real playtest** rather than a design change. If a playtest ever shows one of
+  these four NOT firing when a 0-hp ally is created, the fix is to move it off this shared trigger
+  entirely (e.g. a marker ability granted by the species' own chain, reacted to via a differently-timed
+  hook) rather than tweaking the condition, since any condition reading a field the species' own
+  reaction also mutates has the identical hazard.
+- **Cryomancer** additionally reuses the base game's own `Icy_Dragon` stacking-`FrozenX`-past-manacost
+  kill pattern (`2TokenCubes.c.txt:685`) rather than inventing a new freeze-kill mechanic.
+- **Engineer/Pyromaniac** both react to an allied `ExplodesX`-carrying cube dying (Engineer: anywhere;
+  Pyromaniac: specifically in enemy territory, igniting touching enemies) — kept deliberately distinct
+  from each other so they don't read as reskins.
+- **Roboticist** reacts to a `RobotPartX` ally dying in enemy territory by copying a random 0-hp hand
+  cube onto its death position — reuses the exact hand-search-then-`CopyWithAction`-onto-board shape
+  already runtime-confirmed on this mod's own `Cultist` (see the death-sequencing skill reference for
+  the original derivation). **Deliberately does NOT consume the hand cube** (matches the `Cultist`
+  precedent's own behavior of copying, not removing) — flag to the user if a consuming version was
+  actually wanted instead.
+- **Rogue** reacts to a non-`Incursion` 0-hp ally being created by placing an `Incursion` on
+  `ARandomRightPosition`. That selector has no empty-tile guard, matching the base game's own
+  established precedent for `ARandomLeftPosition`/`ARandomRightPosition` (`cube-chaos-rule-text`'s fixed
+  term note: every real usage across the whole game is bare/unfiltered) — an occasional silent no-op on
+  a crowded right side is expected, not a bug.
+- **Wizard** reacts to a `Concentrate` being created (mirrors the base game's own `Concentrate`-reactive
+  synergies) by adding a free `Imp` to hand.
+- **No_Class** grants the rescued 0-hp cube `ExtraLife` — pairs well with the species' own
+  teleport-then-explode: the cube detonates, then reforms at full hp wherever it died (i.e. in enemy
+  territory).
+
+### Sprite: shared demonic-horns identifier, but 11 genuinely distinct demon variants
+
+All 11 tiles share small curved horns (the common visual identifier tying the whole batch together —
+the same idea as DJ's synergy set sharing a headphones motif across its species tiles, done in reverse
+here since Unholy is the fixed *species* side of the pair). **Beyond the horns, each tile is a
+genuinely different demon variant per class** — different body/head silhouette (armored pauldrons +
+helmet + sword for Warrior, a pointed hood + robe for Priest/Rogue, a boxy glitchy body for Programmer,
+flame-shoulder plumes for Pyromaniac, ice-shard shoulders for Cryomancer, a bell-robe + floating orb for
+Wizard, a mechanical gauntlet for Engineer, a chest gear for Roboticist, a chest hourglass for
+Chronomancer, the plain undecorated baseline for No_Class) rather than one shared bust with a small
+floating symbol beside it — **the first draft did exactly that (one identical silhouette + a
+same-sized colored icon next to it) and the user rejected it on sight as "too sameish."** Per-class
+theme colors are pulled from each class's own real sampled base-perk-tile color where one made sense
+(`(255,0,0)`-family for Warrior, `(0,254,33)` for Priest's cross, `(197,204,112)` for Chronomancer's
+hourglass matching `Time_Warp`'s own tint, `(186,226,255)` for Cryomancer matching `FrozenX`'s own
+color, `(255,106,0)`-family for Pyromaniac matching `Burning`), not invented. This "ask for a shared
+identifier before drawing a synergy batch, then build genuinely distinct silhouettes around it" step is
+now a standing part of `cube-chaos-orchestrator`'s `content-class-species.md` workflow, not just a
+one-off here.
+
+Two build mistakes worth remembering if this sheet is ever redrawn or extended: (1) a shared element
+(the demon bust) very nearly fills the 15×15 safe interior when centered, so it and any per-class
+addition must be composed together and off-center from the start, not centered-then-squeezed — a first
+pass centered the bust and a floating prop overflowed past column 20 into the frame's own border band;
+(2) **small/thin decorative shapes (a sword blade, an ice-spike tip, a gear's spokes) must be painted
+*after* the auto-outline pass, never unioned into it** — the auto-outliner recolors any pixel touching
+background to flat outline color, and a small isolated shape is *all* boundary pixels, so a first pass
+that ran the outliner over these shapes together with the main body silhouette swallowed every one of
+them into a flat near-black blob with no visible theme color at all (confirmed by re-rendering at 8×
+zoom — exactly the pitfall `cube-chaos-sprite-art`'s "practical build technique" note already documents
+for the `Hell_Dragon`/`Bass_Dragon` wing/sound-wave case, hit again here despite that precedent).
+
 ## Dragon evolution line — `Hell_Dragon`
 
 Mimics the base-game per-class/species Dragon line (reference: Cryomancer's `Icy_Dragon_Egg` in
