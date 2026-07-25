@@ -78,13 +78,16 @@ Text: Every second deal 1 damage to this and every touching cube End
 Ability: EveryXAcidicY 60 1
 End
 
-CUBE: Brimstone 40 0 0
-IDENT 3 15 0 10 5
+CUBE: Brimstone 50 6 6
+IDENT 3 20 5 15 10
 TYPE Attacker
 TYPE Starter
+Ability: Flying
+Ability: ChargeEveryX 60
+Ability: EveryXSeconds DoubleConstant 10 GainAbility Burning
+Text: Every 10 seconds this gains \C255 106 0 Burning \CN End
 Ability: AfterThisDies CreateCubeOnPosition CopyWithAction CubeConstant Molten_Brimstone SetFaction DoubleConstant 0 TopPositionAboveCube Caster
 Text: After this dies, create a neutral Molten_Brimstone at the top of its column, which falls from there End
-AiPlacementRule: True
 End
 
 CUBE: Plague_Ritual 90 0 0
@@ -145,5 +148,39 @@ Text: Before a non-leader ally collides with this, kill it and heal this 1 Hp En
 Ability: EveryXSeconds DoubleConstant 60 Both TargetCube Caster TakeXDamage DoubleConstant 1
  EveryCubeWhich Not IsEqual PlacabilityOfPosition PositionOfCube Test FactionOfCube Caster TakeXDamage DoubleConstant 1
 Text: Every minute this deals 1 damage to itself and 1 damage to every cube on the enemy side End
+AiPlacementRule: True
+End
+
+CUBE: Hellstorm 100 0 0
+IDENT 4 20 0 30 30
+TYPE Attacker
+TYPE Starter
+Ability: FreePlacement
+Ability: AfterThisDies
+ CreateCubeOnPosition
+  CopyWithAction CubeConstant Molten_Brimstone
+   Both
+    SetFaction DoubleConstant 0
+    GainAbilityText
+     EveryXSeconds DoubleConstant 8
+     Both
+      RemoveThisAbility
+      CreateCubeOnPosition
+       CopyWithAction CubeConstant Molten_Brimstone
+        Both
+         SetFaction DoubleConstant 0
+         GainAbilityText
+          EveryXSeconds DoubleConstant 8
+          Both
+           RemoveThisAbility
+           CreateCubeOnPosition
+            CopyWithAction CubeConstant Molten_Brimstone
+             SetFaction DoubleConstant 0
+            TopPositionAboveCube Caster
+          After 8 seconds create the final wave of Molten_Brimstone End
+       TopPositionAboveCube Caster
+     After 8 seconds create the next wave of Molten_Brimstone End
+  TopPositionAboveCube Caster
+Text: After this dies, create a neutral Molten_Brimstone at the top of the column, then two more every 8 seconds after that End
 AiPlacementRule: True
 End

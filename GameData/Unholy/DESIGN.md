@@ -65,9 +65,62 @@ at the top of this file:
 | `Hellhound` | no | Fast rusher — priced off the `Small_Warrior_Slime` charge speed with a fast bite |
 | `Plague_Imp` | no | The `Imp` token's kit made obtainable + green; poisons touching non-Imps on death (priced as Imp-body value + death poison) |
 | `Martyr` | no | A holy-recolored `Cultist` (same stats) minus the sacrifice; on death buffs touching allies' hp |
-| `Brimstone` | **yes** | 0HP one-shot; on death spawns a neutral `Molten_Brimstone` (burns itself + all touching, plus Acidic) at the column top (enemy column for Unholy) |
+| `Brimstone` | no (2026-07-25, was yes) | Flying self-igniter — periodically re-applies base `Burning` to itself, so it ticks self+touching damage every 5s until it dies, then still drops a neutral `Molten_Brimstone` at its column top. See "Brimstone redesign" below. |
+| `Hellstorm` | **yes** | New 2026-07-25; 0HP legendary — on death, drops a neutral `Molten_Brimstone` at the column top, then two more every 5s (3 waves total). Effectively "what `Brimstone` used to do", now split into its own higher-cost cube. See its own section below. |
 | `Plague_Ritual` | **yes** | 0HP legendary; on death creates an allied `Plague_Imp` on each empty touching position, each buffed +Strength per cube that was touching this at death |
 | `Blood_Totem` | no | Stationary sacrificial engine piece — see its own section below |
+
+### `Brimstone` redesign — no longer 0HP (2026-07-25)
+
+`Brimstone` was originally a 0HP one-shot bomb (see roster table history); the user split that role
+off into the new `Hellstorm` (below) and repurposed `Brimstone` itself into a standing flying
+self-igniter: it re-applies the base `Burning` keyword to itself every 5 seconds via `EveryXSeconds`,
+and since `Burning` is itself "after 5s, deal 1 dmg to self+touching, then lose the ability"
+(an immutable base-game constant), the reapplication cadence turns it into a steady self+touching
+damage tick — hitting allies too, matching the mod's existing Imp/`Acidic` friendly-fire theme. It
+still drops a neutral `Molten_Brimstone` on death, unchanged from before.
+
+**Deliberate consequence, confirmed with the user at design time: `Brimstone` no longer benefits from
+the species' 0HP-rescue mechanic** (top of this file) since it's no longer created at 0 hp. It's now a
+plain stationary self-igniter wherever it's placed, not a teleport-delivered payload — `Hellstorm` is
+the cube that now carries that delivery mechanic forward.
+
+**Follow-up tuning pass, 2026-07-25 (same day):** hp raised, the self-`Burning` reapplication slowed
+down, and `ChargeEveryX` added so it's no longer purely stationary — user request, no rationale beyond
+feel; see `Unholy_Cubes.c.txt` for the current numbers. The charge rate was picked to match this file's
+`Imp`/`Plague_Imp` anchor (its other real anchors in this mod are `Hellhound` faster and
+`Cultist`/`Martyr` slower) — adjust if it plays differently than intended once `Flying`+`Charging`
+together are seen in motion.
+
+### `Hellstorm` implementation notes
+
+Do-what-old-`Brimstone`-did-but-bigger: 100 mana, 0HP (so it *does* get the species' teleport+explode
+rescue — `ExplodesX floor(manacost/10)`, bigger payload than `Brimstone` ever had), `FreePlacement`,
+and on death drops 3 waves of neutral `Molten_Brimstone` at the column top (wave spacing tuned to 8s,
+2026-07-25, was 5s — user request; see `Unholy_Cubes.c.txt` for the current value).
+
+- **Implemented as nested one-shot delayed grants, not a counter/stacking ability.** The user's original
+  idea was an `Inheritable`-tagged ability that the first spawned `Molten_Brimstone` would pass to the
+  next. Checked and ruled out: `Inheritable` in this engine only cascades an ability *through a damage
+  hit* (victim inherits from attacker), it has no "the next thing I create inherits this" meaning, so it
+  can't drive a creation-chain. The actual mechanism used instead: each spawned `Molten_Brimstone` is
+  handed a one-shot `GainAbilityText EveryXSeconds 5 (Both RemoveThisAbility <spawn the next one>)` —
+  the same idiom as the base game's own `HarrowingPast` compound ("after 20 seconds, remove this ability,
+  then do X"). This needed no new `COMPOUND: ABILITY` and no counter variable at all, since the wave
+  count (3) is small and fixed — just 2 levels of nesting.
+- **Known caveat, accepted as-is:** the chain only continues if each spawned `Molten_Brimstone` survives
+  the 5 seconds before its turn to pass the torch. `Molten_Brimstone` has 25 hp and only takes 1
+  self-damage/sec (25s to self-kill), so this is comfortable margin against its own self-damage tick, but
+  it can still be cut short by enemy fire — a dead `Molten_Brimstone` silently drops the remaining waves.
+  Not treated as a bug, same tier as this mod's other "verify in playtest" items.
+- Added as a starter (`ObtainAction:` in `Unholy_Species.c.txt`) alongside the other 8, per this repo's
+  "test new obtainable cubes as starters during dev" convention — trim later if 9 starters plays too
+  strong, matching the existing note below about the roster already being above the base-game norm.
+- Icon: a bigger/more intense variant of `Brimstone`'s own meteor icon — same demon-family molten
+  palette (rock body `(150,30,30)`, outline `(25,10,10)`, highlight `(197,72,62)`, gold molten core
+  `(255,205,70)`, orange flame accent `(255,110,0)`), with 3 small flame tufts above the body instead of
+  `Brimstone`'s 2, echoing the 3-wave ability. Drawn directly into the sheet's next free slot (already
+  sized `4×4` for `Unholy_Cubes.c.png` — 15 real cubes now fit the existing grid, no resize needed).
 
 ### `Plague_Ritual` implementation notes
 
@@ -88,13 +141,13 @@ at the top of this file:
 
 ### Starting cubes — deliberately 8, above the base-game 2 convention
 
-The `Unholy` species perk grants **all 8 obtainable cubes** as starters (`Ritual`, `Cultist`, `Hellhound`,
-`Plague_Imp`, `Martyr`, `Brimstone`, `Plague_Ritual`, `Blood_Totem`), via one
+The `Unholy` species perk grants **all 9 obtainable cubes** as starters (`Ritual`, `Cultist`, `Hellhound`,
+`Plague_Imp`, `Martyr`, `Brimstone`, `Hellstorm`, `Plague_Ritual`, `Blood_Totem`), via one
 `ObtainAction: AddCubeToInventory` line each. This is a deliberate departure from the base-game convention of exactly 2 starters per
 class/species — chosen so the full demon kit is guaranteed in hand (the new cubes were effectively
 unfindable as rare drops in the global pool) and so the species reads as a complete themed toolbox.
 There is no hard engine limit on starter count (`ObtainAction:` is repeatable); this just sits above
-the base power/variety baseline. Revisit and trim to a curated few if it plays too strong. The six
+the base power/variety baseline. Revisit and trim to a curated few if it plays too strong. The seven
 new starters (all but `Ritual`/`Cultist`) also carry `TYPE Starter` (inventory-sorting only), matching
 `Ritual`/`Cultist`.
 
@@ -219,6 +272,16 @@ warns `Missing: DJ-Unholy`/`Missing: General-Unholy`, which is expected and not 
 - **Engineer/Pyromaniac** both react to an allied `ExplodesX`-carrying cube dying (Engineer: anywhere;
   Pyromaniac: specifically in enemy territory, igniting touching enemies) — kept deliberately distinct
   from each other so they don't read as reskins.
+- **Programmer** reacts to a non-leader enemy dying with a 10% chance to add a free copy to hand.
+  **Bug fix, 2026-07-25: the original grant (`AddCubeToHandOfThis FreeCopy Victim`) was missing
+  `SetFaction FactionOfThis`, so the copy silently kept the dead enemy's own faction instead of joining
+  the player** — caught by the user in play ("basically useless"). Confirmed against real base-game
+  precedent for this exact "copy a dying cube to hand" shape (`ZUpgradeClassPerks.c.txt`'s
+  `Universal_Frozen_Statues`, `PerkFragments.c.txt`'s `Effect:_Add_Free_Copy`): both always pair
+  `FreeCopy`/`CopyWithAction` with an explicit `SetFaction FactionOfThis` for exactly this reason — a
+  bare `FreeCopy` never reassigns faction on its own. **General takeaway for any future "copy a cube
+  (especially an enemy's) into your own hand/board" ability: `SetFaction FactionOfThis` is not optional
+  window-dressing, it's required for the copy to actually be usable by the player.**
 - **Roboticist** reacts to a `RobotPartX` ally dying in enemy territory by copying a random 0-hp hand
   cube onto its death position — reuses the exact hand-search-then-`CopyWithAction`-onto-board shape
   already runtime-confirmed on this mod's own `Cultist` (see the death-sequencing skill reference for

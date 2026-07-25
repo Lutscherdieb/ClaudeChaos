@@ -38,8 +38,8 @@ PERK: Programmer-Unholy
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeDies If IsEnemyToCaster Victim If Not IsALeader Victim
  If X%Chance DoubleConstant 10
-  AddCubeToHandOfThis FreeCopy Victim
-Description: After a non-leader enemy dies, 10% chance you add a free copy of it to your hand End
+  AddCubeToHandOfThis CopyWithAction FreeCopy Victim SetFaction FactionOfThis
+Description: After a non-leader enemy dies, 10% chance you add a free allied copy of it to your hand End
 End
 
 PERK: Pyromaniac-Unholy

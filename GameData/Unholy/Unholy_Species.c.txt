@@ -21,6 +21,7 @@ ObtainAction: AddCubeToInventory CubeConstant Hellhound
 ObtainAction: AddCubeToInventory CubeConstant Plague_Imp
 ObtainAction: AddCubeToInventory CubeConstant Martyr
 ObtainAction: AddCubeToInventory CubeConstant Brimstone
+ObtainAction: AddCubeToInventory CubeConstant Hellstorm
 ObtainAction: AddCubeToInventory CubeConstant Plague_Ritual
 ObtainAction: AddCubeToInventory CubeConstant Blood_Totem
 End
