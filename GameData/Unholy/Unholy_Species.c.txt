@@ -14,7 +14,7 @@ Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller HpOfCube Vict
 Description: After an allied cube is created with 0 hp by a non-0-hp source, give it ExtraLife End
 ObtainAction: AddCubeToInventory CubeConstant Ritual
 ObtainAction: AddCubeToInventory CubeConstant Cultist
-ObtainAction: AddCubeToInventory CubeConstant Hellhound
+ObtainAction: AddCubeToInventory CubeConstant Two_Headed_Demon
 ObtainAction: AddCubeToInventory CubeConstant Plague_Imp
 ObtainAction: AddCubeToInventory CubeConstant Martyr
 ObtainAction: AddCubeToInventory CubeConstant Brimstone
@@ -40,4 +40,13 @@ Description: Whenever a non-Damned Soul ally dies, 10% chance to add a Damned So
 ReferenceCube: Damned_Soul
 ReferenceCube: Plague_Imp
 ReferenceCube: Imp
+End
+
+PERK: Mutations
+BelongsTo: Unholy
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsPlaced If X%Chance DoubleConstant 10
+ Both TargetCube Victim Exile
+  CreateCubeOnPosition CopyWithAction CubeConstant Two_Headed_Demon SetFaction FactionOfCube Victim PositionOfCube Victim
+Description: Whenever an ally is placed, 10% chance to create an allied Two-Headed Demon instead End
+ReferenceCube: Two_Headed_Demon
 End

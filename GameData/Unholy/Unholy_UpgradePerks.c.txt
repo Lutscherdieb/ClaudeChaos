@@ -15,3 +15,11 @@ ReferenceCube: Damned_Soul
 ReferenceCube: Plague_Imp
 ReferenceCube: Imp
 End
+
+PERK: Rebirth_of_the_Chosen
+Ability: AfterACubeDies If IsAllyToCaster Victim If X%Chance DoubleConstant 20
+ CreateCubeOnPosition CopyWithAction CubeConstant Two_Headed_Demon SetFaction FactionOfCube Victim PositionOfCube Victim
+Description: Whenever an ally dies, 20% chance to create an allied Two-Headed Demon in its position End
+IsUpgradeFrom: Mutations 80
+ReferenceCube: Two_Headed_Demon
+End

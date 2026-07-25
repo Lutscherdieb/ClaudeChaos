@@ -11,7 +11,7 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 <img src="Preview/Unholy_Cubes_Ritual.png" width="700" alt="Ritual cube card">
 <img src="Preview/Unholy_Cubes_Imp.png" width="700" alt="Imp cube card">
 <img src="Preview/Unholy_Cubes_Cultist.png" width="700" alt="Cultist cube card">
-<img src="Preview/Unholy_Cubes_Hellhound.png" width="700" alt="Hellhound cube card">
+<img src="Preview/Unholy_Cubes_Two_Headed_Demon.png" width="700" alt="Two-Headed Demon cube card">
 <img src="Preview/Unholy_Cubes_Plague_Imp.png" width="700" alt="Plague Imp cube card">
 <img src="Preview/Unholy_Cubes_Damned_Soul.png" width="700" alt="Damned Soul cube card">
 <img src="Preview/Unholy_Cubes_Martyr.png" width="700" alt="Martyr cube card">
@@ -30,6 +30,8 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 <img src="Preview/Unholy_Perks_Baby_Hell_Dragon.png" width="700" alt="Baby Hell Dragon perk card (upgrade of Hell Dragon Egg)">
 <img src="Preview/Unholy_Perks_Phylactery.png" width="700" alt="Phylactery perk card">
 <img src="Preview/Unholy_Perks_Lichdom.png" width="700" alt="Lichdom perk card (upgrade of Phylactery)">
+<img src="Preview/Unholy_Perks_Mutations.png" width="700" alt="Mutations perk card">
+<img src="Preview/Unholy_Perks_Rebirth_of_the_Chosen.png" width="700" alt="Rebirth of the Chosen perk card (upgrade of Mutations)">
 
 ### Class+Species synergies
 
