@@ -30,13 +30,6 @@
           {
             "type": "command",
             "shell": "bash",
-            "command": "bash .claude/hooks/check-design-writeback.sh",
-            "timeout": 15,
-            "statusMessage": "Checking DESIGN.md/skill writeback..."
-          },
-          {
-            "type": "command",
-            "shell": "bash",
             "command": "bash .claude/hooks/check-launch-log.sh",
             "timeout": 15,
             "statusMessage": "Checking launch/Log.txt freshness..."

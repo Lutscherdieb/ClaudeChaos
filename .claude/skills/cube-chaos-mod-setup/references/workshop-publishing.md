@@ -41,7 +41,7 @@ Steam must be running for any of this (`SteamAPI.isSteamRunning()` gate, same as
 
 ## What "UPDATE WORKSHOP" actually uploads
 
-`setItemContent` is pointed at the mod's own `GameData/<Mod>/` folder (`Path: ` + the folder), so the whole folder — `.c.txt` files, `Sprites/`, `Description`, `DESIGN.md`, `README.md`, `Preview/` — goes up as the Workshop item's content, not a hand-picked subset. Nothing in this skill's existing file-layout guidance needs to change for that; it just means anything sitting in the mod folder ships to players, so don't leave scratch/debug files there.
+`setItemContent` is pointed at the mod's own `GameData/<Mod>/` folder (`Path: ` + the folder), so the whole folder — `.c.txt` files, `Sprites/`, `Description`, `README.md`, `Preview/` — goes up as the Workshop item's content, not a hand-picked subset. Nothing in this skill's existing file-layout guidance needs to change for that; it just means anything sitting in the mod folder ships to players, so don't leave scratch/debug files there.
 
 ## This repo's current publish-readiness (last updated 2026-07-25)
 

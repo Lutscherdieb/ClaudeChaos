@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PostToolUse hook (Write|Edit) for GameData/**/*.md files (DESIGN.md, README.md, etc).
+# PostToolUse hook (Write|Edit) for GameData/**/*.md files (README.md, etc).
 #
 # The game engine tokenizes EVERY file in a loaded mod package folder, not just
 # .c.txt files (confirmed: .claude/skills/cube-chaos-mod-setup/SKILL.md's "real

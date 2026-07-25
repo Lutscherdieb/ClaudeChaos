@@ -26,7 +26,6 @@ Before writing any file, run the orchestrator's **Step C preview-and-approve gat
 - **The revert is trivial and that's the whole point:** converting to obtainable-only later is just deleting those `ObtainAction:` lines (and the `TYPE Starter`). So bias toward starter-first every time — the cost of "too accessible while testing" is one throwaway line per cube, whereas the cost of "can't find it to test" is unbounded iteration time.
 - **When the user is satisfied, ask** whether to (a) keep it as a permanent starter, or (b) narrow to obtainable-only — don't silently strip it. Note the base-game convention is exactly **2** starters per class/species (see `cube-chaos-scripting`'s starting-cube baseline); a mod that keeps many starters sits above that power/variety baseline, which is a legitimate choice but worth surfacing.
 - **Doesn't apply** if the mod has no class/species of its own to hang starters on (a pure cube-pool mod) — there's nothing to attach an `ObtainAction:` to. Fall back to the user testing via drops, or temporarily bumping rarity, in that case.
-- **Record the eventual decision** (permanent starters vs. obtainable-only) in the mod's `DESIGN.md`, per the governance rule.
 
 ## If this is an edit, not a fresh cube
 

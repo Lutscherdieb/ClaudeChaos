@@ -133,8 +133,7 @@ idiom (teleport is **not** default on base dragons — build it explicitly if wa
 4. **`cube-chaos-mod-setup`** launch + `Log.txt` check: `without real Image`/`empty Image` warnings
    before sprites are drawn are expected; `CLASS/SPECIES + X HAS N REWARD PERKS` count advisories are
    harmless.
-5. Record the line in the mod's `DESIGN.md`; regen README preview cards + `<img>` lists if the mod has a
-   README.
+5. Regen README preview cards + `<img>` lists if the mod has a README.
 
 ## Stat / pacing anchors
 
@@ -153,10 +152,9 @@ left to the user** (the ~9-min chain can't be watched in a boot check; the DSL m
 
 - **DJ → `Bass_Dragon`** (`GameData/DJ/`): Note-artillery. Adult spawns a Note on each of the 4 touching
   positions /6s (`Forwards`/`Backwards` for the sideways two) + teleports to a random enemy column /15s.
-  Leans on DJ's `Note` being a homing projectile. See `DJ/DESIGN.md`.
+  Leans on DJ's `Note` being a homing projectile.
 - **General → `War_Dragon`** (`GameData/General/`): supercharged Bomber — 100% `Rocket` drop per
   column-advance over an enemy, `RandomMovementX` drift, teleport /12s, deliberately weak melee, lowest
-  hp. See `General/DESIGN.md`.
+  hp.
 - **Unholy → `Hell_Dragon`** (`GameData/Unholy/`): Hellfire Breath — grants the `Burning` keyword to all
   enemies /5s (baby: a random enemy /8s). Added `Unholy_UpgradePerks.c.txt` (mod had no upgrade file).
-  See `Unholy/DESIGN.md`.
