@@ -67,6 +67,7 @@ at the top of this file:
 | `Martyr` | no | A holy-recolored `Cultist` (same stats) minus the sacrifice; on death buffs touching allies' hp |
 | `Brimstone` | **yes** | 0HP one-shot; on death spawns a neutral `Molten_Brimstone` (burns itself + all touching, plus Acidic) at the column top (enemy column for Unholy) |
 | `Plague_Ritual` | **yes** | 0HP legendary; on death creates an allied `Plague_Imp` on each empty touching position, each buffed +Strength per cube that was touching this at death |
+| `Blood_Totem` | no | Stationary sacrificial engine piece — see its own section below |
 
 ### `Plague_Ritual` implementation notes
 
@@ -85,17 +86,54 @@ at the top of this file:
   longer prices off this — see the `Phylactery` section below, it's a pure `SoulMemory` token now,
   not obtainable.)
 
-### Starting cubes — deliberately 7, above the base-game 2 convention
+### Starting cubes — deliberately 8, above the base-game 2 convention
 
-The `Unholy` species perk grants **all 7 obtainable cubes** as starters (`Ritual`, `Cultist`, `Hellhound`,
-`Plague_Imp`, `Martyr`, `Brimstone`, `Plague_Ritual`), via one
+The `Unholy` species perk grants **all 8 obtainable cubes** as starters (`Ritual`, `Cultist`, `Hellhound`,
+`Plague_Imp`, `Martyr`, `Brimstone`, `Plague_Ritual`, `Blood_Totem`), via one
 `ObtainAction: AddCubeToInventory` line each. This is a deliberate departure from the base-game convention of exactly 2 starters per
 class/species — chosen so the full demon kit is guaranteed in hand (the new cubes were effectively
 unfindable as rare drops in the global pool) and so the species reads as a complete themed toolbox.
 There is no hard engine limit on starter count (`ObtainAction:` is repeatable); this just sits above
-the base power/variety baseline. Revisit and trim to a curated few if it plays too strong. The five
+the base power/variety baseline. Revisit and trim to a curated few if it plays too strong. The six
 new starters (all but `Ritual`/`Cultist`) also carry `TYPE Starter` (inventory-sorting only), matching
 `Ritual`/`Cultist`.
+
+### `Blood_Totem` implementation notes
+
+A stationary "feed it allies, it pays back scaling hp regen" engine piece — not a 0HP cube, not a
+combat body. Exact numbers live in `Unholy_Cubes.c.txt`; the design shape:
+
+- **Kill-on-contact uses `BeforeThisCollides`, matching the base game's own `Void` cube exactly**
+  (`Base_Core/3TokenCubes.c.txt`: `BeforeThisCollides TargetCube Victim Die`, "Before a cube collides
+  with this kill it") — this repo's established real precedent for "a stationary cube instantly kills
+  whatever walks into it," just narrowed to `IsAllyToCaster Victim` since this totem is meant to be a
+  deliberate sacrifice tool for its own side, not a hazard to enemies.
+- **Explicit `Not IsALeader Victim` guard, added during design review, not requested by the user.**
+  A literal "kill any ally that touches this" would let a misplaced Leader finish the battle instantly
+  (losing your leader = instant loss). The base game's own `DeadlyX` keyword independently excludes
+  leaders from its own "kill" effect ("Kill the next STACKING 1 **non leader** cubes this damages",
+  `ModdingInfo.txt:101`), which is the precedent this guard follows.
+- **Kill counter uses `EnergyX`, not an opaque internal `EveryXTimes` counter — user's own suggested
+  fix.** An earlier draft used `EveryXTimes 10` (fires every 10th matching trigger) to gate the Growth
+  grant; the user pointed out this hides the count from the player, and proposed reusing the base
+  game's own `EnergyX` `STACKING` ability as a *visible* counter instead (its own tooltip is just
+  `Energy: N`, ModdingInfo.txt:117 — no side effects of its own, i.e. exactly a generic display
+  counter). Implementation: `GainAbilityStacking EnergyX 0 1` on every kill, then
+  `If Not IsSmaller GetStackingOfAbilityOnCube EnergyX Caster 10` triggers
+  `ChangeAbilityStacking EnergyX -10` (reset) + `GainAbilityStacking GrowthX 0 1` (the payoff). Player
+  can now watch the totem's Energy stack climb toward the next Growth tick on its own tooltip.
+- **"Enemy territory" (the periodic damage tick) implemented as position-based, not
+  faction-of-cube-based** — `EveryCubeWhich Not IsEqual PlacabilityOfPosition PositionOfCube Test FactionOfCube Caster TakeXDamage 1`,
+  reusing the same `PlacabilityOfPosition` check this mod's own
+  `Ritual` teleport already established for "the enemy's side of the board" (see the 0HP mechanic
+  section above). This means a friendly cube that ends up pushed onto the enemy's side would also take
+  the tick — a deliberate reading of "territory" as literal board geography, not "all enemy cubes",
+  flagged to and accepted by the user at design time.
+- **Self-damage is a genuine soft-kill clock, not just flavor.** At 5 max hp and 1 self-damage per 20s
+  tick, the totem dies on its own in ~100 seconds unless the Growth payoff (healing over time) offsets
+  it — i.e. the totem only sustains itself if the player actually feeds it ally kills. This mirrors the
+  mod's existing self-damage subtheme (`Molten_Brimstone`'s self+touching tick, the Imp/`Acidic`
+  friendly-fire choice) rather than being a new pattern.
 
 ## `Phylactery` — soul-echo perk
 
@@ -175,6 +213,11 @@ the keyword (quoted above).
   confirmed with the user, never picked unprompted).
 - `Plague_Imp` = green recolor of the `Imp` silhouette. `Martyr` = holy (white/gold) recolor of the
   `Cultist` silhouette. `Molten_Brimstone` = molten/glowing hazard token.
+- `Blood_Totem` = an original silhouette, not a recolor — a stepped stone/idol totem shape (narrow
+  spiked finial, glowing recessed "face" socket at the neck, wide stepped base flush to the tile's
+  bottom row), deliberately distinct from the attacker cubes' sword/warrior silhouettes since it's a
+  stationary non-combatant. Uses the demon family palette below (body/outline/highlight) plus the void
+  and accent colors for the recessed face and its two glowing eyes.
 - Multi-color shading (base + outline + highlight + accent), never flat single-color icons — cube icons
   are NOT flat red despite the species color, per explicit user requirement.
 - **Demon family palette** (sampled from the existing `Imp`/`Cultist`/`Ritual` tiles, reuse for new

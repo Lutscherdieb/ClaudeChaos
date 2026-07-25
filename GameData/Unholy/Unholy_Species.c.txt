@@ -22,6 +22,7 @@ ObtainAction: AddCubeToInventory CubeConstant Plague_Imp
 ObtainAction: AddCubeToInventory CubeConstant Martyr
 ObtainAction: AddCubeToInventory CubeConstant Brimstone
 ObtainAction: AddCubeToInventory CubeConstant Plague_Ritual
+ObtainAction: AddCubeToInventory CubeConstant Blood_Totem
 End
 
 PERK: Hell_Dragon_Egg

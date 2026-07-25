@@ -21,6 +21,7 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 <img src="Preview/Unholy_Cubes_Hell_Dragon_Egg.png" width="700" alt="Hell Dragon Egg cube card">
 <img src="Preview/Unholy_Cubes_Baby_Hell_Dragon.png" width="700" alt="Baby Hell Dragon cube card">
 <img src="Preview/Unholy_Cubes_Hell_Dragon.png" width="700" alt="Hell Dragon cube card">
+<img src="Preview/Unholy_Cubes_Blood_Totem.png" width="700" alt="Blood Totem cube card">
 
 ### Perks
 

@@ -133,3 +133,19 @@ Ability: GrowthX 2
 Ability: EveryXMeleeY 120 4
 AiPlacementRule: And AiStacking AiBackline
 End
+
+CUBE: Blood_Totem 60 5 5
+IDENT 3 5 0 15 30
+TYPE Special
+TYPE Starter
+Ability: BeforeThisCollides If And IsAllyToCaster Victim Not IsALeader Victim Both TargetCube Victim Die
+ Both GainAbilityStacking EnergyX 0 1
+  If Not IsSmaller GetStackingOfAbilityOnCube EnergyX Caster 10
+   Both ChangeAbilityStacking EnergyX -10
+    GainAbilityStacking GrowthX 0 1
+Text: Before an ally (not your leader) collides with this, kill it and gain 1 \C255 255 0 Energy \CN, and every 10 Energy reset it and gain \C0 127 14 Growth 1 \CN End
+Ability: EveryXSeconds DoubleConstant 20 Both TargetCube Caster TakeXDamage DoubleConstant 1
+ EveryCubeWhich Not IsEqual PlacabilityOfPosition PositionOfCube Test FactionOfCube Caster TakeXDamage DoubleConstant 1
+Text: Every 20 seconds this deals 1 damage to itself and 1 damage to every cube on the enemy side End
+AiPlacementRule: True
+End
