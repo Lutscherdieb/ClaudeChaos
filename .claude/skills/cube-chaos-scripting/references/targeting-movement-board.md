@@ -38,7 +38,14 @@ For "is there an enemy *anywhere* in this direction, not just adjacent" (as oppo
 
 Easy to misread from its name alone. Real confirmed behavior (Broker mod, 2026-07-26): `Construction_Site`'s "every 2 minutes create a Skyscraper directly above this" ability was first written as `CreateCubeOnPosition CubeConstant Skyscraper TopPositionAboveCube Caster` — this parses clean and matches the function's one other real precedent in this repo (DJ's `Keyboard`, spawning a Note "at the top of a random enemy's column" via `TopPositionAboveCube <enemy>`), but in actual play every spawned Skyscraper appeared at the *ceiling of the entire map* and fell via gravity down to wherever it landed, "raining from the sky" instead of stacking neatly on top of `Construction_Site`. `TopPositionAboveCube` is the right tool for "drop something onto an enemy's column from above" (its one real precedent), but the wrong tool for "place this on top of my own current stack" — those are different positions unless the column is already full to the map's top edge.
 
-**The fix for "first empty position directly above this cube's own stack" (no built-in for this exists — confirmed, nothing in `ModdingInfo.txt`'s production lists matches):** find the topmost cube in the contiguous stack via `TheFirstCubeInDirectionFromPositionWhich North PositionOfThis Not CubeExists CubeInDirectionFromCube North Test` (the predicate's `Test` is the loop candidate — this returns the first cube, scanning outward from `PositionOfThis`, whose own north neighbor is empty, i.e. the top of an unbroken stack, relying on gravity to guarantee no gaps in the column below it), then create one tile north of that cube's position — with a fallback to `PositionInDirectionFromPosition North PositionOfThis` directly when the search comes up empty (nothing stacked above yet):
+**The fix for "first empty position directly above this cube's own stack" — and it turns out there IS a real base-game precedent for exactly this, missed on the first pass:** `Bee_Caller` (`Main/3GeneralCubes.c.txt:5223`, "every 5 seconds 50% chance to create a 2 damage homing bee in the first empty space above") does the identical thing:
+```
+IfElse IsPositionEmpty PositionInDirectionFromPosition North PositionOfThis
+ CreateCubeOnPosition CubeConstant Bee PositionInDirectionFromPosition North PositionOfThis
+ CreateCubeOnPosition CubeConstant Bee PositionInDirectionFromPosition North PositionOfCube TheFirstCubeInDirectionFromPositionWhich
+  North PositionOfThis IsPositionEmpty PositionInDirectionFromPosition North PositionOfCube Test
+```
+Same core idea as below (find the first cube going north whose own north neighbor is empty = the top of the unbroken stack), just phrased via `IsPositionEmpty`+`PositionOfCube` instead of `Not CubeExists`+`CubeInDirectionFromCube` (logically equivalent — both are an occupancy check on the tile north of the loop candidate) and an `IfElse` upfront to skip the search entirely when the immediate tile is already free, rather than guarding with `SetStorage`+`CubeExists` after. Either phrasing works; `Bee_Caller`'s `IfElse`-first shape is marginally more idiomatic since it doesn't need the `CubeExists` guard on the search result (the search is only reached once the immediate-tile branch has already ruled out "already empty," so it's guaranteed to find something). Broker's `Construction_Site` uses the `SetStorage`-guarded phrasing:
 ```
 Ability: EveryXMinutes DoubleConstant 2 SetStorage
  TheFirstCubeInDirectionFromPositionWhich North PositionOfThis Not CubeExists CubeInDirectionFromCube North Test
@@ -46,7 +53,7 @@ Ability: EveryXMinutes DoubleConstant 2 SetStorage
    CreateCubeOnPosition CubeConstant Skyscraper PositionInDirectionFromPosition North PositionOfCube Storage
    CreateCubeOnPosition CubeConstant Skyscraper PositionInDirectionFromPosition North PositionOfThis
 ```
-Confirmed fixed and parse-clean (`GameData/Broker/Broker_Cubes.c.txt`) — runtime-visual confirmation ("does it actually land on the stack now instead of falling") still pending an in-game check, since this exact predicate shape (searching a cube's own neighbor-emptiness as the stop condition) has no other precedent in this repo to cross-verify against.
+**RUNTIME-CONFIRMED WORKING** (user playtest, 2026-07-26: Skyscrapers now land directly on top of the `Construction_Site` stack instead of falling from the ceiling).
 
 ## Teleporting to a random position, optionally filtered to an empty enemy-side tile
 
