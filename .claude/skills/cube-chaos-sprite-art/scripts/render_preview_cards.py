@@ -86,8 +86,24 @@ def resolve_builtin_ability_text(name, args, ability_docs):
     if not doc or not doc["template"]:
         return None
     text = doc["template"]
-    code_i = stacking_i = 0
-    for t, raw_val in zip(doc["types"], args):
+    code_i = stacking_i = ai = 0
+    for t in doc["types"]:
+        if ai >= len(args):
+            break
+        if t == "CUBE":
+            # A CUBE-typed arg is always spelled as a keyword (CubeConstant,
+            # HiddenCubeConstant, ...) followed by the actual cube name in
+            # real DSL call sites (see e.g. `GrowingUp 40 CubeConstant
+            # Hell_Dragon` in Unholy_Cubes.c.txt) -- it consumes 2 raw
+            # tokens, not 1. Consuming only 1 (the old zip()-based behavior)
+            # paired CODE N with the literal word "CubeConstant" instead of
+            # the cube name, rendering e.g. "add a CubeConstant to your
+            # hand" on preview cards instead of the actual cube's name.
+            raw_val = args[ai + 1] if ai + 1 < len(args) else args[ai]
+            ai += 2
+        else:
+            raw_val = args[ai]
+            ai += 1
         if t == "STACKING":
             stacking_i += 1
             text = text.replace(f"STACKING {stacking_i}", raw_val)
@@ -589,7 +605,14 @@ def build_cubes():
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Cubes.c.txt"), CUBE_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Cubes.c.png")
     cols = grid_cols(len(blocks))
-    ability_docs = load_builtin_ability_docs()
+    # A bare top-level `Ability: SomeCompound args` line can grant this mod's
+    # own COMPOUND: ABILITY keyword directly (its own Text: acts as the
+    # tooltip, same convention as a bare built-in grant -- see e.g.
+    # Voidling's True_Void CUBE granting `VoidExpansionX`/`VoidNova`
+    # directly). COMPOUND_DOCS must be layered in here too, not just
+    # resolve_inline_abilities' \A path, or these render as silently missing
+    # lines instead of their real tooltip text.
+    ability_docs = {**load_builtin_ability_docs(), **COMPOUND_DOCS}
     cards = []
     for i, b in enumerate(blocks):
         h = b["header"]
@@ -662,3 +685,5 @@ if __name__ == "__main__":
     render_mod(os.path.join(ROOT, "GameData", "DJ"), "DJ")
     render_mod(os.path.join(ROOT, "GameData", "General"), "General")
     render_mod(os.path.join(ROOT, "GameData", "Unholy"), "Unholy")
+    render_mod(os.path.join(ROOT, "GameData", "Voidling"), "Voidling")
+    render_mod(os.path.join(ROOT, "GameData", "Broker"), "Broker")

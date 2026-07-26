@@ -65,4 +65,4 @@ If this mod's content or sprites change, regenerate the images under `Preview/` 
 python3 .claude/skills/cube-chaos-sprite-art/scripts/render_preview_cards.py
 ```
 
-(run from the parent repo's root — the script renders the DJ, General, and Unholy mods by default).
+(run from the parent repo's root — the script renders the DJ, General, Unholy, Voidling, and Broker mods by default).
