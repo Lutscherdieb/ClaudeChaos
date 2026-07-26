@@ -7,6 +7,7 @@ AbilityText: At the start of each map, enter a Forge offering only Cube Upgrades
 Description: Broker: Cubes you upgrade keep infinite uses, and each map starts with a Forge offering only Cube Upgrades End
 ObtainAction: AddCubeToInventory CubeConstant All_In
 ObtainAction: AddCubeToInventory CubeConstant Skyscraper
+ObtainAction: AddCubeToInventory CubeConstant Construction_Site
 End
 
 SCENARIO: Broker_Cube_Forge
