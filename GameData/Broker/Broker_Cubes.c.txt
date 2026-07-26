@@ -20,7 +20,7 @@ Text: After this is created, if the cube below isn't a leader, lose gold equal t
 AiPlacementRule: AiStacking
 End
 
-CUBE: Skyscraper 20 20 20
+CUBE: Skyscraper 20 5 5
 IDENT 2 0 5 15 0
 TYPE Starter
 Ability: EveryXMinutes DoubleConstant 2 ChangeCurrency
@@ -28,6 +28,8 @@ Ability: EveryXMinutes DoubleConstant 2 ChangeCurrency
   And IsEqual XOfPosition PositionOfCube Test XOfPosition PositionOfThis
    IsLarger YOfPosition PositionOfCube Test YOfPosition PositionOfThis
 Text: Every 2 minutes, gain 1 gold for each other Skyscraper below this one in the same column End
+Ability: AfterThisDies TargetCube CubeInDirectionFromCube South Caster TakeXDamage DoubleConstant 1
+Text: After this dies, deal 1 damage to the cube below End
 AiPlacementRule: AiStacking
 End
 
