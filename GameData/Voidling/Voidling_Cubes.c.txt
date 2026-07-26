@@ -1,9 +1,17 @@
+COMPOUND: ABILITY
+VoidExpansionX
+Counter GenericStacking
+Text: \C160 100 220 Void Reach STACKING 1 \B : \CN \N \C96 96 96 (This cube's own area-of-effect abilities reach STACKING 1 extra spaces) \CN End
+End
+
 CUBE: True_Void 0 100 100
 TOKEN
+Ability: Unmovable
+Ability: VoidExpansionX 1
 Ability: EveryXSeconds DoubleConstant 5 Both
- EveryCubeInRadiusXAroundTarget DoubleConstant 3
+ EveryCubeInRadiusXAroundTarget Addition GetStackingOfAbilityOnCube VoidExpansionX Caster DoubleConstant 2
   If Not IsSameCube Target Caster
-   TakeXDamage Subtraction DoubleConstant 4 DistanceOfPositions PositionOfThis PositionOfCube Target
- CreateAoEParticlesColourRadiusPosition DoubleConstant 16738816 DoubleConstant 3 PositionOfThis
-Text: Every 5 seconds deal damage to every other cube within 3 spaces, reduced by 1 per space of distance (3 damage touching, 2 at range 2, 1 at range 3) End
+   TakeXDamage Subtraction Addition GetStackingOfAbilityOnCube VoidExpansionX Caster DoubleConstant 3 DistanceOfPositions PositionOfThis PositionOfCube Target
+ CreateAoEParticlesColourRadiusPosition DoubleConstant 16738816 Addition GetStackingOfAbilityOnCube VoidExpansionX Caster DoubleConstant 2 PositionOfThis
+Text: Every 5 seconds deal damage to every other cube within its current Void Reach, reduced by 1 per space of distance - touching cubes take the most, the outer edge always takes 1 End
 End
