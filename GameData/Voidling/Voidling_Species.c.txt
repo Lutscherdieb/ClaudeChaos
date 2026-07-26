@@ -3,7 +3,7 @@ VoidCenterFormation
 AtTheStartOfTheBattle Both
  SetVariable VOIDLING_CENTERX RoundedDown Division Addition DoubleConstant 1 MaxWorldX DoubleConstant 2
  Both
-  SetVariable VOIDLING_CENTERY RoundedDown Division MaxWorldY DoubleConstant 2
+  SetVariable VOIDLING_CENTERY YOfPosition PositionOfCube ARandomLeaderOfFaction FactionOfThis
   Both
    If CubeExists CubeOfPosition PositionFromXAndY GetVariableOnCube VOIDLING_CENTERX Caster GetVariableOnCube VOIDLING_CENTERY Caster
     TargetCube CubeOfPosition PositionFromXAndY GetVariableOnCube VOIDLING_CENTERX Caster GetVariableOnCube VOIDLING_CENTERY Caster
@@ -13,11 +13,18 @@ AtTheStartOfTheBattle Both
      EveryPerkInInventoryWhich True
       IfElse PerkHasNameOfPerk Target PerkConstant Voidling
        EveryLeaderAbilityOfPerkWhich Target
-        And Not AbilityHasName Test VoidCenterFormation Not AbilityHasName Test VoidManaSiphon
+        And Not AbilityHasName Test VoidCenterFormation And Not AbilityHasName Test VoidManaSiphon Not AbilityHasName Test VoidLeaderWard
         Both ConvertPerkAbilityDescription Target GainAbility Target
        GainAllAbilitiesOfPerk Target
     PositionFromXAndY GetVariableOnCube VOIDLING_CENTERX Caster GetVariableOnCube VOIDLING_CENTERY Caster
-Text: At the start of the battle, replace the cube at the exact center of the battlefield with a neutral True Void, which gains all abilities your perks grant your leader End
+Text: At the start of the battle, replace the cube at the center column of the battlefield, on the same row as your leader, with a neutral True Void, which gains all abilities your perks grant your leader End
+End
+
+COMPOUND: ABILITY
+VoidLeaderWard
+BeforeACubeTakesDamage If IsAllyToCaster Victim If IsALeader Victim If CubeHasName Culprit True_Void
+ NegateX EventAmount
+Text: Your leader takes no damage from True Void End
 End
 
 COMPOUND: ABILITY
@@ -38,7 +45,11 @@ End
 
 PERK: Voidling
 BelongsTo: SPECIES
-Description: At the start of the battle, the cube standing at the exact center of the battlefield is replaced with a neutral True Void, which gains all abilities your perks grant your leader. Whenever you or an enemy would take excess mana damage, negate it and instead give every True Void that much extra hp and max hp - if a True Void's max hp climbs above 200, it loses 100 max hp and gains 1 random ability of itself again End
+Description: At the start of the battle, the cube standing at the center column of the battlefield, on the same row as your leader, is replaced with a neutral True Void, which gains all abilities your perks grant your leader \N Your leader takes no damage from True Void \N Whenever you or an enemy would take excess mana damage, negate it and instead give every True Void that much extra hp and max hp - if a True Void's max hp climbs above 200, it loses 100 max hp and gains 1 random ability of itself again End
 Ability: VoidCenterFormation
+Ability: VoidLeaderWard
 Ability: VoidManaSiphon
+ObtainAction: AddCubeToInventory CubeConstant Calm_The_Waves
+ObtainAction: AddCubeToInventory CubeConstant Temple_The_Void
+ObtainAction: AddCubeToInventory CubeConstant Void_Warrior
 End
