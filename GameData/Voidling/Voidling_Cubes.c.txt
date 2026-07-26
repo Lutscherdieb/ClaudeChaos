@@ -14,9 +14,17 @@ EveryXSeconds DoubleConstant 5 Both
 Text: Every 5 seconds deal damage to every other cube within its current Void Reach, reduced by 1 per space of distance - touching cubes take the most, the outer edge always takes 1 End
 End
 
+COMPOUND: ABILITY
+VoidLifeIsEternal
+BeforeThisTakesDamage NegateX EventAmount
+Text: True Void takes no damage End
+End
+
 CUBE: True_Void 0 100 100
 TOKEN
 Ability: Unmovable
+Ability: AlwaysNeutral
+Ability: VoidLifeIsEternal
 Ability: VoidExpansionX 1
 Ability: VoidNova
 End
@@ -25,12 +33,20 @@ CUBE: Calm_The_Waves 20 0 0
 IDENT 2 0 0 0 15
 TYPE Special
 Ability: AfterThisIsCreated EveryCubeWhich CubeHasName Test True_Void
- Both
-  EveryAbilityOfCubeWhich Test
-   And Not AbilityHasName Test Unmovable Not AbilityHasName Test VoidExpansionX
-   RemoveAbility Target
-  TargetCube Test GainAbility VoidNova
-Text: When this is created, remove all but the base abilities from every True Void on the battlefield, keeping their Void Reach End
+ SetStorage ARandomCubeInLibraryWhich True
+  If CubeExists Storage
+   If IsLarger AmountOfAbilitiesOfCubeWhich Storage
+    And Not StringContainsString DescriptionOfAbility Test StringConstant Projectile
+    And Not StringContainsString DescriptionOfAbility Test StringConstant Temporary
+    And Not AbilityHasName Test Debt
+     Not AbilityHasName Test SilentDieAfterX
+    DoubleConstant 0
+    TargetCube Test GainAbility ARandomAbilityOfCubeWhich Storage
+     And Not StringContainsString DescriptionOfAbility Test StringConstant Projectile
+     And Not StringContainsString DescriptionOfAbility Test StringConstant Temporary
+     And Not AbilityHasName Test Debt
+      Not AbilityHasName Test SilentDieAfterX
+Text: When this is created, each True Void on the battlefield gains a random non-projectile, non-temporary ability of a random cube from your library End
 AiPlacementRule: True
 End
 

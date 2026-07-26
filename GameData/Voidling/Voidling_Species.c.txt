@@ -1,26 +1,4 @@
 COMPOUND: ABILITY
-VoidCenterFormation
-AtTheStartOfTheBattle Both
- SetVariable VOIDLING_CENTERX RoundedDown Division Addition DoubleConstant 1 MaxWorldX DoubleConstant 2
- Both
-  SetVariable VOIDLING_CENTERY YOfPosition PositionOfCube ARandomLeaderOfFaction FactionOfThis
-  Both
-   If CubeExists CubeOfPosition PositionFromXAndY GetVariableOnCube VOIDLING_CENTERX Caster GetVariableOnCube VOIDLING_CENTERY Caster
-    TargetCube CubeOfPosition PositionFromXAndY GetVariableOnCube VOIDLING_CENTERX Caster GetVariableOnCube VOIDLING_CENTERY Caster
-     Exile
-   CreateCubeOnPosition CopyWithAction CubeConstant True_Void
-    Both SetFaction DoubleConstant 0
-     EveryPerkInInventoryWhich True
-      IfElse PerkHasNameOfPerk Target PerkConstant Voidling
-       EveryLeaderAbilityOfPerkWhich Target
-        And Not AbilityHasName Test VoidCenterFormation And Not AbilityHasName Test VoidManaSiphon Not AbilityHasName Test VoidLeaderWard
-        Both ConvertPerkAbilityDescription Target GainAbility Target
-       GainAllAbilitiesOfPerk Target
-    PositionFromXAndY GetVariableOnCube VOIDLING_CENTERX Caster GetVariableOnCube VOIDLING_CENTERY Caster
-Text: At the start of the battle, replace the cube at the center column of the battlefield, on the same row as your leader, with a neutral True Void, which gains all abilities your perks grant your leader End
-End
-
-COMPOUND: ABILITY
 VoidLeaderWard
 BeforeACubeTakesDamage If IsAllyToCaster Victim If IsALeader Victim If CubeHasName Culprit True_Void
  NegateX EventAmount
@@ -28,27 +6,31 @@ Text: Your leader takes no damage from True Void End
 End
 
 COMPOUND: ABILITY
-VoidManaSiphon
+VoidExcessManaCapture
 BeforeACubeTakesDamage If IsType Excessmana
- Both SetVariable VOIDLING_BURN EventAmount
-  Both NegateX EventAmount
-   EveryCubeWhich CubeHasName Test True_Void
-    TargetCube Test
-     Both GainXExtraHp GetVariableOnCube VOIDLING_BURN Caster
-      Both ChangeMaxHp GetVariableOnCube VOIDLING_BURN Caster
-       If IsLarger MaxHpOfCube Test DoubleConstant 200
-        Both ChangeMaxHp DoubleConstant -100
-         If IsLarger AmountOfAbilitiesOfCube Test DoubleConstant 0
-          GainRandomAbilityOfCube Test
-Text: Whenever you or an enemy would take excess mana damage, negate it and instead give every True Void that much extra hp and max hp. If a True Void's max hp is then above 200, it loses 100 max hp and gains 1 random ability of itself again End
+ Both NegateX EventAmount
+  FactionXGainsYMana FactionOfThis EventAmount
+Text: Whenever you or an enemy would take excess mana damage, negate it and add that much to your mana instead End
+End
+
+COMPOUND: ABILITY
+VoidReachSurge
+EverySecond If CubeExists ARandomCubeWhich CubeHasName Test True_Void
+ If Not IsLarger MaxManaOfFaction FactionOfThis ManaOfFaction FactionOfThis
+  Both SetVariable VOIDLING_OVERFLOW ManaOfFaction FactionOfThis
+   Both FactionXGainsYMana FactionOfThis Multiplication DoubleConstant -1 GetVariableOnCube VOIDLING_OVERFLOW Caster
+    EveryCubeWhich CubeHasName Test True_Void
+     TargetCube Test GainAbilityStacking VoidExpansionX 1 Addition DoubleConstant 1 RoundedDown Division GetVariableOnCube VOIDLING_OVERFLOW Caster DoubleConstant 100
+Text: Whenever your mana reaches its max or above, lose all of it - each True Void on the battlefield gains 1 Void Reach, plus 1 more for every 100 mana lost this way End
 End
 
 PERK: Voidling
 BelongsTo: SPECIES
-Description: At the start of the battle, the cube standing at the center column of the battlefield, on the same row as your leader, is replaced with a neutral True Void, which gains all abilities your perks grant your leader \N Your leader takes no damage from True Void \N Whenever you or an enemy would take excess mana damage, negate it and instead give every True Void that much extra hp and max hp - if a True Void's max hp climbs above 200, it loses 100 max hp and gains 1 random ability of itself again End
-Ability: VoidCenterFormation
+Description: Start each battle with a True Void cube in your hand \N Your leader takes no damage from True Void \N Whenever you or an enemy would take excess mana damage, negate it and add that much to your mana instead \N Whenever your mana reaches its max or above, lose all of it - each True Void on the battlefield gains 1 Void Reach, plus 1 more for every 100 mana lost this way End
+Ability: AtTheStartOfTheBattle AddCubeToHandOfThis CubeConstant True_Void
 Ability: VoidLeaderWard
-Ability: VoidManaSiphon
+Ability: VoidExcessManaCapture
+Ability: VoidReachSurge
 ObtainAction: AddCubeToInventory CubeConstant Calm_The_Waves
 ObtainAction: AddCubeToInventory CubeConstant Temple_The_Void
 ObtainAction: AddCubeToInventory CubeConstant Void_Warrior
