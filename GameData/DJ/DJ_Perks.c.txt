@@ -4,7 +4,7 @@ LevelRequirement: 1
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller ManaCostOfCube Victim DoubleConstant 1
  TargetCube Victim GainAbility Rhythmic 50
 Description: Whenever an allied 0 mana cost cube is created it gains \A Rhythmic 50 End
-ObtainAction: AddCubeToInventory CubeConstant Microphone
+ObtainAction: AddCubeToDeck CubeConstant Microphone
 ObtainAction: AddCubeToInventory CubeConstant Speaker
 End
 

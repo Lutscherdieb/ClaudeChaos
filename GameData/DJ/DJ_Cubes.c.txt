@@ -10,9 +10,7 @@ NORANDOM
 End
 
 CUBE: Microphone 15 1 1
-IDENT 1 0 0 15 10
-TYPE Modifier
-TYPE Starter
+TOKEN
 Ability: Flying
 Ability: AfterThisIsCreated AddCubeToHandOfThis CubeConstant Record
 Text: After this is created add a Record to your hand End
@@ -24,7 +22,7 @@ Visual: Target 1 0 109 209 228
 Visual: Target -1 0 109 209 228
 Visual: Target 0 1 109 209 228
 Visual: Target 0 -1 109 209 228
-AiPlacementRule: And AiStacking AiBackline
+AiPlacementRule: And And AiStacking AiBackline IsSmaller AmountOfCubesInHandOfFactionWhich EventFaction True HandSizeOfFaction EventFaction
 End
 
 CUBE: Speaker 50 15 15
@@ -40,6 +38,7 @@ End
 
 CUBE: Record 0 1 1
 TOKEN
+AiPlacementRule: False
 End
 
 CUBE: Note 0 1 1
