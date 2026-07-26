@@ -37,7 +37,11 @@ CUBE: Construction_Site 60 12 12
 IDENT 3 0 5 30 0
 TYPE Starter
 Ability: Burrowing
-Ability: EveryXMinutes DoubleConstant 2 CreateCubeOnPosition CubeConstant Skyscraper TopPositionAboveCube Caster
-Text: Every 2 minutes, create a Skyscraper at the first empty position above this End
+Ability: EveryXMinutes DoubleConstant 2 SetStorage
+ TheFirstCubeInDirectionFromPositionWhich North PositionOfThis Not CubeExists CubeInDirectionFromCube North Test
+  IfElse CubeExists Storage
+   CreateCubeOnPosition CubeConstant Skyscraper PositionInDirectionFromPosition North PositionOfCube Storage
+   CreateCubeOnPosition CubeConstant Skyscraper PositionInDirectionFromPosition North PositionOfThis
+Text: Every 2 minutes, create a Skyscraper directly above the top of this stack End
 AiPlacementRule: AiStacking
 End
