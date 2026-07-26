@@ -23,19 +23,11 @@ End
 CUBE: Skyscraper 20 20 20
 IDENT 2 0 5 15 0
 TYPE Starter
-Ability: EveryMinute ChangeCurrency Addition DoubleConstant 1
+Ability: EveryXMinutes DoubleConstant 2 ChangeCurrency
  AmountOfCubesWhich And CubeHasName Test Skyscraper
   And IsEqual XOfPosition PositionOfCube Test XOfPosition PositionOfThis
    IsLarger YOfPosition PositionOfCube Test YOfPosition PositionOfThis
-Text: Every minute, gain 1 gold plus 1 more for each other Skyscraper below this one in the same column End
-Ability: EveryMinute If Not CubeExists
- TheFirstCubeInDirectionFromPositionWhich North PositionOfThis IsAllyToCaster Test
-  Both
-   ChangeCurrency DoubleConstant -5
-   CreateCubeOnPosition CopyWithAction ARandomCubeInLibraryWhich True
-    Both GainAbility ChargeEveryX 120 GainAbility EveryXMeleeY 120 5
-    PositionInDirectionFromPosition Forwards PositionOfThis
-Text: Every minute, if there is no ally anywhere above this in the column, lose 5 gold and create a random ally from your library on the space in front of this with Charging and Melee End
+Text: Every 2 minutes, gain 1 gold for each other Skyscraper below this one in the same column End
 AiPlacementRule: AiStacking
 End
 
@@ -43,7 +35,7 @@ CUBE: Construction_Site 60 12 12
 IDENT 3 0 5 30 0
 TYPE Starter
 Ability: Burrowing
-Ability: EveryMinute CreateCubeOnPosition CubeConstant Skyscraper TopPositionAboveCube Caster
-Text: Every minute, create a Skyscraper at the first empty position above this End
+Ability: EveryXMinutes DoubleConstant 2 CreateCubeOnPosition CubeConstant Skyscraper TopPositionAboveCube Caster
+Text: Every 2 minutes, create a Skyscraper at the first empty position above this End
 AiPlacementRule: AiStacking
 End
