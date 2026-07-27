@@ -306,8 +306,9 @@ Ability: ChargeEveryX 45
 Ability: RandomMovementX 120
 Ability: AfterThisMoves If CubeExists TheFirstCubeInDirectionFromPositionWhich South PositionOfThis IsEnemyToCaster Test CreateCubeOnPosition CubeConstant Rocket PositionInDirectionFromPosition South PositionOfThis
 Text: After this moves with an enemy any distance below this, create a Rocket below this End
-Ability: EveryXSeconds DoubleConstant 12 SetStorage ARandomEnemy If CubeExists Storage TeleportToPosition TopPositionAboveCube Storage
-Text: Every 12 seconds teleport to the top of the column above a random enemy End
+Ability: BeforeThisMoves If Or CubeExists CubeInDirectionFromCube Forwards Caster Not PositionExists PositionInDirectionFromPosition Forwards PositionOfThis
+ SetStorage ARandomNotLeaderEnemy If CubeExists Storage TeleportToPosition TopPositionAboveCube Storage
+Text: When this moves into a cube or the edge of the battlefield in the forwards direction, teleport to the top of the column above a random non-leader enemy End
 Ability: EveryXMeleeY 300 2
 Ability: GrowthX 2
 AiPlacementRule: And AiStacking Not AiFrontline
