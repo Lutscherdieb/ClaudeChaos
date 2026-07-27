@@ -21,6 +21,8 @@ Step 3 is what keeps step 1 worth doing. **Never edit `ModdingInfo.txt`/`Modding
 
 ## Block formats
 
+**Default rule, every time: a brand-new `CUBE:`/`PERK:` block goes at the END of its `.c.txt` file, full stop — never inserted next to a "thematic sibling" or wherever reads best.** Sprite-sheet tile assignment is pure file order (see `cube-chaos-sprite-art`'s slot-shifting section for the mechanism), so inserting mid-file silently shifts every later block's sprite onto the wrong entry — no parse error, just wrong icons in play. This has now caused two real incidents (Unholy's `Hellstorm`, and General's `Claim`/`Retreat` — the latter added via this scripting skill alone, without the sprite-art skill ever being consulted, which is exactly why this rule now lives here too, not just there). Only deviate from append-at-the-end if there's an explicit reason content must sit elsewhere, and if so, work out the resulting slot shift and fix every affected tile in the same edit — never leave it for later.
+
 **Cube:**
 ```
 CUBE: Name manacost hp maxhp

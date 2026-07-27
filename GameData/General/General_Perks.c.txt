@@ -7,16 +7,62 @@ End
 PERK: General
 BelongsTo: CLASS
 LevelRequirement: 1
-Description: Whenever an ally is created or before it dies while in enemy territory, it gains \C255 38 0 Strength 1 \CN End
+Description: Whenever an ally is created or before it dies while in enemy territory, it gains \C255 38 0 Strength 1 \CN \N Starts battles with half the placing area and an infinite-use Annex and Retreat cube in hand End
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
  TargetCube Victim GainAbility StrengthX 1
 AbilityText: Whenever an ally is created in enemy territory, it gains \C255 38 0 Strength 1 \CN End
 Ability: BeforeACubeDies If IsAllyToCaster Victim If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
  TargetCube Victim GainAbility StrengthX 1
 AbilityText: Before an ally dies in enemy territory, it gains \C255 38 0 Strength 1 \CN End
+Ability: AtTheStartOfTheBattle Both TargetCube Caster SetVariable GFRONT_N DoubleConstant 0
+ Both TargetCube Caster SetVariable GFRONT_MAXX DoubleConstant -1
+  Both TargetCube Caster SetVariable GFRONT_MINX DoubleConstant -1
+   Both TargetCube Caster SetVariable GFRONT_X DoubleConstant 0
+    Both Until IsLarger GetVariableOnCube GFRONT_X Caster MaxWorldX
+     Both
+      IfElse IsEqual PlacabilityOfPosition PositionFromXAndY GetVariableOnCube GFRONT_X Caster DoubleConstant 0 FactionOfCube Caster
+       Both ChangeVariable GFRONT_N DoubleConstant 1
+        Both TargetCube Caster SetVariable GFRONT_MAXX GetVariableOnCube GFRONT_X Caster
+         IfElse IsEqual GetVariableOnCube GFRONT_MINX Caster DoubleConstant -1
+          TargetCube Caster SetVariable GFRONT_MINX GetVariableOnCube GFRONT_X Caster
+          Nothing
+       Nothing
+      ChangeVariable GFRONT_X DoubleConstant 1
+     Nothing
+    Both TargetCube Caster SetVariable GFRONT_FX XOfPosition PositionInDirectionFromPosition Forwards PositionFromXAndY GetVariableOnCube GFRONT_MAXX Caster DoubleConstant 0
+     Both IfElse IsLarger GetVariableOnCube GFRONT_FX Caster GetVariableOnCube GFRONT_MAXX Caster
+      TargetCube Caster SetVariable GFRONT_STEP DoubleConstant 1
+      TargetCube Caster SetVariable GFRONT_STEP DoubleConstant -1
+     Both IfElse IsEqual GetVariableOnCube GFRONT_STEP Caster DoubleConstant 1
+       TargetCube Caster SetVariable GFRONT_START GetVariableOnCube GFRONT_MAXX Caster
+       TargetCube Caster SetVariable GFRONT_START GetVariableOnCube GFRONT_MINX Caster
+      Both TargetCube Caster SetVariable GFRONT_REMAIN GetVariableOnCube GFRONT_N Caster
+       Both TargetCube Caster SetVariable GFRONT_I GetCampaignVariable GENERAL_FRONTLINE_STACKS
+        Both Until IsSmaller GetVariableOnCube GFRONT_I Caster DoubleConstant 1
+         Both TargetCube Caster SetVariable GFRONT_REMAIN Subtraction GetVariableOnCube GFRONT_REMAIN Caster RoundedDown Division GetVariableOnCube GFRONT_REMAIN Caster DoubleConstant 2
+          ChangeVariable GFRONT_I DoubleConstant -1
+         Nothing
+        Both TargetCube Caster SetVariable GFRONT_TOFLIP Subtraction GetVariableOnCube GFRONT_N Caster GetVariableOnCube GFRONT_REMAIN Caster
+         Both TargetCube Caster SetVariable GFRONT_I DoubleConstant 0
+          Until IsEqual GetVariableOnCube GFRONT_I Caster GetVariableOnCube GFRONT_TOFLIP Caster
+           Both
+            Both TargetCube Caster SetVariable GFRONT_CX Subtraction GetVariableOnCube GFRONT_START Caster Multiplication GetVariableOnCube GFRONT_I Caster GetVariableOnCube GFRONT_STEP Caster
+             Both TargetCube Caster SetVariable GFRONT_Y MaxWorldY
+              Until IsSmaller GetVariableOnCube GFRONT_Y Caster DoubleConstant 0
+               Both Secret SetPositionPlacability PositionFromXAndY GetVariableOnCube GFRONT_CX Caster GetVariableOnCube GFRONT_Y Caster EnemyFaction
+                ChangeVariable GFRONT_Y DoubleConstant -1
+               Nothing
+            ChangeVariable GFRONT_I DoubleConstant 1
+           Nothing
+AbilityText: At the start of each battle, permanently cede half (rounded down, never your last column) of your columns closest to the enemy to their control End
+Ability: AtTheStartOfTheBattle AddCubeToHandOfFactionInfinitly CubeConstant Annex FactionOfThis
+AbilityText: Start each battle with an infinite-use Annex in hand End
+Ability: AtTheStartOfTheBattle AddCubeToHandOfFactionInfinitly CubeConstant Retreat FactionOfThis
+AbilityText: Start each battle with an infinite-use Retreat in hand End
 ObtainAction: AddCubeToInventory CubeConstant Bunker
 ObtainAction: AddCubeToInventory CubeConstant Rocket_Silo
 ObtainAction: AddCubeToInventory CubeConstant Airport
+ObtainAction: ChangeCampaignVariable GENERAL_FRONTLINE_STACKS DoubleConstant 1
 End
 
 PERK: Arms_Race
