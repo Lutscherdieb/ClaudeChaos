@@ -12,8 +12,8 @@ IsUpgradeFrom: Finetuning 100
 End
 
 PERK: Grand_Finale
-Ability: Every30Seconds XTimes DoubleConstant 2 TargetCube ARandomNotLeaderEnemy SetHp DoubleConstant 1
-Description: Every 30 seconds set two random non leader enemies hp to 1 End
+Ability: Every30Seconds XTimes DoubleConstant 2 TargetCube ARandomEnemy SetHp DoubleConstant 1
+Description: Every 30 seconds set two random enemies' hp to 1 End
 IsUpgradeFrom: Final_Countdown 60
 End
 
