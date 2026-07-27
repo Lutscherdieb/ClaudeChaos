@@ -1,0 +1,27 @@
+# Workflow: a Terrain perk (new or edited)
+
+A Terrain perk (`BelongsTo: Terrain`) looks like an ordinary perk-family item but isn't one in practice — the `PERK:` block itself is a thin wrapper naming 4 partial battle-map scenarios, and those scenarios (the actual battlefield layout) are the real content being authored. This workflow replaces `content-perk-family.md` for Terrain specifically — don't start there.
+
+## Gather before writing anything
+
+- The terrain's theme/name and its constituent decorative cubes (2-3 `TOKEN` cubes is typical — check whether any can be reused from `Extra_Mechanics/TokenCubes.c.txt` rather than inventing new ones for a plain ground-filler role).
+- Which **height tier** the terrain's leader placement should use — Normal/High/Middle/Low, each with its own shared `Battle_<Tier>_Player`/`Battle_<Tier>_Enemy` partial scenarios already defined in the base game. Reusing an existing tier is the default; only design a new tier's leader-placement scenarios if the terrain's concept genuinely needs a leader row that doesn't fit any existing tier (ask the user if unsure). See `cube-chaos-scenario-scripting`'s `references/battle-and-terrain-maps.md` for the full tier table.
+- A rough sketch of the ground layout (which cube fills which region of the map) — this is inherently a spatial/visual design decision, so talk it through with the user in plain language before writing `DATARECT:`/`DATA:` coordinates.
+- Whether the terrain needs its own boss-variant ground layout (`<Name>_Boss_Terrain`) — every real terrain has one, usually the same layout plus a boss-placement area at one edge.
+
+## Preview-and-approve gate (before the Sequence below)
+
+Before writing any file, run the orchestrator's **Step C preview-and-approve gate** — adapted for a Terrain perk's actual shape: print the terrain's theme, its constituent cubes (with a one-line description of each, e.g. "a static ground-filler, `Burrowed` + `AiPlacementRule: And AiStacking AiDefense`"), the chosen height tier (existing or new), a plain-language description of the ground layout (not raw tile coordinates yet — those come after OK, same as sprite pixels come after OK for an ordinary cube/perk), and the `PERK:` block's `Description:`/`ReferenceCube:` lines. Get the user's explicit OK before writing any `SCENARIO:`/`ADDITIONALMAP:` map data.
+
+## Sequence
+
+1. **`cube-chaos-scenario-scripting`**'s `references/battle-and-terrain-maps.md` — write the `<Name>_Terrain` and `<Name>_Boss_Terrain` partial `SCENARIO:` blocks (the `ADDITIONALMAP:`/`CUBE:`/`DATARECT:`/`DATA:`/`PLACERECT:` map-layout DSL), reusing the chosen tier's existing `Battle_<Tier>_Player`/`Battle_<Tier>_Enemy` rather than writing new ones.
+2. Any new `TOKEN` ground cubes go through the normal `cube-chaos-scripting` `CUBE:` workflow (no `IDENT`, no rarity/balancing needed — see `cube-chaos-balancing`'s TOKEN note).
+3. Write the `PERK: <Name> / BelongsTo: Terrain / WorldAbility: MapGenerationTPEB <4 ReadAPartialScenario calls, in ground/player/enemy/boss order> / Description: / ReferenceCube:` block. No `Value:`/`BalanceCap:` — Terrain perks don't carry either.
+4. **`cube-chaos-rule-text`** — the `Description:` is short flavor (real examples: "High mountains connected via rope bridges") rather than a mechanical rules explanation, since there's no player-facing trigger/condition to describe — just make sure it actually matches the terrain's theme and constituent cubes.
+5. **`cube-chaos-sprite-art`** — Style 2 clean-3-ring border, brown `(105,48,0)` ring 1 (confirmed `BelongsTo: Terrain`, not `TerrainPerk` — a fixed typo in this skill set's own notes). Also draw icons for any new ground `TOKEN` cubes (Style: none, plain 17×17 CUBE convention).
+6. **Test-launch** — `cube-chaos-mod-setup`'s loop. A botched `DATARECT:`/local `CUBE:` index doesn't always throw a parse error; check the actual battlefield in-game (enter a battle with the new terrain equipped) rather than trusting a clean `Log.txt` alone.
+
+## If this is an edit, not a fresh terrain
+
+Read `workflows/editing-checklist.md` first. Note the map-layout DSL's own footgun distinct from sprite/text edits: changing a `CUBE: localIndex Name` line's index without updating every `DATA:`/`DATARECT:` line that references it silently relocates the wrong terrain feature, with no parse error.

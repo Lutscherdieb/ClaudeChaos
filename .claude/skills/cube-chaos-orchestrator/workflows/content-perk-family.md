@@ -1,12 +1,14 @@
 # Workflow: a perk-family `PERK:` (new or edited)
 
-Covers reward perks, Curses, Blights, Boons, Nightmares, Terrain perks, Consumables, Golden perks, Neutral perks, and CubeUpgrade perks — they're all a `PERK:` block with a trigger chain and a `Description:`, differing mainly in `BelongsTo:`/category and border color. Don't split this into a separate workflow per category; the deltas are small and tabulated below.
+Covers reward perks, Curses, Blights, Boons, Nightmares, Consumables, Golden perks, Neutral perks, and CubeUpgrade perks — they're all a `PERK:` block with a trigger chain and a `Description:`, differing mainly in `BelongsTo:`/category and border color. Don't split this into a separate workflow per category; the deltas are small and tabulated below.
+
+**Terrain perks are the one exception — use `content-terrain.md` instead of this file.** A Terrain perk's `PERK:` block itself is a thin wrapper (see the table row below), but making one actually do something requires authoring a whole battlefield layout via the scenario/map DSL (`SCENARIO:`/`ADDITIONALMAP:`/`DATA:`/`DATARECT:`/`PLACERECT:`), which this file's Sequence has no steps for. If the user asks for a Terrain perk, route to `content-terrain.md` immediately rather than starting here.
 
 ## Gather before writing anything
 
 - Which exact category (this determines `BelongsTo:`, trigger keyword, border color, AND whether `Value:` is even legal — see the table below). If the user hasn't said and it's not obvious from context, ask.
 - What the effect actually does, in plain language, before touching the DSL.
-- **`Value:` is category-gated, not a universal optional field — get this wrong in either direction and it's a real bug, not a style nit.** A plain reward perk (`BelongsTo: <ClassName>/<SpeciesName>`, or the `DJ` family itself) must have **no** `Value:` line at all (167:0 audit against every base-game class/species reward perk — see `cube-chaos-scripting`'s Perk economy section for why: `Value` isn't a power rating, it's a price tag for a different economy those perks don't participate in, and adding one makes the perk incorrectly sellable in shops). Every *other* category in the table below (Curse, Blight, Boon, Terrain, Consumable, Golden, Neutral, CubeUpgrade) is expected to carry one — pick from that category's real clustering (`cube-chaos-scripting` has the round-multiples-of-50 pattern for curses and the general pricing-ladder note for upgrades) rather than an arbitrary number, and rather than skipping it.
+- **`Value:` is category-gated, not a universal optional field — get this wrong in either direction and it's a real bug, not a style nit.** A plain reward perk (`BelongsTo: <ClassName>/<SpeciesName>`, or the `DJ` family itself) must have **no** `Value:` line at all (167:0 audit against every base-game class/species reward perk — see `cube-chaos-scripting`'s Perk economy section for why: `Value` isn't a power rating, it's a price tag for a different economy those perks don't participate in, and adding one makes the perk incorrectly sellable in shops). Most *other* categories in the table below (Curse, Blight, Boon, Consumable, Golden, Neutral, CubeUpgrade) are expected to carry one — pick from that category's real clustering (`cube-chaos-scripting` has the round-multiples-of-50 pattern for curses and the general pricing-ladder note for upgrades) rather than an arbitrary number, and rather than skipping it. **Nightmare is the one exception that flips this rule the other way: 0 of 11 real Nightmare perks carry `Value:`/`BalanceCap:` at all** — don't add one to a new Nightmare perk, see `cube-chaos-scripting`'s perk-economy reference.
 
 ## Category deltas
 
@@ -14,14 +16,16 @@ Covers reward perks, Curses, Blights, Boons, Nightmares, Terrain perks, Consumab
 |---|---|---|---|---|
 | Reward perk | `<ClassName>`/`<SpeciesName>`/none | `Ability:` | `IsAllyToCaster`/`IsEnemyToCaster` | None by default (optionally the class's own Style 1 color, as a deliberate family-branding choice — see "Optionally extending the class-color border") |
 | Curse | *(none at all)* | `WorldAbility:` | `IsAlly`/`IsEnemy`, and bare `IsPlaced` (no CUBE arg) | Style 2, red `(255,0,0)` |
-| Blight | `Blight` | `WorldAbility:` (check real examples) | `IsAlly`/`IsEnemy` | Style 3, red `(255,0,0)` |
-| Boon | `Boon` | `Ability:`/`WorldAbility:` (check real examples) | Usually `IsAllyToCaster` | Style 3, lime-green `(182,255,0)` |
-| Nightmare | `Nightmare` (verify against `Extra_Mechanics/Nightmares.c.txt`) | check real examples | check real examples | Style 3, red `(255,0,0)` |
-| Terrain perk | `TerrainPerk` | check real examples | check real examples | Style 2, brown `(105,48,0)` |
+| Blight | `Blight` | Mixed — `ObtainAction:`/`RemoveAction:` (one-shot), `WorldAbility:` (battle-scoped, bare `IsAlly`/`IsEnemy`), or `CampaignAbility:` (meta/run-scoped); pick whichever fits the effect, default to `WorldAbility:` for a battle-scoped one | `IsAlly`/`IsEnemy` (WorldAbility) | Style 3, red `(255,0,0)` |
+| Boon | `Boon` | Same mixed set as Blight (`ObtainAction:`/`WorldAbility:`/`CampaignAbility:`) | `IsAlly`/`IsEnemy` (WorldAbility) | Style 3, lime-green `(182,255,0)` |
+| Nightmare | `Nightmare` (confirmed, `Extra_Mechanics/Nightmares.c.txt`) | `ObtainAction:` (bump campaign variables) + `CampaignAbility:`/`WorldAbility:` (ongoing effect) in the same perk; always `Invisible`, **never** `Value:`/`BalanceCap:` (0/11 real entries carry either) | `IsAlly`/`IsEnemy` (WorldAbility) | Style 3, red `(255,0,0)` |
+| Terrain perk | `Terrain` — **use `content-terrain.md`, not this file** | `WorldAbility: MapGenerationTPEB` (a stock compound) wrapping `ReadAPartialScenario` calls into a battlefield-map file, plus repeatable `ReferenceCube:` fields; no `Value:`/`BalanceCap:` | n/a (map-generation trigger, not a battle-event one) | Style 2, brown `(105,48,0)` (confirmed `BelongsTo: Terrain`, not `TerrainPerk`) |
 | Consumable | none (lives in `Main/Consumables.c.txt`) | check real examples | check real examples | Style 2, orange `(255,106,0)` (real file has a tiny 8px cosmetic flourish, safe to skip) |
 | Golden perk | none (lives in `Main/GoldenPerks.c.txt`) | check real examples | check real examples | Style 2, yellow `(255,255,0)` |
 | Neutral perk | `Neutral` | `Ability:`/`WorldAbility:` | check real examples | Style 2, gray `(128,128,128)` |
 | CubeUpgrade | none (lives in `Main/CubeUpgrades.c.txt`, uses `SpecialAction:` not `Ability:`) | `SpecialAction:` | check real examples | No confirmed pattern — don't force one, see `cube-chaos-sprite-art` |
+
+Full Blight/Boon/Nightmare conventions (ScalingPow:, Requirement: patterns, Invisible/RemoveUponObtaining idiom) are in `cube-chaos-scripting`'s `references/perk-economy.md`, "Blight/Boon/Nightmare-specific `PERK:` conventions" section — read that before writing one of these three, don't just work from this table's summary.
 
 "Check real examples" means exactly that — grep the matching base-game `.c.txt` for 2-3 real instances before writing the trigger/allegiance logic from scratch, per `cube-chaos-scripting`'s core discipline (this DSL has near-zero error recovery, so matching a proven pattern beats deriving from the grammar list alone).
 

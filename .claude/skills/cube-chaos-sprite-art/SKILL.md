@@ -135,7 +135,7 @@ Confirmed identical structure across `Curses` and 4 other categories, differing 
 | Category (no `BelongsTo:`, or `BelongsTo: <Category>`) | Ring 1 color | Source file |
 |---|---|---|
 | Curses (plain `PERK:`, no `BelongsTo:` at all) | red `(255,0,0)` | `Characters/Sprites/Curses.c.png` |
-| `BelongsTo: TerrainPerk` (Terrain perks) | brown `(105,48,0)` | `Extra_Mechanics/Sprites/TerrainPerks.c.png` |
+| `BelongsTo: Terrain` (Terrain perks — confirmed 2026-07-27 via `Extra_Mechanics/TerrainPerks.c.txt`'s 15 real entries; NOT `TerrainPerk`, a typo previously in this table) | brown `(105,48,0)` | `Extra_Mechanics/Sprites/TerrainPerks.c.png` |
 | Consumables (`Main/Consumables.c.txt`) | orange `(255,106,0)` | `Main/Sprites/Consumables.c.png` |
 | Golden perks (`Main/GoldenPerks.c.txt`) | yellow `(255,255,0)` | `Main/Sprites/GoldenPerks.c.png` |
 | Neutral perks (`BelongsTo: Neutral`) | gray `(128,128,128)` | `Main/Sprites/NeutralPerks.c.png` |
@@ -160,7 +160,7 @@ Confirmed identical shape across `Blights`, `Boons`, and `Nightmares` (all three
 | Category | Corner-accent color |
 |---|---|
 | `BelongsTo: Blight` | red `(255,0,0)` |
-| `BelongsTo: Nightmare` (or however Nightmares self-identify — check `Extra_Mechanics/Nightmares.c.txt`) | red `(255,0,0)` |
+| `BelongsTo: Nightmare` (confirmed 2026-07-27 via `Extra_Mechanics/Nightmares.c.txt`'s 11 real entries) | red `(255,0,0)` |
 | `BelongsTo: Boon` | lime-green `(182,255,0)` |
 
 The exact mask (confirmed byte-identical across all 3 real files, `.`=BG, `K`=black, `A`=corner accent, `M`=guide):

@@ -270,3 +270,19 @@ Ability: AfterThisIsCreated SetStorage ARandomEnemy If CubeExists Storage
 Text: After this is created, create a neutral Molten_Brimstone at the top of the column (or the first empty space below that if it's blocked) above a random enemy, then two more every 7 seconds after that, same fallback each time End
 AiPlacementRule: True
 End
+
+CUBE: Hell_Portal 85 10 10
+IDENT 4 15 0 40 20
+TYPE Factory
+Ability: Flying
+Ability: EveryXSeconds DoubleConstant 60 IfElse X%Chance DoubleConstant 30
+ If IsPositionEmpty PositionInDirectionFromPosition South PositionOfThis
+  CreateCubeOnPosition CubeConstant Two_Headed_Demon PositionInDirectionFromPosition South PositionOfThis
+ IfElse X%Chance DoubleConstant 30
+  If IsPositionEmpty PositionInDirectionFromPosition South PositionOfThis
+   CreateCubeOnPosition CubeConstant Plague_Imp PositionInDirectionFromPosition South PositionOfThis
+  If IsPositionEmpty PositionInDirectionFromPosition South PositionOfThis
+   CreateCubeOnPosition CubeConstant Imp PositionInDirectionFromPosition South PositionOfThis
+Text: Every minute, 30% chance to create an allied Two_Headed_Demon directly below (if that space is empty), otherwise 30% chance to create an allied Plague_Imp there instead, otherwise create an allied Imp there End
+AiPlacementRule: True
+End

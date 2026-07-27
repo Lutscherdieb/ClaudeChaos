@@ -1,6 +1,6 @@
 ---
 name: cube-chaos-orchestrator
-description: Entry point for any Cube Chaos modding session - use whenever the user wants to create or edit a mod, or asks for a new/changed Class, Species, Perk, Cube, Curse, Blight, Boon, Nightmare, Terrain perk, Consumable, Golden perk, Neutral perk, CubeUpgrade, or Class+Species synergy. Routes to the right workflow file under workflows/ and sequences the domain skills (cube-chaos-scripting, cube-chaos-rule-text, cube-chaos-sprite-art, cube-chaos-balancing, cube-chaos-mod-setup) so nothing is created half-finished. Trigger on "create a mod", "edit a mod", "new cube", "new perk", "new class", "new species", "new curse", "new synergy", or generally "let's work on the Cube Chaos mod".
+description: Entry point for any Cube Chaos modding session - use whenever the user wants to create or edit a mod, or asks for a new/changed Class, Species, Perk, Cube, Curse, Blight, Boon, Nightmare, Terrain perk, Consumable, Golden perk, Neutral perk, CubeUpgrade, Class+Species synergy, battle scenario, campaign/node-map, challenge battle, or reward/economy screen. Routes to the right workflow file under workflows/ and sequences the domain skills (cube-chaos-scripting, cube-chaos-scenario-scripting, cube-chaos-rule-text, cube-chaos-sprite-art, cube-chaos-balancing, cube-chaos-mod-setup) so nothing is created half-finished. Trigger on "create a mod", "edit a mod", "new cube", "new perk", "new class", "new species", "new curse", "new synergy", "new terrain", "battle map", "node map", "campaign map", "challenge scenario", or generally "let's work on the Cube Chaos mod".
 ---
 
 # Cube Chaos mod orchestrator
@@ -29,11 +29,11 @@ If "existing mod" → note which mod folder is active for the rest of the sessio
 Skip the menu if the request already names a clear content type ("add a new Curse called X" goes straight to the matching workflow file below — don't force a wizard step the user already skipped past themselves). Otherwise ask via `AskUserQuestion`, broad first (max 4 options per question):
 
 1. Cube
-2. A perk-like thing (reward perk, Curse, Blight, Boon, Nightmare, Terrain perk, Consumable, Golden perk, Neutral perk, or CubeUpgrade)
-3. Class, Species, or a Class+Species synergy
+2. A perk-like thing (reward perk, Curse, Blight, Boon, Nightmare, Consumable, Golden perk, Neutral perk, or CubeUpgrade)
+3. Class/Species/synergy, OR a battlefield/map/campaign-screen mechanic (Terrain perk, a new battle type, a campaign node-map, a challenge battle, or a reward/economy screen)
 4. Not sure / something else — ask them to describe it in their own words instead of forcing a category
 
-If they picked "perk-like thing" and it's still unclear which exact category, ask a second, narrower question (reward perk vs. curse-family vs. CubeUpgrade) — the workflow file itself can usually resolve the last bit of ambiguity through normal conversation instead of another forced menu.
+If they picked "perk-like thing" and it's still unclear which exact category, ask a second, narrower question (reward perk vs. curse-family vs. CubeUpgrade) — the workflow file itself can usually resolve the last bit of ambiguity through normal conversation instead of another forced menu. Same for option 3: if it's unclear whether they mean Class/Species/synergy content versus one of the scenario/map mechanics, ask a second question naming the 5 scenario-side options directly (Terrain perk / new battle type / campaign map / challenge battle / reward screen) alongside Class/Species/synergy.
 
 ### Dispatch table
 
@@ -41,9 +41,14 @@ If they picked "perk-like thing" and it's still unclear which exact category, as
 |---|---|---|
 | A new mod | `workflows/new-mod.md` | `cube-chaos-mod-setup` |
 | A `CUBE:` (new or edited) | `workflows/content-cube.md` | `cube-chaos-balancing` (mana/hp/IDENT stats, `IDENT` cubes only) → `cube-chaos-scripting` → `cube-chaos-rule-text` → `cube-chaos-sprite-art` |
-| A reward perk, Curse, Blight, Boon, Nightmare, Terrain perk, Consumable, Golden perk, Neutral perk, or CubeUpgrade | `workflows/content-perk-family.md` | `cube-chaos-balancing` (`Value:`/`BalanceCap:`, categories that carry one) → `cube-chaos-scripting` → `cube-chaos-rule-text` → `cube-chaos-sprite-art` |
+| A reward perk, Curse, Blight, Boon, Nightmare, Consumable, Golden perk, Neutral perk, or CubeUpgrade | `workflows/content-perk-family.md` | `cube-chaos-balancing` (`Value:`/`BalanceCap:`, categories that carry one) → `cube-chaos-scripting` → `cube-chaos-rule-text` → `cube-chaos-sprite-art` |
 | A Class or Species base perk, or a Class+Species synergy | `workflows/content-class-species.md` | `cube-chaos-scripting` → `cube-chaos-rule-text` → `cube-chaos-sprite-art` |
 | A themed **Dragon evolution line** for a class/species (Egg → Baby → Adult, mimicking the base game's per-class dragons) | `workflows/content-dragon-line.md` | `cube-chaos-scripting` → `cube-chaos-rule-text` → `cube-chaos-sprite-art` (balancing is light — stats anchor to base dragons) |
+| A **Terrain perk** (a perk that swaps the whole battlefield layout) | `workflows/content-terrain.md` | `cube-chaos-scenario-scripting` (battle-map DSL) → `cube-chaos-scripting` (the `TOKEN` cubes + the `PERK:` wrapper) → `cube-chaos-rule-text` → `cube-chaos-sprite-art` |
+| A new **battle-type scenario** (a new kind of normal-ish battle node, not a Terrain swap or a fixed-hand challenge) | `workflows/content-battle-scenario.md` | `cube-chaos-scenario-scripting` → `cube-chaos-rule-text` |
+| A new **campaign/world map** (`NODEMAP:` — a branching node-map screen) | `workflows/content-nodemap.md` | `cube-chaos-scenario-scripting` (may fan out to the battle-scenario/reward-scenario/challenge-scenario workflows for any new node types it references) |
+| A bespoke **challenge battle** (fixed-hand gauntlet, or a new `CHOICE:` branching menu) | `workflows/content-challenge-scenario.md` | `cube-chaos-scenario-scripting` → `cube-chaos-rule-text` |
+| A new **reward/economy map-node** (chest, shop, forge, curse-trade variant) | `workflows/content-reward-scenario.md` | `cube-chaos-scenario-scripting` → `cube-chaos-rule-text` |
 | *Editing* something that already exists (any type above) | Same workflow file as the content type, but read `workflows/editing-checklist.md` first — it has rules that only apply to edits, not fresh creation | Same as above |
 
 **Suggestible pattern — reach for this when a user asks "what should I add?"** A themed **Dragon
@@ -102,6 +107,7 @@ Each domain skill opens with a `## Research protocol` section, and they all foll
 | Skill | Ground truth when this skill comes up short |
 |---|---|
 | `cube-chaos-scripting` | `ModdingInfo.txt` production lists → `ModdingExplanation.txt` → a real working example grepped from `GameData/**/*.c.txt` |
+| `cube-chaos-scenario-scripting` | `GameData/Extra_Mechanics/`'s 6 scenario files — the sole and complete implementation of the whole `SCENARIO:`/`MAP:`/`NODEMAP:` layer, not just a convenient example (neither root reference `.txt` documents it) |
 | `cube-chaos-rule-text` | `ModdingInfo.txt`'s quoted tooltip string for each built-in (canonical phrasing *and* colour) → real `Text:`/`Description:` lines, compared by frequency |
 | `cube-chaos-sprite-art` | Pixels measured from real `GameData/*/Sprites/*.c.png`, confirmed across several files (nothing about sprites is documented) |
 | `cube-chaos-balancing` | The distribution of real values across the right comparison class, not two or three sampled cubes |
@@ -113,7 +119,7 @@ Note the two root reference files are small enough to consult freely — `Moddin
 
 ## Domain skill structure: core + `references/`, one shape for every skill
 
-Every domain skill (`cube-chaos-scripting`, `cube-chaos-rule-text`, `cube-chaos-sprite-art`, `cube-chaos-balancing`, `cube-chaos-mod-setup`) follows the same two-tier shape as it grows, regardless of how big it currently is:
+Every domain skill (`cube-chaos-scripting`, `cube-chaos-scenario-scripting`, `cube-chaos-rule-text`, `cube-chaos-sprite-art`, `cube-chaos-balancing`, `cube-chaos-mod-setup`) follows the same two-tier shape as it grows, regardless of how big it currently is:
 
 - **`SKILL.md` (core)** holds only what a *typical* trigger of that skill needs: the primary syntax/format/convention, the Research protocol section, and anything genuinely needed on nearly every use.
 - **`references/<topic>.md`** holds anything situational or deep-dive — a category of gotchas, an undocumented-field deep-dive, a specific mechanic's edge cases — split out as its own file, with a one-line "load this when..." note at the top so it's readable standalone.

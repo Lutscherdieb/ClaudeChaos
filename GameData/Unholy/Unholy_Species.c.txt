@@ -21,6 +21,7 @@ ObtainAction: AddCubeToInventory CubeConstant Brimstone
 ObtainAction: AddCubeToInventory CubeConstant Hellstorm
 ObtainAction: AddCubeToInventory CubeConstant Plague_Ritual
 ObtainAction: AddCubeToInventory CubeConstant Blood_Totem
+ObtainAction: AddCubeToInventory CubeConstant Hell_Portal
 End
 
 PERK: Hell_Dragon_Egg
