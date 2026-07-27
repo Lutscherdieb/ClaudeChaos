@@ -20,9 +20,17 @@ Card design notes (reverse-engineered once so future regens don't redo this):
   all sides) before upscaling for style-1 (plain class border, e.g. all DJ
   perks) and style-2 ("clean 3-ring", e.g. Curses/Consumables) tiles. Do NOT
   strip it for CLASSSPECIES synergy tiles -- their fancy jagged frame (style
-  4) genuinely renders that outer ring; and CUBE icons (17x17) have no guide
-  ring to strip at all. See the main SKILL.md's border pattern library for
-  the full styles 1-4 reference.
+  4) genuinely renders that outer ring. See the main SKILL.md's border
+  pattern library for the full styles 1-4 reference.
+- CUBE icons (17x17) also need 1px cropped off every side before upscaling,
+  same as PERK icons -- but for a different reason: there's no drawn magenta
+  guide marker on a CUBE tile, the engine just trims 1px at render time
+  regardless, invisibly. Confirmed 2026-07-27 via a real user-vs-preview-card
+  comparison (DJ's Microphone, untouched for a long time, showed less padding
+  in an actual gameplay screenshot than this script's own un-cropped render).
+  An earlier version of this script (and this skill's docs) claimed CUBE
+  icons have "no border convention at all" -- true for the drawn-marker
+  half of that claim, wrong for the render-trim half.
 - The engine auto-colors the literal word "mana" blue in tooltip text
   (confirmed via the compiled TextPrinter's Player.ManaColour reference) --
   replicated here as the one keyword auto-colored; no other keyword-coloring
@@ -628,7 +636,7 @@ def build_cubes():
         if texts:
             extra.append("")
             extra.extend(f"- {t}" for t in texts)
-        icon = upscale(crop_icon(sheet, i, TILE_CUBE, cols, strip_guide=False), 10)
+        icon = upscale(crop_icon(sheet, i, TILE_CUBE, cols, strip_guide=True), 10)
         cards.append((name, render_card(pretty(name), None, None, icon, extra_lines=extra)))
     return cards
 

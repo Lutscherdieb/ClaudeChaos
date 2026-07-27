@@ -17,7 +17,7 @@ Two standing constraints while researching: **base-game sprite sheets are read-o
 
 ## Fixed tile sizes (confirmed across many independent real files)
 
-- **CUBE icons: 17×17 px.** Confirmed via `Main/Sprites/3GeneralCubes.c.png` (714÷17=42), `Characters/Sprites/2TokenCubes.c.png` (306÷17=18), `Modding_Example/Sprites/GeneralCubes.c.png` (272÷17=16).
+- **CUBE icons: 17×17 px on the sheet, but the engine only ever displays the inner 15×15 — the outer 1px on every side is trimmed at render time.** This reverses an earlier (wrong) conclusion in this same file that CUBE icons "have no border convention at all." Confirmed 2026-07-27 two independent ways: (1) a real user-vs-preview-card comparison — DJ's `Microphone` (untouched for a long time, ruling out a stale-edit explanation) showed visibly less padding in an actual gameplay screenshot than this skill's own preview-card renderer produced from the same tile, which was doing a full untrimmed 17×17 crop; (2) **the base game itself already marks this exact boundary with a drawn guide ring, just a color this repo's own mod sheets had never adopted** — `Base_Core/Sprites/3TokenCubes.c.png` and `Modding_Example/Sprites/GeneralCubes.c.png` both pixel-dump to a full 1px `RGB(255, 0, 110)` ring around all 4 sides of *every* 17×17 tile (not a shared single-pixel boundary between neighbors — each tile has its own complete ring, so two adjacent tiles show 2px of that color touching between their content areas), with real content only ever in the inner 15×15 (tile-local indices 1-15). This is the CUBE-icon equivalent of the PERK magenta guide ring below, just a different color code (`(255,0,110)` not `(255,0,220)`) and a fact this repo's own mod sheets happened to never carry over. See "CUBE icon guide grid" below for the generator recipe — **draw this by default on every CUBE sheet going forward**, existing or new. Tile size itself (17×17 on the sheet) also confirmed via `Main/Sprites/3GeneralCubes.c.png` (714÷17=42), `Characters/Sprites/2TokenCubes.c.png` (306÷17=18) — only the "no border to strip" half of the old claim was wrong.
 - **PERK icons (class perks, reward perks, AND class+species synergy perks): 27×27 px.** Confirmed via `Characters/Classes/Sprites/Priest.c.png` (108÷27=4), `Characters/Sprites/Synergies.c.png` (540÷27=20), `Main/Sprites/Perks.c.png` (621÷27=23), `Modding_Example/Sprites/Synergies.c.png` (270÷27=10).
 
 Sheet dimensions = `tile_size * grid_dim`, where `grid_dim = ceil(sqrt(number_of_CUBE:_or_PERK:_definitions_in_the_matching_.txt_file))`. The sheet must be square. Icons are cropped in the order the `CUBE:`/`PERK:` blocks appear in the txt file (top to bottom), row-major. Extra unused grid cells are fine and normal (real game files often have far more cells than currently-defined content — that's expected headroom, not a bug).
@@ -35,6 +35,30 @@ Sheet dimensions = `tile_size * grid_dim`, where `grid_dim = ceil(sqrt(number_of
 ## Default background color
 
 `RGB(0, 148, 255)` — confirmed as the overwhelmingly most-common pixel color in every real cube and perk sheet checked. Use this exact value for new sprite sheets, not an approximation.
+
+## CUBE icon guide grid — draw it by default now, same idea as the PERK magenta ring
+
+Every CUBE icon tile gets a 1px `RGB(255, 0, 110)` ring around all 4 sides of its own 17×17 box (row 0, row 16, col 0, col 16), leaving real content in the inner 15×15 (tile-local indices 1-15) — this is the base game's own real convention (see the CUBE icon tile-size entry above for the two files that confirm it), never previously adopted by this repo's own mod sheets, and now the default going forward for every CUBE sheet, existing or new. Two concrete things this buys:
+- Makes the engine's invisible 1px trim visually explicit while editing — an artist can see directly in the image, tile by tile, exactly where content will and won't render, instead of discovering the boundary via a screenshot-vs-preview comparison after the fact.
+- Applied as the LAST step (same ordering as the PERK magenta ring), it naturally overwrites whatever content currently sits in that outer ring — which is fine, since that content was already invisible in-game. Nothing real is lost; the guide just makes the already-true boundary visible.
+
+Recipe (pure code, no reference-file extraction needed — same "generate, don't color-match" principle as the PERK pattern library below):
+```python
+CUBE_GUIDE = (255, 0, 110)
+T_CUBE = 17
+
+def draw_cube_guide_ring(sheet, tile_index, cols):
+    row, col = divmod(tile_index, cols)
+    ox, oy = col * T_CUBE, row * T_CUBE
+    px = sheet.load()
+    for x in range(T_CUBE):
+        px[ox + x, oy] = CUBE_GUIDE                # top row
+        px[ox + x, oy + T_CUBE - 1] = CUBE_GUIDE   # bottom row
+    for y in range(T_CUBE):
+        px[ox, oy + y] = CUBE_GUIDE                # left col
+        px[ox + T_CUBE - 1, oy + y] = CUBE_GUIDE   # right col
+```
+Apply once per tile, for **every** grid cell in the sheet (not just currently-defined cubes) — matches the real files' own convention of guiding every cell including unused headroom, so a sheet never has an inconsistent mix of guided and unguided tiles. `render_preview_cards.py`'s `build_cubes()` already crops this ring off before upscaling (`strip_guide=True`, fixed 2026-07-27) — that fix makes preview cards correct even without the ring drawn; the ring itself is what makes the boundary obvious to a human editing the raw sheet directly, the two are complementary, not redundant.
 
 ## Ground unit CUBE icons: draw the silhouette flush to the tile's bottom row, no gap
 
@@ -71,7 +95,7 @@ Every 27×27 PERK sheet in the base game (and this mod) is genuinely rendered wi
 ### Universal constants and a shared ring-drawing helper
 
 ```python
-T = 27                        # perk tile size (17 for CUBE icons, which have no border convention at all)
+T = 27                        # perk tile size (17 for CUBE icons -- but crop 1px in on all sides before use, see below)
 BG      = (0, 148, 255)       # default background, used everywhere
 GUIDE   = (255, 0, 220)       # magenta outer guide ring, row/col 0 of every PERK tile in every category
 BLACK   = (0, 0, 0)           # inner ring color for every "clean 3-ring" and "corner-bracket" category below
@@ -476,7 +500,8 @@ Not every icon-only helper `CUBE:` block needs a README card — e.g. a zero-`Ab
 
 Key facts baked into that script, established by reverse-engineering the game's own compiled UI code and byte-diffing real sprite files (not guessed) — reuse these rather than re-deriving them:
 - **Font**: `GeneralData/dogicapixel.ttf` is the confirmed real UI font (hardcoded by name in the game's compiled `TextPrinter` class), not a lookalike guess.
-- **The outer 1px magenta `(255,0,220)` guide ring is invisible in-game and must be cropped off** before upscaling a PERK icon for a card — but only for style-1/style-2 bordered tiles (plain class border, clean-3-ring categories like Curses/Consumables). Do NOT strip it from CLASSSPECIES synergy tiles (their style-4 fancy frame genuinely renders that outer ring) or CUBE icons (no guide ring exists there at all — cubes have no border convention, see above).
+- **The outer 1px magenta `(255,0,220)` guide ring is invisible in-game and must be cropped off** before upscaling a PERK icon for a card — but only for style-1/style-2 bordered tiles (plain class border, clean-3-ring categories like Curses/Consumables). Do NOT strip it from CLASSSPECIES synergy tiles (their style-4 fancy frame genuinely renders that outer ring).
+- **CUBE icons also need their outer 1px cropped on all sides before upscaling — a separate fact from the PERK guide-ring rule above, and easy to conflate since the fix (`crop((1,1,tile-1,tile-1))`) is identical code.** There's no drawn magenta marker on CUBE tiles (that part of the old "no border" claim holds) — the engine just trims 1px at render time regardless, with no visual indicator in the raw sheet file. Confirmed 2026-07-27 (see the tile-size section above for the evidence); `render_preview_cards.py`'s `build_cubes()` previously called `crop_icon(..., strip_guide=False)`, producing preview cards with visibly more padding around every cube icon than the real game shows. Fixed by passing `strip_guide=True` there too.
 - **The engine auto-colors the literal word "mana" blue** in tooltip text (confirmed via a `Player.ManaColour` reference in the compiled UI code) — the only keyword-coloring rule confirmed from data; everything else in `Description:`/`Text:` renders plain white.
 - **An `IsUpgradeFrom:` perk reuses its base perk's icon slot** (it has no sprite of its own — see the "upgrade perk needs no unique sprite" note above) — look up the base perk's icon index by name rather than the upgrade's own (blank) slot index.
 - **`build_perks()` also reads `<ModPrefix>_UpgradePerks.c.txt` if present** (the dedicated sprite-less upgrade file described above) and generates cards for it too, alongside the regular `<ModPrefix>_Perks.c.txt` cards — no separate registration needed, this happens automatically whenever the "Perks" category runs for a mod. Icon resolution **walks the full `IsUpgradeFrom:` chain**, not just one hop: an upgrade can itself be the base of a further upgrade (e.g. `Grand_Finale`-style `Mk3 → Mk2 → <real base perk>`), and stopping at the first hop lands on another blank upgrade slot instead of real art. A first version of this script did stop at one hop and silently produced a blank-icon preview card for a multi-hop upgrade (`General_Perks_Arms_Race_Mk3.png` rendered solid background blue, no icon) with no error — caught by eye, not by a log warning, since this is a documentation-only script bug, not a game-parse issue.
