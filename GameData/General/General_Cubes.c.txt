@@ -318,25 +318,40 @@ CUBE: Baby_War_Dragon_West 0 0 0
 TOKEN
 End
 
-CUBE: Annex 50 0 0
+CUBE: Annex 50 1 1
 TOKEN
-Ability: AfterThisIsCreated If IsEqual AmountOfCubesWhich And IsEqual XOfPosition PositionOfCube Test XOfPosition PositionInDirectionFromThis Forwards IsEnemyToCaster Test DoubleConstant 0
- If IsLarger AmountOfCubesWhich And IsEqual XOfPosition PositionOfCube Test XOfPosition PositionInDirectionFromThis Forwards IsAllyToCaster Test DoubleConstant 0
-  Both TargetCube Caster SetVariable CLAIMX XOfPosition PositionInDirectionFromThis Forwards
-   Both TargetCube Caster SetVariable CLAIMY MaxWorldY
-    Until IsSmaller GetVariableOnCube CLAIMY Caster DoubleConstant 0
-     Both Secret SetPositionPlacability PositionFromXAndY GetVariableOnCube CLAIMX Caster GetVariableOnCube CLAIMY Caster FactionOfThis
-      ChangeVariable CLAIMY DoubleConstant -1
-     Nothing
-Text: When this is created, if the column in front has no enemies and at least one ally, you gain control of every tile in that column End
+Ability: EveryXSeconds DoubleConstant 30 Both
+ Both
+  Both TargetCube Caster SetVariable ANNEXSTEP Subtraction XOfPosition PositionInDirectionFromThis Backwards XOfPosition PositionOfThis
+   TargetCube Caster SetVariable ANNEXX XOfPosition PositionInDirectionFromThis Forwards
+  Until Not PositionExists PositionFromXAndY GetVariableOnCube ANNEXX Caster DoubleConstant 0
+   Both
+    Both TargetCube Caster SetVariable ANNEXY MaxWorldY
+     Until IsSmaller GetVariableOnCube ANNEXY Caster DoubleConstant 0
+      Both Secret SetPositionPlacability PositionFromXAndY GetVariableOnCube ANNEXX Caster GetVariableOnCube ANNEXY Caster FactionOfThis
+       TargetCube Caster ChangeVariable ANNEXY DoubleConstant -1
+      Nothing
+    TargetCube Caster ChangeVariable ANNEXX GetVariableOnCube ANNEXSTEP Caster
+   Nothing
+ Die
+Text: After 30 seconds, you gain control of every tile in the column directly in front of this and every column between there and your own edge of the battlefield. It then dies End
 End
 
-CUBE: Retreat 5 0 0
+CUBE: Retreat 5 1 1
 TOKEN
-Ability: AfterThisIsCreated Both TargetCube Caster SetVariable RETREATY MaxWorldY
- Until IsSmaller GetVariableOnCube RETREATY Caster DoubleConstant 0
-  Both Secret SetPositionPlacability PositionFromXAndY XOfPosition PositionOfThis GetVariableOnCube RETREATY Caster EnemyFaction
-   ChangeVariable RETREATY DoubleConstant -1
-  Nothing
-Text: When this is created, lose control of every tile in this column End
+Ability: EveryXSeconds DoubleConstant 5 Both
+ Both
+  Both TargetCube Caster SetVariable RETREATSTEP Subtraction XOfPosition PositionInDirectionFromThis Forwards XOfPosition PositionOfThis
+   TargetCube Caster SetVariable RETREATX XOfPosition PositionOfThis
+  Until Not PositionExists PositionFromXAndY GetVariableOnCube RETREATX Caster DoubleConstant 0
+   Both
+    Both TargetCube Caster SetVariable RETREATY MaxWorldY
+     Until IsSmaller GetVariableOnCube RETREATY Caster DoubleConstant 0
+      Both Secret SetPositionPlacability PositionFromXAndY GetVariableOnCube RETREATX Caster GetVariableOnCube RETREATY Caster EnemyFaction
+       TargetCube Caster ChangeVariable RETREATY DoubleConstant -1
+      Nothing
+    TargetCube Caster ChangeVariable RETREATX GetVariableOnCube RETREATSTEP Caster
+   Nothing
+ Die
+Text: After 5 seconds, you lose control of every tile in this column and every column between this and the enemy's edge of the battlefield. It then dies End
 End
