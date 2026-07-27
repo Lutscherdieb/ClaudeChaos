@@ -50,6 +50,11 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 <img src="Preview/General_Cubes_Baby_War_Dragon.png" width="700" alt="Baby War Dragon cube card">
 <img src="Preview/General_Cubes_War_Dragon.png" width="700" alt="War Dragon cube card">
 
+### Curses
+
+<img src="Preview/General_Curses_Intimidated.png" width="700" alt="Intimidated curse card">
+<img src="Preview/General_Curses_Are_We_The_Bad_Guys.png" width="700" alt="Are We The Bad Guys curse card">
+
 ### Class+Species synergies
 
 <img src="Preview/General_Synergies_General-Elemental.png" width="700" alt="General + Elemental synergy card">
