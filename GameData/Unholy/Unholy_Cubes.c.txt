@@ -14,11 +14,14 @@ Visual: Square 0 -1 96 96 96
 AiPlacementRule: And AiEmptyNorth AiStacking
 End
 
-CUBE: Imp 0 4 4
-TOKEN
+CUBE: Imp 15 4 4
+IDENT 1 10 0 0 0
+TYPE Attacker
+TYPE Starter
 Ability: ChargeEveryX 60
-Ability: EveryXAcidicY 60 2
+Ability: EveryXAcidicY 120 2
 Ability: Hovering
+AiPlacementRule: And AiFrontline AiStacking
 End
 
 CUBE: Cultist 5 3 3
@@ -40,7 +43,7 @@ CUBE: Two_Headed_Demon 65 22 22
 IDENT 3 18 6 0 0
 TYPE Attacker
 TYPE Starter
-Ability: Hovering
+Ability: Climbing
 Ability: ChargeEveryX 120
 Ability: EveryXMeleeY 42 2
 Ability: EveryXMeleeY 120 3
@@ -52,7 +55,7 @@ IDENT 2 10 0 0 8
 TYPE Attacker
 TYPE Starter
 Ability: ChargeEveryX 60
-Ability: EveryXAcidicY 60 2
+Ability: EveryXAcidicY 120 2
 Ability: Hovering
 Ability: AfterThisDies EveryCubeTouchingPosition PositionOfCube Caster If Not HasNameOfCube Target Caster GainAbility PoisonX 2
 Text: After this dies, all touching cubes that aren't Plague_Imps gain \C0 255 144 Poison 2 \CN End
