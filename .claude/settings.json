@@ -40,6 +40,13 @@
             "command": "bash .claude/hooks/check-sprite-coverage.sh",
             "timeout": 15,
             "statusMessage": "Checking sprite coverage for new PERK:/CUBE: blocks..."
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash .claude/hooks/check-workflow-overview.sh",
+            "timeout": 15,
+            "statusMessage": "Checking WORKFLOW_OVERVIEW.md freshness against the orchestrator..."
           }
         ]
       }

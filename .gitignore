@@ -7,6 +7,7 @@
 #   - GameData/Broker/  the Broker class mod (same deal)
 #   - GameData/Voidling/ the Voidling species mod (same deal)
 #   - README.md        repo-level docs
+#   - WORKFLOW_OVERVIEW.md  repo-level docs (diagram of the modding workflow)
 # Everything else (game binaries, base-game GameData folders, and any other
 # mod folders that come and go as you subscribe/unsubscribe on the Workshop)
 # is deliberately left untracked.
@@ -17,6 +18,7 @@
 !/.gitignore
 !/CLAUDE.md
 !/README.md
+!/WORKFLOW_OVERVIEW.md
 !/.claude/
 !/GameData/
 
