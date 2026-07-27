@@ -44,7 +44,7 @@ End
 CUBE: Note 0 1 1
 TOKEN
 Ability: Flying
-Ability: HomingX 120
+Ability: HomingX 60
 Ability: RandomMovementX 480
 Ability: ProjectileX 2
 Ability: DieAfterX 7200
