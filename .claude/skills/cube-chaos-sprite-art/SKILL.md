@@ -314,6 +314,10 @@ YYXXXXYYYXXXXYY
 ```
 This leaves nearly the full tile clear for the icon itself (draw it large, not scaled down for a border that barely intrudes).
 
+## Sprite art effort level
+
+The rule below (never flat single-color icons) is a fixed quality bar, not a preference — it applies regardless of what follows. What *is* a preference is how much iteration/verification effort goes in per icon: check `.claude/preferences.local.md`'s `sprite_effort` setting (default: `full` — see `cube-chaos-repo-setup`). `full` means the complete shaded multi-technique pass described below, verified by reading the rendered PNG back before calling it done. `placeholder` means a quicker single pass the user intends to refine themselves later (per the "Concurrent sprite edits" convention of a user hand-editing sprites live) — still never flat single-color even in placeholder mode, just less iteration/polish per icon.
+
 ## Color composition: don't ship flat single-color icons — shade them like the real cubes
 
 **A finished cube/perk icon should use ~3–5 colors, not one flat fill.** User-confirmed direction ("the image must not contain only one color, look at how color composition is in our other mods") after an early Unholy pass shipped flat single-blood-red icons. Verified by sampling real mod tiles (`GameData/General/Sprites/General_Cubes.c.png`, `GameData/DJ/Sprites/DJ_Cubes.c.png`): almost every real cube tile uses **3–5 distinct non-background colors** — e.g. General's tiles run gunmetal `(80,80,85)` + light-olive `(160,181,118)` + olive `(107,142,35)` + dark `(45,45,50)`; DJ's run gray `(70,70,75)` + white highlight `(255,255,255)` + light-gray + near-black outline + a blue-gray. The recurring recipe is **base body color + a darker outline/shadow + a lighter highlight + (often) one small bright accent** — pick shades within the mod's own palette family (see the mod's palette memory) rather than unrelated hues.

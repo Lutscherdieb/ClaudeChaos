@@ -6,7 +6,10 @@ One entry point (`cube-chaos-orchestrator`) routes every request to a content-ty
 flowchart TD
     Start(["Request"]) --> Root{"In the game root?"}
     Root -- no --> AskRoot["Ask for install path"]
-    Root -- yes --> ModQ{"New or existing mod?"}
+    Root -- yes --> SetupQ{"preferences.local.md<br/>exists yet?"}
+    SetupQ -- no --> SetupOffer["Offer cube-chaos-repo-setup<br/>(git mode &middot; tool preflight &middot; preferences)"]
+    SetupOffer --> ModQ
+    SetupQ -- yes --> ModQ{"New or existing mod?"}
     ModQ -- new --> NewMod["new-mod.md"]
     ModQ -- existing --> TypeQ{"What content type?"}
 
@@ -35,6 +38,10 @@ flowchart TD
 ```
 
 Shapes carry the meaning, so this reads the same whether GitHub renders it light or dark: **rounded ends** are the start/end of a request, **diamonds** are questions/branches, **plain rectangles** are workflow files or write/research steps, and **hexagons** are the two hard gates.
+
+## First-time setup, once per machine
+
+The first time a session runs on a machine/checkout that has no `.claude/preferences.local.md` yet, the orchestrator offers `cube-chaos-repo-setup` before anything else: choosing a git/GitHub mode (your own fork, a branch on a shared repo, local-only git, or no git at all — each with its cost stated up front), a preflight for the tools every other skill assumes (`git`, `python3`+Pillow, `bash`, optionally `gh`/`jq`), and a one-time personal-preferences questionnaire (preview-gate strictness, sprite effort, naming/color check-ins, README timing, proactive write-back, test-launch behavior) written to that gitignored file. It's a one-time offer, not a recurring gate — skipping it just means every preference below uses its documented "Recommended" default.
 
 ## The two hard gates
 

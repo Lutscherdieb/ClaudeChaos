@@ -35,6 +35,13 @@
 # letters, etc). Never commit this; each contributor keeps their own.
 .claude/settings.local.json
 
+# Personal working-style preferences (preview-gate strictness, sprite art
+# effort, naming/color check-ins, README timing, proactive write-back,
+# test-launch behavior) - set up by the cube-chaos-repo-setup skill. Every
+# contributor keeps their own; nobody's personal taste gets forced on anyone
+# else working from this same shared repo.
+.claude/preferences.local.md
+
 # OS/editor cruft
 .DS_Store
 Thumbs.db

@@ -1,6 +1,10 @@
 # Cube Chaos modding — project rules
 
-This repo holds one or more Cube Chaos mods plus the Claude Code skills used to build them. It is meant to be shared (git repo, possibly with strangers), so it deliberately contains **no personal data** — see `.gitignore` for what's kept out (local permission files, etc). Keep it that way: don't put real names, emails, absolute machine-specific paths, or session IDs into anything under version control.
+This repo holds one or more Cube Chaos mods plus the Claude Code skills used to build them. It is meant to be shared (git repo, possibly with strangers), so it deliberately contains **no personal data** — see `.gitignore` for what's kept out (local permission files, personal working-style preferences, etc). Keep it that way: don't put real names, emails, absolute machine-specific paths, or session IDs into anything under version control.
+
+## Setting up a new machine or a new contributor
+
+Before diving into a modding task on a machine that hasn't used this repo before (a fresh clone, a different contributor, or the repo owner on a second device), use the `cube-chaos-repo-setup` skill — it decides how git/GitHub should work here (your own fork, a branch on a shared repo, local-only git, or no git at all, each with a stated cost/benefit), checks that the tools every other skill assumes are actually present (`git`, `python3`+Pillow, `bash`, optionally `gh`/`jq`), and runs a one-time personal-preferences questionnaire into a gitignored `.claude/preferences.local.md` (preview-gate strictness, sprite art effort, naming/color check-ins, README timing, proactive write-back, test-launch behavior). `cube-chaos-orchestrator`'s Step 0.5 offers this automatically the first time it notices that file is missing — it's a one-time offer, not a recurring nag, and skipping it just means every preference below defaults to the "Recommended" option documented in that skill.
 
 ## The one hard rule: never edit base-game files
 
@@ -12,10 +16,12 @@ All mod content lives under `GameData/<ModName>/`, one folder per mod. `BelongsT
 
 Use the `cube-chaos-orchestrator` skill (or just say what you want to do — "create a mod", "edit a mod", "add a new perk," etc.) as the entry point for any modding session. It asks new-mod-vs-existing, routes to the right content-type workflow, and makes sure the domain skills below get invoked in the right order and nothing gets marked "done" without a test-launch and log check.
 
-The four domain skills hold the actual technical knowledge and are usually invoked *by* the orchestrator, but are also fine to use directly for a narrow question:
+The domain skills hold the actual technical knowledge and are usually invoked *by* the orchestrator, but are also fine to use directly for a narrow question:
 - `cube-chaos-scripting` — the `CUBE:`/`PERK:`/`Ability:` DSL itself.
+- `cube-chaos-scenario-scripting` — the `SCENARIO:`/`MAP:`/`NODEMAP:`/`CHOICE:` DSL for battle maps, terrain, campaign maps, challenges, and reward screens.
 - `cube-chaos-rule-text` — `Text:`/`Description:` prose conventions.
 - `cube-chaos-sprite-art` — sprite sheet sizing, colors, and the full border-pattern library (generate borders from scratch, no reference-file extraction needed).
+- `cube-chaos-balancing` — mana/hp/`IDENT` stats and perk `Value:`/`BalanceCap:` pricing.
 - `cube-chaos-mod-setup` — mod folder scaffolding, `Loading_Order.txt`, filename-collision pitfalls, the launch-and-check-logs test loop.
 
 ## Non-negotiable per-edit consistency rules

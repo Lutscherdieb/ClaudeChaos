@@ -22,8 +22,8 @@ Each mod's own README has a full preview of its content, rendered to match the g
 
 ## Using the Claude Code skills
 
-1. Clone this repo directly into your Cube Chaos install folder (the one with `Cube Chaos.exe` in it) — or copy just the `.claude/` folder there if you don't want the mods too.
+1. Clone this repo directly into your Cube Chaos install folder (the one with `Cube Chaos.exe` in it) — or copy just the `.claude/` folder there if you don't want the mods too. Want your own fork instead of working straight off this one, or don't want git involved at all? Either's fine — the setup step below sorts that out.
 2. Open that folder in Claude Code.
-3. Say what you want to do — "create a mod", "add a new perk", "edit the DJ mod" — and the `cube-chaos-orchestrator` skill takes it from there.
+3. Say what you want to do — "create a mod", "add a new perk", "edit the DJ mod" — and the `cube-chaos-orchestrator` skill takes it from there. First time on a given machine, it'll offer a quick one-time setup pass first (git/GitHub mode, a check that the tools it needs are installed, and a few questions about how you like to work) before getting into the actual mod.
 
 For how a request actually moves through that skill system (routing, gates, which skill does what), see **[`WORKFLOW_OVERVIEW.md`](WORKFLOW_OVERVIEW.md)**.

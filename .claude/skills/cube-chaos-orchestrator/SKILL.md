@@ -15,6 +15,10 @@ This is the entry point for modding work in this repo. It doesn't hold DSL/prose
 
 This skill set and the git repo both live inside the actual Cube Chaos game install (the folder containing `GameData/`, `ModdingInfo.txt`, and `Cube Chaos.exe`), not in some separate project directory. If the current working directory doesn't look like that root (no `GameData/` folder, no `ModdingInfo.txt` alongside it), don't guess — ask the user for the game's install path via `AskUserQuestion` before doing anything else, since every path in this skill set (`GameData/<Mod>/...`, `%APPDATA%/CubeChaos/Log.txt`, etc.) is relative to it.
 
+## Step 0.5 — first-time repo/preferences setup (once per machine/checkout)
+
+Check whether `.claude/preferences.local.md` exists. If it does, this machine/checkout has already been through setup — say nothing and go straight to Step A. **If it doesn't exist yet**, this is likely the first session on this machine or checkout: don't force a full setup wizard on someone who just wants to get one quick thing done, but do offer it via `AskUserQuestion` ("Looks like this machine hasn't been set up yet — want to run through git-mode and preference setup first (a few minutes), or skip for now and use the recommended defaults?"). Either answer is fine — "skip" just means every preference-driven step later in this session (Step C's gate, sprite effort, README timing, etc.) uses the "Recommended" default documented in `cube-chaos-repo-setup`, not a hard requirement to run setup before doing anything. If they want to run it, hand off to `cube-chaos-repo-setup` before continuing to Step A; it covers git/GitHub mode (own fork, branch on a shared repo, local-only git, or no git at all), a tool/path preflight (git, python3+Pillow, bash, optionally gh/jq), and the personal-preferences questionnaire.
+
 ## Step A — new mod, or editing an existing one?
 
 Ask with `AskUserQuestion` unless it's already obvious from the request (e.g. the user names an existing mod folder or an existing perk to edit).
@@ -90,7 +94,7 @@ Every path ends the same way: **`cube-chaos-mod-setup`'s launch-and-check-`Log.t
 
 2. If the session creates several items (e.g. a synergy batch), present them **together in one plan**, but accept **per-item feedback** — the user shouldn't have to re-approve nine good items to adjust the tenth.
 
-3. Then wait for the user's own words. "OK / go" → implement. "Cost's too high / that's not the trigger I meant / make it simpler" → adjust the *spec table* (not files), reprint the changed item(s), and wait again. Loop until the user OKs. **Ask via `AskUserQuestion` only if genuinely blocked on a design decision** (per the existing "ask ambiguous mechanics" / "ask for content names" / "ask before picking colors" memories) — otherwise plain iteration on the printed table is enough.
+3. Then wait for the user's own words. "OK / go" → implement. "Cost's too high / that's not the trigger I meant / make it simpler" → adjust the *spec table* (not files), reprint the changed item(s), and wait again. Loop until the user OKs. **Ask via `AskUserQuestion` only if genuinely blocked on a design decision**, and check `.claude/preferences.local.md`'s `ask_before_naming_colors` setting first if it exists (default: on) — otherwise plain iteration on the printed table is enough. This whole gate is itself controlled by `.claude/preferences.local.md`'s `preview_gate` setting (default: on, i.e. exactly as described here) — see `cube-chaos-repo-setup` for where that file comes from.
 
 4. **Only sprites and file writes happen after the OK.** Mechanics (ability + numbers + rule text) are what the gate approves; the sprite is drawn *after*, once the design is locked, so no pixel work is wasted on a design that gets reshaped. The per-workflow "Sequence" steps run only past this point.
 
