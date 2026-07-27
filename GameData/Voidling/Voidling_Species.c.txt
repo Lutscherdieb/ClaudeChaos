@@ -10,7 +10,7 @@ VoidExcessManaCapture
 BeforeACubeTakesDamage If IsType Excessmana
  Both NegateX EventAmount
   FactionXGainsYMana FactionOfThis EventAmount
-Text: Whenever you or an enemy would take excess mana damage, negate it and add that much to your mana instead End
+Text: Whenever you or an enemy would take excess mana damage, negate it End
 End
 
 COMPOUND: ABILITY
@@ -21,12 +21,12 @@ EverySecond If CubeExists ARandomCubeWhich CubeHasName Test True_Void
    Both FactionXGainsYMana FactionOfThis Multiplication DoubleConstant -1 GetVariableOnCube VOIDLING_OVERFLOW Caster
     EveryCubeWhich CubeHasName Test True_Void
      TargetCube Test GainAbilityStacking VoidExpansionX 0 RoundedDown Division GetVariableOnCube VOIDLING_OVERFLOW Caster DoubleConstant 100
-Text: Whenever your mana reaches its max or above, lose all of it - each True Void on the battlefield gains 1 Void Reach for every 100 mana lost this way End
+Text: Whenever your mana reaches its max or above, lose all of it - each True Void on the battlefield gains 1 \C160 100 220 Void Reach \CN for every 100 mana lost this way End
 End
 
 PERK: Voidling
 BelongsTo: SPECIES
-Description: Start each battle with a True Void cube in your hand \N Your leader takes no damage from True Void \N Whenever you or an enemy would take excess mana damage, negate it and add that much to your mana instead \N Whenever your mana reaches its max or above, lose all of it - each True Void on the battlefield gains 1 Void Reach for every 100 mana lost this way End
+Description: Your leader is \C140 60 210 Void Touched \B : \CN \N \C96 96 96 (Cannot be damaged by True Void) \CN \N \C96 96 96 (Starts each battle with a True Void cube in hand) \CN \N Whenever you or an enemy would take excess mana damage, negate it \N Whenever your mana reaches its max or above, lose all of it - each True Void on the battlefield gains 1 \C160 100 220 Void Reach \CN for every 100 mana lost this way End
 Ability: AtTheStartOfTheBattle AddCubeToHandOfThis CubeConstant True_Void
 Ability: VoidLeaderWard
 Ability: VoidExcessManaCapture

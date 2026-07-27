@@ -96,6 +96,14 @@ Pick the header color from the base game's existing vocabulary rather than inven
 
 **A purely cosmetic tag ability still gets the treatment**, with the explanation opening "Cosmetic only," so the player knows there's no effect to hunt for — e.g. `(Cosmetic only, marks a Note that gained all abilities of a random perk)`. This is not a contradiction of "never mention purely cosmetic effects" below: that rule is about not cluttering a *mechanical* ability's text with its sound/particle side effects. A tag ability whose entire existence is the marker has nothing else to describe, and its tooltip line renders whether you like it or not (there is no way to hide an ability from the tooltip — see `cube-chaos-scripting`), so the honest move is to say what the marker means.
 
+### A keyword with 2+ mechanically distinct effects: one dim parenthetical per effect, same shade, no per-effect color
+
+When a single `COMPOUND: ABILITY` keyword bundles multiple genuinely separate effects (e.g. two different triggers, like an `AfterThisIsCreated` one-shot plus an `ExtraTrigger: BeforeThisTakesDamage` passive), give each effect its own `(...)` parenthetical on its own line, all in the same `96 96 96` dim gray — not one dimmed and one full-color/standout:
+```
+Text: \C<R> <G> <B> <Keyword Name> \B : \CN \N \C96 96 96 (<effect 1>) \CN \N \C96 96 96 (<effect 2>) \CN End
+```
+**Decided against giving any individual effect its own standout color**, even one that seems like the "headline" effect (e.g. a damage-immunity clause) — tried on the Voidling mod's `VoidTouched` keyword (colored `Cannot be damaged by True Void` on its own full-color line, separate from the dimmed creation-effect parenthetical) and the user reverted it back to matching-gray-parentheses for both. The header's own color is what marks the keyword as a keyword; every effect underneath it is equally "the definition" and dims uniformly, the same as a single-effect keyword's one parenthetical would. This applies to any reference site that restates the keyword's effects in prose too (e.g. a perk `Description:` naming a cube/leader as holding that keyword) — match the same one-gray-parenthetical-per-effect shape there, not just in the compound's own `Text:`.
+
 ## Hard formatting rules
 
 - **Never put a period before the closing `End`.** Checked ~3070 real `Text:`/`Description:` lines: only 1 has a period before `End`. End the sentence and put `End` directly after — e.g. `Text: Heals the cube in front for 2 hp End`.

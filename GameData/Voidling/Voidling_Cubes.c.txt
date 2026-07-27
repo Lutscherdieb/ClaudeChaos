@@ -20,6 +20,16 @@ BeforeThisTakesDamage NegateX EventAmount
 Text: True Void takes no damage End
 End
 
+COMPOUND: ABILITY
+VoidTouched
+AfterThisIsCreated If Not CubeExists ARandomCubeWhich CubeHasName Test True_Void
+ Both AddCubeToHandOfThis CubeConstant True_Void
+  Both Exile
+   RemoveThisAbility
+ExtraTrigger: BeforeThisTakesDamage If CubeHasName Culprit True_Void NegateX EventAmount
+Text: \C140 60 210 Void Touched \B : \CN \N \C96 96 96 (Cannot be damaged by True Void) \CN \N \C96 96 96 (After this is created, if there is no True Void on the battlefield, add a True Void to your hand and exile this instead) \CN End
+End
+
 CUBE: True_Void 0 100 100
 TOKEN
 Ability: Unmovable
@@ -47,6 +57,7 @@ Ability: AfterThisIsCreated EveryCubeWhich CubeHasName Test True_Void
      And Not AbilityHasName Test Debt
       Not AbilityHasName Test SilentDieAfterX
 Text: When this is created, each True Void on the battlefield gains a random non-projectile, non-temporary ability of a random cube from your library End
+Ability: VoidTouched
 AiPlacementRule: True
 End
 
@@ -63,10 +74,14 @@ IDENT 2 20 0 10 10
 TYPE Attacker
 TYPE Starter
 Ability: ChargeEveryX 180
-Ability: EveryXMeleeY 120 5
-Ability: AfterThisIsCreated EveryCubeWhich CubeHasName Test True_Void
- If IsLarger AmountOfAbilitiesOfCube Test DoubleConstant 0
-  TargetCube Caster GainRandomAbilityOfCube Test
-Text: After this is created gain 1 random ability of each True Void on the battlefield End
+Ability: VoidNova
+Ability: VoidTouched
+Ability: AfterThisIsCreated Both Both Both SetVariable VOIDWARRIOR_REACH DoubleConstant 0
+ EveryCubeWhich CubeHasName Test True_Void
+  If IsLarger GetStackingOfAbilityOnCube VoidExpansionX Test GetVariableOnCube VOIDWARRIOR_REACH Caster
+   TargetCube Caster SetVariable VOIDWARRIOR_REACH GetStackingOfAbilityOnCube VoidExpansionX Test
+ TargetCube Caster GainAbilityStacking VoidExpansionX 0 RoundedDown Division GetVariableOnCube VOIDWARRIOR_REACH Caster DoubleConstant 2
+ RemoveThisAbility
+Text: After this is created, gain \C160 100 220 Void Reach \CN equal to half the highest \C160 100 220 Void Reach \CN among True Void on the battlefield End
 AiPlacementAbility: AiWarrior
 End
