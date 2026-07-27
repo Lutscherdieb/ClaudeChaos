@@ -55,6 +55,11 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 <img src="Preview/General_Curses_Intimidated.png" width="700" alt="Intimidated curse card">
 <img src="Preview/General_Curses_Are_We_The_Bad_Guys.png" width="700" alt="Are We The Bad Guys curse card">
 
+### Consumables
+
+<img src="Preview/General_Consumables_Moral_Booster.png" width="700" alt="Moral Booster consumable card">
+<img src="Preview/General_Consumables_War_Supply.png" width="700" alt="War Supply consumable card">
+
 ### Class+Species synergies
 
 <img src="Preview/General_Synergies_General-Elemental.png" width="700" alt="General + Elemental synergy card">

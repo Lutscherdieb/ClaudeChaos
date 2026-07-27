@@ -1,0 +1,16 @@
+PERK: Moral_Booster
+BelongsTo: Consumable
+ClickAction: If BattleOngoing Both LoseThisPerk EveryCubeWhich And IsAlly Test
+ Not IsEqual PlacabilityOfPosition PositionOfCube Test FactionOfCube Caster
+  GainAbility StrengthX 1
+Description: Consumable: Allies in enemy territory gain \C255 38 0 Strength 1 \CN (Only works in battles) End
+Value: 5
+End
+
+PERK: War_Supply
+BelongsTo: Consumable
+ClickAction: If BattleOngoing Both LoseThisPerk XTimes DoubleConstant 3
+ AddCubeToHandOfFaction FreeCopy CubeConstant Recruit DoubleConstant 1
+Description: Consumable: Add 3 free Recruit cubes to your hand (Only works in battles) End
+Value: 20
+End
