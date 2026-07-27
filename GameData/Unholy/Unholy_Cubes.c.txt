@@ -149,17 +149,22 @@ Text: Every 20 seconds, create a neutral Molten_Brimstone at the top of the colu
 AiPlacementRule: And AiStacking AiBackline
 End
 
-CUBE: Blood_Totem 30 5 5
+CUBE: Blood_Totem 40 5 5
 IDENT 3 5 0 15 30
 TYPE Special
 TYPE Starter
-Ability: BeforeThisCollides If And IsAllyToCaster Victim Not IsALeader Victim
- Both TargetCube Victim TakeXDamage DoubleConstant 1
-  TargetCube Caster HealXDamage DoubleConstant 1
-Text: Before a non-leader ally collides with this, deal 1 damage to it and heal this 1 Hp End
-Ability: EveryXSeconds DoubleConstant 60 Both TargetCube Caster TakeXDamage DoubleConstant 1
- EveryCubeWhich Not IsEqual PlacabilityOfPosition PositionOfCube Test FactionOfCube Caster TakeXDamage DoubleConstant 1
-Text: Every minute this deals 1 damage to itself and 1 damage to every cube on the enemy side End
+Ability: RegenerationX 1
+Ability: EveryXSeconds DoubleConstant 60 EveryCubeWhich And IsAllyToCaster Test Not IsALeader Test TakeXDamage DoubleConstant 1
+Text: Every minute this deals 1 damage to itself and every other non-leader ally End
+Ability: AfterThisKills If IsAllyToCaster Victim
+ Both
+  IfElse IsPositionEmpty PositionInDirectionFromPosition North PositionOfCube Caster
+   CreateCubeOnPosition CopyWithAction Victim SetHp MaxHpOfCube Victim PositionInDirectionFromPosition North PositionOfCube Caster
+   CreateCubeOnPosition CopyWithAction Victim SetHp MaxHpOfCube Victim PositionInDirectionFromPosition North PositionOfCube TheFirstCubeInDirectionFromPositionWhich North PositionOfCube Caster IsPositionEmpty PositionInDirectionFromPosition North PositionOfCube Test
+  IfElse IsPositionEmpty PositionInDirectionFromPosition North PositionOfCube Caster
+   CreateCubeOnPosition CopyWithAction Victim SetHp MaxHpOfCube Victim PositionInDirectionFromPosition North PositionOfCube Caster
+   CreateCubeOnPosition CopyWithAction Victim SetHp MaxHpOfCube Victim PositionInDirectionFromPosition North PositionOfCube TheFirstCubeInDirectionFromPositionWhich North PositionOfCube Caster IsPositionEmpty PositionInDirectionFromPosition North PositionOfCube Test
+Text: After this kills an ally, create 2 full-hp copies of it in the first free spaces above this End
 AiPlacementRule: True
 End
 

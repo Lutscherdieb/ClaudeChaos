@@ -14,14 +14,7 @@ Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller HpOfCube Vict
 Description: After an allied cube is created with 0 hp by a non-0-hp source, give it ExtraLife End
 ObtainAction: AddCubeToInventory CubeConstant Ritual
 ObtainAction: AddCubeToInventory CubeConstant Cultist
-ObtainAction: AddCubeToInventory CubeConstant Two_Headed_Demon
-ObtainAction: AddCubeToInventory CubeConstant Plague_Imp
-ObtainAction: AddCubeToInventory CubeConstant Martyr
-ObtainAction: AddCubeToInventory CubeConstant Brimstone
-ObtainAction: AddCubeToInventory CubeConstant Hellstorm
-ObtainAction: AddCubeToInventory CubeConstant Plague_Ritual
 ObtainAction: AddCubeToInventory CubeConstant Blood_Totem
-ObtainAction: AddCubeToInventory CubeConstant Hell_Portal
 End
 
 PERK: Hell_Dragon_Egg
