@@ -284,6 +284,15 @@ Ability: AfterThisMoves If Not IsEqual PlacabilityOfPosition PositionOfThis Fact
     Both RemoveAbilityWithName Flying RemoveAbilityWithName ChargeEveryX
     PositionInDirectionFromPosition South PositionOfThis
 Text: After this moves in enemy territory with an enemy any distance below this, 50% chance to create a Shell below this and remove Flying and Charging from it End
+Ability: BeforeThisMoves IfElse HasAbilityWithName Caster ChargeEveryX
+ If Or CubeExists CubeInDirectionFromCube Forwards Caster
+  Not PositionExists PositionInDirectionFromPosition Forwards PositionOfThis
+  Both RemoveAbilityWithName ChargeEveryX Both GainAbility FleeEveryX 60 SetSpriteToCube CubeConstant Baby_War_Dragon_West
+ If HasAbilityWithName Caster FleeEveryX
+  If Or CubeExists CubeInDirectionFromCube Backwards Caster
+   Not PositionExists PositionInDirectionFromPosition Backwards PositionOfThis
+   Both RemoveAbilityWithName FleeEveryX Both GainAbility ChargeEveryX 60 SetSpriteToCube CubeConstant Baby_War_Dragon
+Text: Before this is blocked from moving or the edge of the map, it swaps between charging and fleeing, facing the direction it's now moving End
 Ability: GrowthX 5
 Ability: RegenerationX 2
 Ability: WorthXMore 25
@@ -302,4 +311,8 @@ Text: Every 12 seconds teleport to the top of the column above a random enemy En
 Ability: EveryXMeleeY 300 2
 Ability: GrowthX 2
 AiPlacementRule: And AiStacking Not AiFrontline
+End
+
+CUBE: Baby_War_Dragon_West 0 0 0
+TOKEN
 End

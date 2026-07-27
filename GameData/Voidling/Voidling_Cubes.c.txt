@@ -6,12 +6,12 @@ End
 
 COMPOUND: ABILITY
 VoidNova
-EveryXSeconds DoubleConstant 5 Both
+EveryXSeconds DoubleConstant 10 Both
  EveryCubeInRadiusXAroundTarget Addition GetStackingOfAbilityOnCube VoidExpansionX Caster DoubleConstant 2
   If Not IsSameCube Target Caster
    TakeXDamage Subtraction Addition GetStackingOfAbilityOnCube VoidExpansionX Caster DoubleConstant 3 DistanceOfPositions PositionOfThis PositionOfCube Target
  CreateAoEParticlesColourRadiusPosition DoubleConstant 16738816 Addition GetStackingOfAbilityOnCube VoidExpansionX Caster DoubleConstant 2 PositionOfThis
-Text: Every 5 seconds deal damage to every other cube within its current Void Reach, reduced by 1 per space of distance - touching cubes take the most, the outer edge always takes 1 End
+Text: Every 10 seconds deal damage to every other cube within its current Void Reach, reduced by 1 per space of distance - touching cubes take the most, the outer edge always takes 1 End
 End
 
 COMPOUND: ABILITY
@@ -53,8 +53,8 @@ End
 CUBE: Temple_The_Void 20 5 5
 IDENT 2 0 0 15 5
 TYPE Special
-Ability: AfterACubeDies If IsNeutral Culprit GenerateXMana DoubleConstant 1
-Text: Whenever a neutral cube kills another cube, gain 1 mana End
+Ability: AfterACubeDies If IsNeutral Culprit Cooldown DoubleConstant 1 GenerateXMana DoubleConstant 1
+Text: Whenever a neutral cube kills another cube, gain 1 mana, cooldown 1 second End
 AiPlacementRule: And AiStacking AiBackline
 End
 
