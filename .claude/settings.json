@@ -20,6 +20,13 @@
             "command": "bash .claude/hooks/check-md-dsl-safety.sh",
             "timeout": 15,
             "statusMessage": "Checking .md file for DSL-unsafe bare keywords..."
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash .claude/hooks/regen-preview-cards.sh",
+            "timeout": 30,
+            "statusMessage": "Regenerating mod preview cards..."
           }
         ]
       }
