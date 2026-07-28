@@ -32,6 +32,8 @@ If "existing mod" → note which mod folder is active for the rest of the sessio
 
 Skip this if the request already makes it obvious (naming a specific new perk/cube to add, or explicitly asking to "audit"/"check conventions"/"review for consistency"). Otherwise ask via `AskUserQuestion`, two options: **add or edit content** (goes to Step B), or **audit existing content for convention/consistency issues** (hands off to `cube-chaos-audit` for the rest of the session — it has its own scoping question, its own findings-then-approve gate mirroring Step C below, and its own rules for which fixes need the launch-and-log gate afterward). An audit session doesn't need Step B/C's content-type menu or preview gate at all; it runs entirely inside `cube-chaos-audit`, invoking whichever domain skill owns a given fix once the user approves it.
 
+**The mod being audited doesn't have to be one of this repo's own.** `cube-chaos-audit` also handles a third-party/Workshop mod dropped in purely for review — it detects authorship itself and, for a foreign mod, runs its own short scope questionnaire first (since several checklist rows are this repo's own house style, not universal correctness). Step A's own mod-discovery logic (reading `Loading_Order.txt`) is about *this repo's* mods and doesn't need to find a foreign mod there.
+
 ## Step B — what does the user want to do?
 
 Skip the menu if the request already names a clear content type ("add a new Curse called X" goes straight to the matching workflow file below — don't force a wizard step the user already skipped past themselves). Otherwise ask via `AskUserQuestion`, broad first (max 4 options per question):

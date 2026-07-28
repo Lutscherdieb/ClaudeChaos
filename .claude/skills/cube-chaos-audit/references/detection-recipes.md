@@ -1,8 +1,12 @@
 # Detection recipes — one per checklist row, same order as SKILL.md
 
 Load this when actually running an audit. Each recipe finds *candidates* — always filter against the
-owning skill's exact rule before treating a hit as a finding (see SKILL.md step 3). Run recipes against
-`GameData/<Mod>/*.c.txt` and `GameData/<Mod>/Sprites/*.c.png` only — never against the base-game folders.
+owning skill's exact rule before treating a hit as a finding (see SKILL.md step 5). Run recipes against
+`GameData/<Mod>/*.c.txt` and `GameData/<Mod>/Sprites/*.c.png` only — never against the base-game folders,
+whether `<Mod>` is one of ours or a foreign mod dropped in for review. Only run the recipes for rows that
+are actually in scope (Universal rows always; house-convention rows only once SKILL.md's scope
+questionnaire put that bucket in scope) — a recipe below tagged "(Universal — always check)" or naming a
+bucket says which.
 
 ## DSL & mechanical safety
 
@@ -20,7 +24,8 @@ owning skill's exact rule before treating a hit as a finding (see SKILL.md step 
 
 These need an actual read, not a grep — for every `Ability:`/`WorldAbility:` chain with its own `Text:`/`Description:`/`AbilityText:`, follow `cube-chaos-rule-text`'s own "Workflow for auditing existing text" (read the chain token by token, write down what it does, compare against the prose clause by clause). The narrower checks below can pre-filter candidates before that full read:
 
-- **Keyword styling**: grep the mod's `Text:`/`Description:` fields for a lowercase mention of any ability name that also has a `ModdingInfo.txt` entry, or a `\A` reference to a base-game (not mod-defined) ability. Either shape is a candidate.
+- **Base-game keyword color (Universal — always check)**: for every `\C<R> <G> <B> <Name>` reference to a base-game ability inside `Text:`/`Description:`, look up that ability's real color/name in `ModdingInfo.txt` and diff it. A mismatch (wrong RGB, or the mod's own class color used instead) is a finding regardless of who wrote the mod.
+- **Own-compound \A idiom (house convention — Rule-text wording style)**: grep the mod's `Text:`/`Description:` fields for a lowercase mention of any ability name that's actually this mod's own `COMPOUND: ABILITY`, or a hand-written parenthetical duplicating that compound's explanation instead of `\A <Name> <params>`. Either shape is a candidate — only worth flagging when this bucket is in scope.
 - **"Not X" phrasing**: grep for `\(not |\(other than|excluding` inside `Text:`/`Description:` fields.
 - **Cosmetic mentions**: for every `Text:`/`Description:` field, check whether it names `PlaySound`/`Animation:`/`CubeColourShift:`/particle effects that are cosmetic-only in the paired `Ability:` chain.
 - **Formatting**: grep for `\. End` (period directly before `End`) and check the first character of every `Text:`/`Description:` field is capitalized.
@@ -61,6 +66,10 @@ def check_cube_guide_ring(sheet_path, cols, rows, T=17, GUIDE=(255,0,110)):
 ```
 
 Run the equivalent check for PERK tiles at `T=27`, `GUIDE=(255,0,220)`, then layer in the category-specific ring(s) using the exact `ring_positions`/`clean_3ring_border`/`corner_bracket_border`/`plain_class_border` functions already defined in `cube-chaos-sprite-art/SKILL.md` — generate the *expected* pixel dict for that tile's real category and diff it against the actual crop, rather than hand-rolling a second copy of the mask logic here. A non-empty diff on a real (non-blank) tile is a finding; an entirely blank/unused grid cell is expected to differ (it has no border at all) and isn't one.
+
+`check_cube_guide_ring`'s raw mismatch list serves two different findings depending on scope, so split it before reporting:
+- **Universal — trimmed-content check**: keep only mismatches where the actual pixel is neither the guide color nor the tile's plain background color (`BG`, `(0,148,255)` by default) — that's real content sitting where the engine trims it, invisible in-game for any mod. Always check this, own mod or foreign.
+- **Sprite authoring & polish bucket — guide-marker check**: keep the mismatches where the pixel *is* background (i.e. the guide marker itself is simply missing, not overwritten by content) — that's our own authoring convention not being followed. Only check this for our own mods, or a foreign mod that opted into the bucket.
 
 - **Border-bleed check**: for any mismatch found above where the wrong pixel is a color that also appears in the tile's own interior/icon art (not a neighboring category's border color), that's the color-matching-bleed failure mode specifically — flag it as such rather than as a generic misalignment.
 - **Ground-unit flush check**: for each non-`Flying`/non-`Hovering` CUBE tile, find the lowest non-background pixel row and confirm it's the tile's actual last content row (row 15 of the inner 15×15).
