@@ -78,7 +78,7 @@ PERK: Air_Superiority
 BelongsTo: General
 Ability: EveryXSeconds DoubleConstant 20 TargetCube ARandomCubeWhich And IsAllyToCaster Test HasAbilityWithName Test Flying
  GainAbility DoubleTimeX 10
-Description: Every 20 seconds, give a random friendly unit with Flying \C197 204 112 Double Time \CN for 10 seconds End
+Description: Every 20 seconds, give a random friendly unit with \C109 209 228 Flying \CN \C197 204 112 Double Time \CN for 10 seconds End
 End
 
 PERK: Dig_In

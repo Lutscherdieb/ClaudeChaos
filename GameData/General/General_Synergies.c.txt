@@ -21,7 +21,7 @@ Ability: AtTheStartOfTheBattle Both AddCubeToHandOfThis CopyWithAction CubeConst
  Both AddCubeToHandOfThis CopyWithAction CubeConstant Bomb GainAbility Swarm
   Both AddCubeToHandOfThis CopyWithAction CubeConstant Shell GainAbility Swarm
    AddCubeToHandOfThis CopyWithAction CubeConstant Shot GainAbility Swarm
-Description: At the start of the battle add a Rocket, Bomb, Shell, and Shot to your hand, each with Swarm End
+Description: At the start of the battle add a Rocket, Bomb, Shell, and Shot to your hand, each with \C255 0 220 Swarm \CN End
 End
 
 PERK: General-Shadow

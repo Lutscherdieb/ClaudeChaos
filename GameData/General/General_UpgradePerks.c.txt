@@ -1,4 +1,5 @@
 PERK: Arms_Race_Mk2
+Description: Created Shots are created as Shells instead \N Created Shells are created as Bombs instead End
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Shot
  Both TargetCube Victim Exile
   CreateCubeOnPosition CubeConstant Shell PositionOfCube Victim
@@ -7,11 +8,11 @@ Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Shel
  Both TargetCube Victim Exile
   CreateCubeOnPosition CubeConstant Bomb PositionOfCube Victim
 AbilityText: Created Shells are created as Bombs instead End
-Description: Created Shots are created as Shells instead \N Created Shells are created as Bombs instead End
 IsUpgradeFrom: Arms_Race 80
 End
 
 PERK: Arms_Race_Mk3
+Description: Created Shots are created as Shells instead \N Created Shells are created as Bombs instead \N Created Bombs are created as Rockets instead End
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Shot
  Both TargetCube Victim Exile
   CreateCubeOnPosition CubeConstant Shell PositionOfCube Victim
@@ -24,14 +25,13 @@ Ability: AfterACubeIsCreated If IsAllyToCaster Victim If CubeHasName Victim Bomb
  Both TargetCube Victim Exile
   CreateCubeOnPosition CubeConstant Rocket PositionOfCube Victim
 AbilityText: Created Bombs are created as Rockets instead End
-Description: Created Shots are created as Shells instead \N Created Shells are created as Bombs instead \N Created Bombs are created as Rockets instead End
 IsUpgradeFrom: Arms_Race_Mk2 120
 End
 
 PERK: Air_Superiority_Mk2
 Ability: EveryXSeconds DoubleConstant 20 EveryCubeWhich And IsAllyToCaster Test HasAbilityWithName Test Flying
  GainAbility DoubleTimeX 10
-Description: Every 20 seconds, give all friendly units with Flying \C197 204 112 Double Time \CN for 10 seconds End
+Description: Every 20 seconds, give all friendly units with \C109 209 228 Flying \CN \C197 204 112 Double Time \CN for 10 seconds End
 IsUpgradeFrom: Air_Superiority 100
 End
 
@@ -52,6 +52,7 @@ IsUpgradeFrom: Revenge 80
 End
 
 PERK: Air_Raid
+Description: After an allied leader takes damage, create a Bomber or Drop_Helicopter in a random left_side_position, giving it \A Take_Off \B , cooldown 10 seconds \N Every minute, create a Bomber or Drop_Helicopter in a random left_side_position, giving it \A Take_Off End
 Ability: AfterACubeTakesDamage If And IsAllyToCaster Victim IsALeader Victim
  Cooldown 600
   Randomly CreateCubeOnPosition CopyWithAction CubeConstant Bomber GainAbility Take_Off ARandomLeftPosition
@@ -60,7 +61,6 @@ AbilityText: After an allied leader takes damage, create a Bomber or Drop_Helico
 Ability: EveryMinute Randomly CreateCubeOnPosition CopyWithAction CubeConstant Bomber GainAbility Take_Off ARandomLeftPosition
  CreateCubeOnPosition CopyWithAction CubeConstant Drop_Helicopter GainAbility Take_Off ARandomLeftPosition
 AbilityText: Every minute, create a Bomber or Drop_Helicopter in a random left_side_position, giving it \A Take_Off End
-Description: After an allied leader takes damage, create a Bomber or Drop_Helicopter in a random left_side_position, giving it \A Take_Off \B , cooldown 10 seconds \N Every minute, create a Bomber or Drop_Helicopter in a random left_side_position, giving it \A Take_Off End
 IsUpgradeFrom: Air_Support 80
 End
 
