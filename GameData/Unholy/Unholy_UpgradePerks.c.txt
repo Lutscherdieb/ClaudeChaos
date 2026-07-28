@@ -1,5 +1,5 @@
 PERK: Baby_Hell_Dragon
-Ability: AtTheStartOfTheBattle Both AddCubeToHandOfThis CopyOfCube CubeConstant Baby_Hell_Dragon RemoveThisAbility
+Ability: AtTheStartOfTheBattle Both AddCubeToHandOfThis FreeCopy CubeConstant Baby_Hell_Dragon RemoveThisAbility
 Description: Start with a free Baby_Hell_Dragon in your hand End
 IsUpgradeFrom: Hell_Dragon_Egg 60
 ReferenceCube: Baby_Hell_Dragon

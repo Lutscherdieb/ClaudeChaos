@@ -18,7 +18,7 @@ IsUpgradeFrom: Final_Countdown 60
 End
 
 PERK: Baby_Bass_Dragon
-Ability: AtTheStartOfTheBattle Both AddCubeToHandOfThis CopyOfCube CubeConstant Baby_Bass_Dragon RemoveThisAbility
+Ability: AtTheStartOfTheBattle Both AddCubeToHandOfThis FreeCopy CubeConstant Baby_Bass_Dragon RemoveThisAbility
 Description: Start with a free Baby_Bass_Dragon in your hand End
 IsUpgradeFrom: Bass_Dragon_Egg 60
 ReferenceCube: Baby_Bass_Dragon

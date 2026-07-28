@@ -2,7 +2,7 @@ PERK: Wildcard_Upgrade
 BelongsTo: CubeUpgrade
 ObtainAction: FindTargetUpgradeCubes ThisPerksAction
 LoadAction: FindTargetUpgradeCubes ThisPerksAction
-SpecialAction: Both GainRegeneratingUsesX 2 Both GainXExtraHp Subtraction 0 HpOfCube Target GainRandomAbilityOfCube APRandomCubeInLibraryWhich Not IsToken Test
+SpecialAction: Both GainRegeneratingUsesX 2 Both GainXExtraHp Subtraction 0 HpOfCube Target GainRandomAbilityOfCube APRandomCubeInLibraryWhich And Not IsToken Test IsLarger AmountOfAbilitiesOfCubeWhich Test True DoubleConstant 0
 Description: CSVARIABLE THISPERK in your inventory has its hp set to 0 and gains a random ability from another cube End
 CubeImage: CubeUpgradeImage
 Requirement: IsLarger HpOfCube RequirementCube 0

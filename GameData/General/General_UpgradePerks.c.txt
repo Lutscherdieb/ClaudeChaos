@@ -87,7 +87,7 @@ IsUpgradeFrom: Believer 80
 End
 
 PERK: Baby_War_Dragon
-Ability: AtTheStartOfTheBattle Both AddCubeToHandOfThis CopyOfCube CubeConstant Baby_War_Dragon RemoveThisAbility
+Ability: AtTheStartOfTheBattle Both AddCubeToHandOfThis FreeCopy CubeConstant Baby_War_Dragon RemoveThisAbility
 Description: Start with a free Baby_War_Dragon in your hand End
 IsUpgradeFrom: War_Dragon_Egg 60
 ReferenceCube: Baby_War_Dragon
