@@ -539,6 +539,34 @@ def build_consumables():
     return cards
 
 
+CSVARIABLE_RE = re.compile(r'\bCSVARIABLE\s+\S+\b')
+
+
+def build_cubeupgrades():
+    """CubeUpgrade perks (see cube-chaos-scripting's perk-economy.md) live in
+    their own <ModPrefix>_CubeUpgrades.c.txt + matching sprite sheet, same
+    shape as Curses/Consumables. Their Description: commonly uses the
+    engine's own CSVARIABLE <VarName> tooltip placeholder (real base-game
+    usage: Main/CubeUpgrades.c.txt's VotikiumUpgrade) to substitute in
+    whatever cube is actually cached for that perk instance at runtime --
+    meaningless for a static preview card with no live game state, so it's
+    replaced with a generic "(the upgraded cube)" placeholder instead of
+    rendering the literal token text."""
+    blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_CubeUpgrades.c.txt"), PERK_HEADER)
+    sheet = load_sheet(f"{MOD_PREFIX}_CubeUpgrades.c.png")
+    cols = grid_cols(len(blocks))
+    cards = []
+    for i, b in enumerate(blocks):
+        name = b["header"].group(1)
+        desc = field(b["lines"], "Description:")
+        if desc:
+            desc = CSVARIABLE_RE.sub("(the upgraded cube)", desc)
+        val = field(b["lines"], "Value:")
+        icon = upscale(crop_icon(sheet, i, TILE_PERK, cols, strip_guide=True), 7)
+        cards.append((name, render_card(pretty(name), desc, val, icon)))
+    return cards
+
+
 def build_synergies():
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Synergies.c.txt"), PERK_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Synergies.c.png")
@@ -644,6 +672,7 @@ def build_cubes():
 BUILDERS = {
     "Curses": build_curses,
     "Consumables": build_consumables,
+    "CubeUpgrades": build_cubeupgrades,
     "Synergies": build_synergies,
     "Perks": build_perks,
     "Cubes": build_cubes,

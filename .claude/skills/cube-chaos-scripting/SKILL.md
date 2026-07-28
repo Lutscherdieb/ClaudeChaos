@@ -1,6 +1,6 @@
 ---
 name: cube-chaos-scripting
-description: Use whenever writing or debugging CUBE:/PERK: definitions and Ability: chains for a Cube Chaos mod - the game's custom prefix-notation scripting DSL. Covers block formats, the Text:/Description: requirement, argument-count/sequencing rules, implicit target resolution (Test/Target/Caster/Storage), faction numbering and default allegiance of created cubes, granting a freshly created cube a one-shot ability via GainAbilityText, tinting a cube via a granted ability's CubeColourShift field, building pure-cosmetic tag/marker abilities (NO_DUPLICATES/NORANDOM), writing parameterized keyword compounds (Generic* placeholders + CODE N), tooltip ability ordering, and specific gotchas discovered the hard way (CubeHasName vs HasNameOfCube, LOCAL-scoped abilities, XTimes vs GainAbilityStacking, the missing BeforeACubeIsCreated trigger and its dead-grant trap). Trigger on "CUBE:", "PERK:", "Ability:", "COMPOUND:", "keyword ability", "CANT READ", "excess End", "CubeColourShift", "tint", "NORANDOM", or when writing any new cube/perk ability logic.
+description: Use whenever writing or debugging CUBE:/PERK: definitions and Ability: chains for a Cube Chaos mod - the game's custom prefix-notation scripting DSL. Covers block formats, the Text:/Description: requirement, argument-count/sequencing rules, implicit target resolution (Test/Target/Caster/Storage), faction numbering and default allegiance of created cubes, granting a freshly created cube a one-shot ability via GainAbilityText, tinting a cube via a granted ability's CubeColourShift field, building pure-cosmetic tag/marker abilities (NO_DUPLICATES/NORANDOM), writing parameterized keyword compounds (Generic* placeholders + CODE N), tooltip ability ordering, and specific gotchas discovered the hard way (CubeHasName vs HasNameOfCube, LOCAL-scoped abilities, XTimes vs GainAbilityStacking, the missing BeforeACubeIsCreated trigger and its dead-grant trap). Trigger on "CUBE:", "PERK:", "Ability:", "COMPOUND:", "keyword ability", "CANT READ", "excess End", "CubeColourShift", "tint", "NORANDOM", "Animation:", "animated cube", "changing frames", or when writing any new cube/perk ability logic.
 ---
 
 # Cube Chaos scripting DSL
@@ -115,6 +115,7 @@ roughly by how often a session needs them:
 | `references/targeting-movement-board.md` | Working with board positions, directions, territory, movement/patrol behavior, or gravity |
 | `references/perk-economy.md` | Pricing a Curse/Blight/Boon/Consumable/Golden/Neutral/CubeUpgrade, or reasoning about multiple owned copies of a perk |
 | `references/authoring-and-inheritance.md` | Writing a new `COMPOUND: ABILITY` keyword, using `Visual:`/`CubeColourShift:`, making an ability propagate to created cubes, or building a battle-start/movement/creature-evolution primitive |
+| `references/cube-animation.md` | Making a `CUBE:`'s icon change frames over time/HP/a clock/a trigger/any condition — the undocumented `Animation:` DSL keyword (CUBE-only, not usable on `PERK:`) |
 
 ## Debugging checklist
 

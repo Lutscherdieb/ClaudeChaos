@@ -34,6 +34,10 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 <img src="Preview/Unholy_Perks_Mutations.png" width="700" alt="Mutations perk card">
 <img src="Preview/Unholy_Perks_Rebirth_of_the_Chosen.png" width="700" alt="Rebirth of the Chosen perk card (upgrade of Mutations)">
 
+### Cube Upgrades
+
+<img src="Preview/Unholy_CubeUpgrades_Wildcard_Upgrade.png" width="700" alt="Wildcard Upgrade card">
+
 ### Class+Species synergies
 
 <img src="Preview/Unholy_Synergies_Warrior-Unholy.png" width="700" alt="Warrior + Unholy synergy card">
