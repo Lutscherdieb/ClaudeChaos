@@ -7,13 +7,13 @@ End
 PERK: General
 BelongsTo: CLASS
 LevelRequirement: 1
-Description: Whenever an ally is created or before it dies while in enemy territory, it gains \C255 38 0 Strength 1 \CN \N Starts battles with half the placing area and an infinite-use Annex and Retreat cube in hand End
+Description: Whenever an ally is created or before it dies while in enemy territory, it gains \A StrengthX 1 \N Starts battles with half the placing area and an infinite-use Annex and Retreat cube in hand End
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
  TargetCube Victim GainAbility StrengthX 1
-AbilityText: Whenever an ally is created in enemy territory, it gains \C255 38 0 Strength 1 \CN End
+AbilityText: Whenever an ally is created in enemy territory, it gains \A StrengthX 1 End
 Ability: BeforeACubeDies If IsAllyToCaster Victim If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
  TargetCube Victim GainAbility StrengthX 1
-AbilityText: Before an ally dies in enemy territory, it gains \C255 38 0 Strength 1 \CN End
+AbilityText: Before an ally dies in enemy territory, it gains \A StrengthX 1 End
 Ability: AtTheStartOfTheBattle Both TargetCube Caster SetVariable GFRONT_N DoubleConstant 0
  Both TargetCube Caster SetVariable GFRONT_MAXX DoubleConstant -1
   Both TargetCube Caster SetVariable GFRONT_MINX DoubleConstant -1
@@ -78,7 +78,7 @@ PERK: Air_Superiority
 BelongsTo: General
 Ability: EveryXSeconds DoubleConstant 20 TargetCube ARandomCubeWhich And IsAllyToCaster Test HasAbilityWithName Test Flying
  GainAbility DoubleTimeX 10
-Description: Every 20 seconds, give a random friendly unit with \C109 209 228 Flying \CN \C197 204 112 Double Time \CN for 10 seconds End
+Description: Every 20 seconds, give a random friendly unit with \C109 209 228 Flying \CN \A DoubleTimeX 10 End
 End
 
 PERK: Dig_In
@@ -116,7 +116,7 @@ PERK: Experienced_Fighter
 BelongsTo: General
 Ability: AfterACubeDies If IsAllyToCaster Culprit If Not IsALeader Culprit If IsEnemyToCaster Victim
  TargetCube Culprit GainAbility StrengthX 1
-Description: After a non leader ally kills an enemy, it gains \C255 38 0 Strength 1 \CN End
+Description: After a non leader ally kills an enemy, it gains \A StrengthX 1 End
 End
 
 PERK: Wartime_Logistics
@@ -133,7 +133,7 @@ PERK: Believer
 BelongsTo: General
 Ability: AfterACubeTakesDamage If IsEnemyToCaster Victim If IsAllyToCaster Culprit If Not IsALeader Culprit
  TargetCube Culprit GainAbility FervorX 1
-Description: After a non leader ally deals damage to an enemy, it gains \C255 38 0 Fervor 1 \CN End
+Description: After a non leader ally deals damage to an enemy, it gains \A FervorX 1 End
 End
 
 PERK: War_Dragon_Egg

@@ -46,7 +46,7 @@ PERK: Bass_Drop
 BelongsTo: DJ
 Ability: EveryMinute EveryCubeWhich And IsAllyToCaster Test IsSmaller ManaCostOfCube Test DoubleConstant 1
  GainAbility StrengthX 1
-Description: Every minute every allied 0 mana cost cube gains \C255 38 0 Strength 1 \CN End
+Description: Every minute every allied 0 mana cost cube gains \A StrengthX 1 End
 End
 
 PERK: Sampling

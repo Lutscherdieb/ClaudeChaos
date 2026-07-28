@@ -56,7 +56,7 @@ PERK: General-Fungus
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If Not HasAbilityWithName Victim ChargeEveryX
  TargetCube Victim GainAbility ChargeEveryX 120
-Description: Whenever an ally without \C155 238 255 Charging \CN is created, it gains \C155 238 255 Charging \CN End
+Description: Whenever an ally without \C155 238 255 Charging \CN is created, it gains \A ChargeEveryX 120 End
 End
 
 PERK: General-Moil
@@ -82,7 +82,7 @@ BelongsTo: CLASSSPECIES
 Ability: BeforeACubeDies If IsAllyToCaster Victim If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
  EveryCubeTouchingPosition PositionOfCube Victim
   If IsEnemyToCaster Target TargetCube Victim GainAbility ExplodesX 1
-Description: Before an ally dies while in enemy territory, give it \C182 0 0 Explodes 1 \CN for each touching enemy End
+Description: Before an ally dies while in enemy territory, every touching enemy gains \A ExplodesX 1 End
 End
 
 PERK: General-Remnant
@@ -97,14 +97,14 @@ BelongsTo: CLASSSPECIES
 Ability: AfterACubeTakesDamage If IsAllyToCaster Victim If IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
  If X%Chance DoubleConstant 10
   TargetCube Victim GainAbility RetaliateX 1
-Description: After an ally in friendly territory takes damage, 10% chance to give it \C198 27 33 Retaliate 1 \CN End
+Description: After an ally in friendly territory takes damage, 10% chance to give it \A RetaliateX 1 End
 End
 
 PERK: General-Plant
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
  TargetCube Victim GainAbility GrowthX 3
-Description: Whenever an ally is created in friendly territory, it gains \C0 127 14 Growth 3 \CN End
+Description: Whenever an ally is created in friendly territory, it gains \A GrowthX 3 End
 End
 
 PERK: General-No_Species

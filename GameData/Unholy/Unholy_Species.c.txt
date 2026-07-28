@@ -11,7 +11,7 @@ BelongsTo: SPECIES
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller HpOfCube Victim DoubleConstant 1
  If Or Not CubeExists Culprit Not IsSmaller HpOfCube Culprit DoubleConstant 1
   TargetCube Victim GainAbility ExtraLife
-Description: After an allied cube is created with 0 hp by a non-0-hp source, give it \C255 255 0 ExtraLife \CN End
+Description: After an allied cube is created with 0 hp by a non-0-hp source, give it \A ExtraLife End
 ObtainAction: AddCubeToInventory CubeConstant Ritual
 ObtainAction: AddCubeToInventory CubeConstant Cultist
 ObtainAction: AddCubeToInventory CubeConstant Blood_Totem

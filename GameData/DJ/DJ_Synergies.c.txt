@@ -9,7 +9,7 @@ End
 PERK: DJ-Plant
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim TargetCube Victim GainAbility GrowthX 1
-Description: Created allies gain \C0 127 14 Growth 1 \CN End
+Description: Created allies gain \A GrowthX 1 End
 End
 
 PERK: DJ-Crystal
@@ -32,7 +32,7 @@ BelongsTo: CLASSSPECIES
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsPlaced If HasAbilityWithName Victim Swarm
  EveryCubeInHandOfFactionWhich FactionOfThis HasNameOfCube Test Victim
   Both RemoveAbilityWithName Swarm GainAbility StrengthX 1
-Description: When an ally with \C255 0 220 Swarm \CN is placed, cubes in your hand with the same name lose \C255 0 220 Swarm \CN and gain \C255 38 0 Strength 1 \CN End
+Description: When an ally with \C255 0 220 Swarm \CN is placed, cubes in your hand with the same name lose \C255 0 220 Swarm \CN and gain \A StrengthX 1 End
 End
 
 PERK: DJ-Remnant

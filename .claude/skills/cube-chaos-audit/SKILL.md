@@ -85,7 +85,7 @@ see "Running an audit" step 2).
 | New `CUBE:`/`PERK:` blocks were appended at file end, not inserted mid-file (sprite slot order intact) | `SKILL.md` — "Block formats"; also `cube-chaos-sprite-art` slot-shifting section | Bug | Universal |
 | A mod-defined `COMPOUND: ABILITY` reference resolves — not `LOCAL`-scoped from another package, and its package loads after the definer per `Loading_Order.txt` | `references/gotchas-grepped.md` (LOCAL scoping / load-order entries) | Bug | Universal |
 | A renamed `PERK:`/`CUBE:` didn't leave a stale literal-string self-reference (`StringConstant <OldName>`, `CubeHasName ... <OldName>`) | `references/perk-economy.md` — perk self-reference section | Bug | Universal |
-| `IsUpgradeFrom:` perks live in their own sprite-less `<ModPrefix>_UpgradePerks.c.txt`, not mixed into the regular perks file | `cube-chaos-sprite-art` — upgrade-perk section | Bug | File/folder organization |
+| `IsUpgradeFrom:` perks live in their own `<ModPrefix>_UpgradePerks.c.txt`, not mixed into the regular perks file (that file's sprite sheet, if any, is a real supported option, not required) | `cube-chaos-sprite-art` — upgrade-perk section | Bug | File/folder organization |
 | Each perk category (Curse/Blight/Boon/Consumable/Golden/Neutral/CubeUpgrade/Terrain) has its own dedicated `.c.txt` + sprite sheet, never mixed into a generic `Perks.c.txt` | `cube-chaos-mod-setup` | Convention | File/folder organization |
 
 ### Rule text & wording — `cube-chaos-rule-text`
@@ -93,8 +93,8 @@ see "Running an audit" step 2).
 | Check | Owning section | Tier | Scope |
 |---|---|---|---|
 | Every `Text:`/`Description:` matches its `Ability:` chain token-for-token — nothing mechanical omitted, nothing cosmetic mentioned, right numbers, right referent for "it" | "Workflow for auditing existing text" | Bug | Universal |
-| A base-game keyword (e.g. `Flying`, `Strength`) is referenced with its own real colour and name from `ModdingInfo.txt`, not a made-up or class-tinted colour | "Referencing a keyword: \A for our own, colour-only for base-game ones" | Bug | Universal |
-| This mod's own compound keywords use `\A <Name> <params>` rather than a hand-written parenthetical duplicating the explanation at every reference site | "Referencing a keyword: \A for our own, colour-only for base-game ones" | Convention | Rule-text wording style |
+| A base-game keyword (e.g. `Flying`, `Strength`) is referenced with its own real colour and name from `ModdingInfo.txt` (whether via `\A` or, when removed/tested, a bare coloured name), not a made-up or class-tinted colour | "Referencing a keyword: `\A` for any keyword being granted, ours or base-game's" | Bug | Universal |
+| A granted keyword (this mod's own compound OR a base-game one) uses `\A <Name> <params>` rather than a hand-written parenthetical/plain-color mention duplicating the explanation at every reference site | "Referencing a keyword: `\A` for any keyword being granted, ours or base-game's" | Convention | Rule-text wording style |
 | An exclusion condition reads as "a non-X ally/cube", never a bolted-on parenthetical ("(not your leader)", "(other than X)") | "Phrasing a 'not X' filter" | Convention | Rule-text wording style |
 | Purely cosmetic effects (`PlaySound`, `Animation:`, `CubeColourShift:`, particles) are never described in prose | "Never mention purely cosmetic effects" | Convention | Rule-text wording style |
 | No period before the closing `End`; first letter capitalized | "Hard formatting rules" | Convention | Rule-text wording style |
@@ -122,7 +122,7 @@ see "Running an audit" step 2).
 | No border/ring pixel shows icon-content bleed (a sign it was color-matched from a reference tile instead of generated from fixed geometry) | "Never extract a reusable border by color-matching..." | Art | Universal |
 | Ground-unit (non-Flying/non-Hovering) CUBE icons are flush to the tile's bottom row, no floating gap — matches how real base-game ground units are drawn | "Ground unit CUBE icons: draw the silhouette flush..." | Art | Universal |
 | Every finished icon uses ~3–5 colors (base + outline + highlight + accent), never a flat single fill | "Color composition" | Art | Sprite authoring & polish |
-| Sheet dimensions are square and equal `tile_size * ceil(sqrt(block count))`; sprite filename matches its `.txt` file's basename with no cross-mod collision | `SKILL.md` — tile-size / naming sections | Art | Universal |
+| Sheet width/height are each an exact multiple of `tile_size` (any rectangle is valid, not just a square `ceil(sqrt(block count))` grid) and slot count covers every block in file order; sprite filename matches its `.txt` file's basename with no cross-mod collision | `SKILL.md` — tile-size / naming sections | Art | Universal |
 | Workshop `Tag:` set matches the mod's actual content categories, re-audited whenever a new category was added since the tags were last set | `cube-chaos-mod-setup/references/workshop-publishing.md` | Art | File/folder organization |
 
 ## Reference index

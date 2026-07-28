@@ -58,7 +58,7 @@ Ability: ChargeEveryX 60
 Ability: EveryXAcidicY 120 2
 Ability: Hovering
 Ability: AfterThisDies EveryCubeTouchingPosition PositionOfCube Caster If Not HasNameOfCube Target Caster GainAbility PoisonX 2
-Text: After this dies, all touching cubes that aren't Plague_Imps gain \C0 255 144 Poison 2 \CN End
+Text: After this dies, all touching cubes that aren't Plague_Imps gain \A PoisonX 2 End
 AiPlacementRule: And AiFrontline AiStacking
 End
 
@@ -93,7 +93,7 @@ TYPE Starter
 Ability: Flying
 Ability: ChargeEveryX 60
 Ability: EveryXSeconds DoubleConstant 10 GainAbility Burning
-Text: Every 10 seconds this gains \C255 106 0 Burning \CN End
+Text: Every 10 seconds this gains \A Burning End
 Ability: AfterThisDies IfElse IsPositionEmpty TopPositionAboveCube Caster
  CreateCubeOnPosition CopyWithAction CubeConstant Molten_Brimstone SetFaction DoubleConstant 0 TopPositionAboveCube Caster
  CreateCubeOnPosition CopyWithAction CubeConstant Molten_Brimstone SetFaction DoubleConstant 0 PositionInDirectionFromPosition South PositionOfCube TheFirstCubeInDirectionFromPositionWhich South TopPositionAboveCube Caster IsPositionEmpty PositionInDirectionFromPosition South PositionOfCube Test
@@ -130,7 +130,7 @@ CUBE: Baby_Hell_Dragon 5 15 15
 TOKEN
 Ability: GrowingUp 40 CubeConstant Hell_Dragon
 Ability: EveryXSeconds DoubleConstant 10 SetStorage ARandomEnemy If CubeExists Storage TargetCube Storage GainAbility Burning
-Text: Every 10 seconds give a random enemy \C255 106 0 Burning \CN End
+Text: Every 10 seconds give a random enemy \A Burning End
 Ability: GrowthX 5
 Ability: RegenerationX 2
 Ability: WorthXMore 25
@@ -140,7 +140,7 @@ End
 CUBE: Hell_Dragon 200 30 30
 TOKEN
 Ability: EveryXSeconds DoubleConstant 10 EveryCubeWhich IsEnemyToCaster Test GainAbility Burning
-Text: Every 10 seconds give all enemies \C255 106 0 Burning \CN End
+Text: Every 10 seconds give all enemies \A Burning End
 Ability: Flying
 Ability: GrowthX 2
 Ability: EveryXMeleeY 120 4

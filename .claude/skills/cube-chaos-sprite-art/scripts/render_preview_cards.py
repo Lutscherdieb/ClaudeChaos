@@ -59,7 +59,7 @@ FONT_PATH = os.path.join(ROOT, "GeneralData", "dogicapixel.ttf")
 MODDING_INFO_PATH = os.path.join(ROOT, "ModdingInfo.txt")
 OUT_DIR = os.path.join(MOD_DIR, "Preview")  # lives with the mod, e.g. for GameData/DJ/README.md
 MOD_PREFIX = "DJ"  # this mod's .c.txt/.c.png basename prefix
-COMPOUND_DOCS = {}  # this mod's own COMPOUND: ABILITY name -> doc, set by render_mod()
+COMPOUND_DOCS = {}  # built-ins + this mod's own COMPOUND: ABILITY name -> doc, set by render_mod()
 
 # A bare `Ability: Name arg1 arg2` line that grants a pre-registered built-in
 # ability (StrengthX, ChargeEveryX, FreePlacement, ...) needs no Text: of its
@@ -141,10 +141,11 @@ GENERIC_RE = re.compile(r'\bGeneric(\w+)\b')
 
 def load_mod_compound_docs(mod_dir):
     """Index this mod's own COMPOUND: ABILITY blocks by name, so \\A <Name>
-    [params] references (this mod's own keyword idiom -- see
-    cube-chaos-rule-text; base-game abilities never use \\A) can be resolved
-    the same way resolve_builtin_ability_text resolves a bare built-in
-    Ability: line. Placeholder types are inferred from the compound's own
+    [params] references to them (cube-chaos-rule-text: \\A is now used for
+    any granted keyword, this mod's own or a base-game built-in -- the
+    caller merges this with load_builtin_ability_docs() for the latter) can
+    be resolved the same way resolve_builtin_ability_text resolves a bare
+    built-in Ability: line. Placeholder types are inferred from the compound's own
     body (GenericStacking -> STACKING, GenericTime -> TIME, everything else
     -> a positional CODE slot) in first-appearance order, matching the
     scripting skill's documented "order by first appearance" convention."""
@@ -684,7 +685,11 @@ def render_mod(mod_dir, mod_prefix):
     MOD_DIR, MOD_PREFIX = mod_dir, mod_prefix
     SPRITES = os.path.join(MOD_DIR, "Sprites")
     OUT_DIR = os.path.join(MOD_DIR, "Preview")
-    COMPOUND_DOCS = load_mod_compound_docs(MOD_DIR)
+    # Merge base-game built-ins with this mod's own compounds so \A resolves
+    # either kind (cube-chaos-rule-text, revised 2026-07-29: \A is now used
+    # for any granted keyword, not just this mod's own COMPOUND: ABILITY
+    # ones) -- mod-own docs take precedence on a name collision.
+    COMPOUND_DOCS = {**load_builtin_ability_docs(), **load_mod_compound_docs(MOD_DIR)}
     os.makedirs(OUT_DIR, exist_ok=True)
     # One PNG per item (not one stacked image per category) -- editing a
     # single perk/cube then only touches that one file, instead of forcing

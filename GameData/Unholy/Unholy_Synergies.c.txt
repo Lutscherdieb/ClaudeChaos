@@ -47,7 +47,7 @@ BelongsTo: CLASSSPECIES
 Ability: AfterACubeDies If IsAllyToCaster Victim If HasAbilityWithName Victim ExplodesX
  If Not IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
   EveryCubeTouchingPosition PositionOfCube Victim If IsEnemyToCaster Target GainAbility Burning
-Description: After an allied \C182 0 0 Explodes \CN cube dies in enemy territory, all touching enemies gain \C255 106 0 Burning \CN End
+Description: After an allied \C182 0 0 Explodes \CN cube dies in enemy territory, all touching enemies gain \A Burning End
 End
 
 PERK: Roboticist-Unholy
@@ -78,5 +78,5 @@ PERK: No_Class-Unholy
 BelongsTo: CLASSSPECIES
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller HpOfCube Victim DoubleConstant 1
  TargetCube Victim GainAbility ExtraLife
-Description: After an allied cube is created with 0 hp, it gains \C255 255 0 ExtraLife \CN End
+Description: After an allied cube is created with 0 hp, it gains \A ExtraLife End
 End

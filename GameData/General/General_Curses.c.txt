@@ -1,7 +1,7 @@
 PERK: Intimidated
 WorldAbility: AfterACubeIsCreated If IsAlly Victim If IsPlaced If IsEqual FactionOfCube Victim PlacabilityOfPosition PositionOfCube Victim
  TargetCube Victim GainAbility StrengthX -1
-Description: Whenever an ally is created in friendly territory, it gains \C255 38 0 Strength -1 \CN End
+Description: Whenever an ally is created in friendly territory, it gains \A StrengthX -1 End
 Value: -100
 BalanceCap: 7
 End
@@ -9,7 +9,7 @@ End
 PERK: Are_We_The_Bad_Guys
 WorldAbility: AfterACubeIsCreated If IsAlly Victim If IsPlaced If Not IsEqual FactionOfCube Victim PlacabilityOfPosition PositionOfCube Victim
  TargetCube Victim GainAbility PoisonX 1
-Description: Whenever an ally is created in enemy territory, it gains \C0 255 144 Poison 1 \CN End
+Description: Whenever an ally is created in enemy territory, it gains \A PoisonX 1 End
 Value: -50
 BalanceCap: 50
 End
