@@ -1,6 +1,6 @@
 ---
 name: cube-chaos-orchestrator
-description: Entry point for any Cube Chaos modding session - use whenever the user wants to create or edit a mod, or asks for a new/changed Class, Species, Perk, Cube, Curse, Blight, Boon, Nightmare, Terrain perk, Consumable, Golden perk, Neutral perk, CubeUpgrade, Class+Species synergy, battle scenario, campaign/node-map, challenge battle, or reward/economy screen. Routes to the right workflow file under workflows/ and sequences the domain skills (cube-chaos-scripting, cube-chaos-scenario-scripting, cube-chaos-rule-text, cube-chaos-sprite-art, cube-chaos-balancing, cube-chaos-mod-setup) so nothing is created half-finished. Trigger on "create a mod", "edit a mod", "new cube", "new perk", "new class", "new species", "new curse", "new synergy", "new terrain", "battle map", "node map", "campaign map", "challenge scenario", or generally "let's work on the Cube Chaos mod".
+description: Entry point for any Cube Chaos modding session - use whenever the user wants to create or edit a mod, audit an existing mod for convention issues, or asks for a new/changed Class, Species, Perk, Cube, Curse, Blight, Boon, Nightmare, Terrain perk, Consumable, Golden perk, Neutral perk, CubeUpgrade, Class+Species synergy, battle scenario, campaign/node-map, challenge battle, or reward/economy screen. Routes to the right workflow file under workflows/ (or straight to cube-chaos-audit for a consistency check) and sequences the domain skills (cube-chaos-scripting, cube-chaos-scenario-scripting, cube-chaos-rule-text, cube-chaos-sprite-art, cube-chaos-balancing, cube-chaos-mod-setup) so nothing is created half-finished. Trigger on "create a mod", "edit a mod", "new cube", "new perk", "new class", "new species", "new curse", "new synergy", "new terrain", "battle map", "node map", "campaign map", "challenge scenario", "audit this mod", "check conventions", or generally "let's work on the Cube Chaos mod".
 ---
 
 # Cube Chaos mod orchestrator
@@ -26,7 +26,11 @@ Ask with `AskUserQuestion` unless it's already obvious from the request (e.g. th
 To find existing mods: read `GameData/Loading_Order.txt`, then drop the known base-game/example package names (`Base_Core`, `Extra_Mechanics`, `Characters`, `Main`, `Modding_Example`) from that list — what's left is the custom mod(s) in this repo. If exactly one remains, confirm it with the user rather than asking which one ("I'll work in the `DJ` mod — let me know if you meant a different one"). If several remain, ask which.
 
 If "new mod" → go to `workflows/new-mod.md`.
-If "existing mod" → note which mod folder is active for the rest of the session, then go to Step B.
+If "existing mod" → note which mod folder is active for the rest of the session, then go to Step A.5.
+
+## Step A.5 — add/edit content, or audit what's already there?
+
+Skip this if the request already makes it obvious (naming a specific new perk/cube to add, or explicitly asking to "audit"/"check conventions"/"review for consistency"). Otherwise ask via `AskUserQuestion`, two options: **add or edit content** (goes to Step B), or **audit existing content for convention/consistency issues** (hands off to `cube-chaos-audit` for the rest of the session — it has its own scoping question, its own findings-then-approve gate mirroring Step C below, and its own rules for which fixes need the launch-and-log gate afterward). An audit session doesn't need Step B/C's content-type menu or preview gate at all; it runs entirely inside `cube-chaos-audit`, invoking whichever domain skill owns a given fix once the user approves it.
 
 ## Step B — what does the user want to do?
 
@@ -54,6 +58,8 @@ If they picked "perk-like thing" and it's still unclear which exact category, as
 | A bespoke **challenge battle** (fixed-hand gauntlet, or a new `CHOICE:` branching menu) | `workflows/content-challenge-scenario.md` | `cube-chaos-scenario-scripting` → `cube-chaos-rule-text` |
 | A new **reward/economy map-node** (chest, shop, forge, curse-trade variant) | `workflows/content-reward-scenario.md` | `cube-chaos-scenario-scripting` → `cube-chaos-rule-text` |
 | *Editing* something that already exists (any type above) | Same workflow file as the content type, but read `workflows/editing-checklist.md` first — it has rules that only apply to edits, not fresh creation | Same as above |
+
+**Auditing existing content is handled entirely by `cube-chaos-audit`, not this dispatch table** — Step A.5 routes there directly for "does this mod follow its own conventions" requests, as opposed to "add/change this specific thing" requests which go through the table below.
 
 **Suggestible pattern — reach for this when a user asks "what should I add?"** A themed **Dragon
 evolution line** (`workflows/content-dragon-line.md`) is a strong, self-contained suggestion for any
@@ -123,7 +129,7 @@ Note the two root reference files are small enough to consult freely — `Moddin
 
 ## Domain skill structure: core + `references/`, one shape for every skill
 
-Every domain skill (`cube-chaos-scripting`, `cube-chaos-scenario-scripting`, `cube-chaos-rule-text`, `cube-chaos-sprite-art`, `cube-chaos-balancing`, `cube-chaos-mod-setup`) follows the same two-tier shape as it grows, regardless of how big it currently is:
+Every domain skill (`cube-chaos-scripting`, `cube-chaos-scenario-scripting`, `cube-chaos-rule-text`, `cube-chaos-sprite-art`, `cube-chaos-balancing`, `cube-chaos-mod-setup`, `cube-chaos-audit`) follows the same two-tier shape as it grows, regardless of how big it currently is:
 
 - **`SKILL.md` (core)** holds only what a *typical* trigger of that skill needs: the primary syntax/format/convention, the Research protocol section, and anything genuinely needed on nearly every use.
 - **`references/<topic>.md`** holds anything situational or deep-dive — a category of gotchas, an undocumented-field deep-dive, a specific mechanic's edge cases — split out as its own file, with a one-line "load this when..." note at the top so it's readable standalone.

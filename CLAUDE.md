@@ -23,6 +23,7 @@ The domain skills hold the actual technical knowledge and are usually invoked *b
 - `cube-chaos-sprite-art` — sprite sheet sizing, colors, and the full border-pattern library (generate borders from scratch, no reference-file extraction needed).
 - `cube-chaos-balancing` — mana/hp/`IDENT` stats and perk `Value:`/`BalanceCap:` pricing.
 - `cube-chaos-mod-setup` — mod folder scaffolding, `Loading_Order.txt`, filename-collision pitfalls, the launch-and-check-logs test loop.
+- `cube-chaos-audit` — checks an *existing* mod's content against the conventions the skills above already document (ability guards, rule-text wording, `IDENT`/`Value:` balancing, sprite border alignment). Reports findings for approval before fixing anything, since a deviation may have been deliberate. Its checklist only indexes the other skills' rules — it never restates them, so a convention still only has one home.
 
 ## Non-negotiable per-edit consistency rules
 
