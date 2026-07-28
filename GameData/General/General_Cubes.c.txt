@@ -53,11 +53,11 @@ Text: After this moves in enemy territory with an enemy any distance below this,
 Ability: BeforeThisMoves IfElse HasAbilityWithName Caster ChargeEveryX
  If Or CubeExists CubeInDirectionFromCube Forwards Caster
   Not PositionExists PositionInDirectionFromPosition Forwards PositionOfThis
-  Both RemoveAbilityWithName ChargeEveryX Both GainAbility FleeEveryX 60 SetSpriteToCube CubeConstant Bomber_West
+  Both Silent RemoveAbilityWithName ChargeEveryX Both Silent GainAbility FleeEveryX 60 SetSpriteToCube CubeConstant Bomber_West
  If HasAbilityWithName Caster FleeEveryX
   If Or CubeExists CubeInDirectionFromCube Backwards Caster
    Not PositionExists PositionInDirectionFromPosition Backwards PositionOfThis
-   Both RemoveAbilityWithName FleeEveryX Both GainAbility ChargeEveryX 60 SetSpriteToCube CubeConstant Bomber
+   Both Silent RemoveAbilityWithName FleeEveryX Both Silent GainAbility ChargeEveryX 60 SetSpriteToCube CubeConstant Bomber
 Text: Before this is blocked from moving or the edge of the map, it swaps between charging and fleeing, facing the direction it's now moving End
 Ability: ExplodesX 5
 Ability: Faction_Colours
@@ -133,11 +133,11 @@ Text: Every 20 seconds, create a Recruit 2 spaces below this, with a Parachute i
 Ability: BeforeThisMoves IfElse HasAbilityWithName Caster ChargeEveryX
  If Or CubeExists CubeInDirectionFromCube Forwards Caster
   Not PositionExists PositionInDirectionFromPosition Forwards PositionOfThis
-  Both RemoveAbilityWithName ChargeEveryX Both GainAbility FleeEveryX 75 SetSpriteToCube CubeConstant Drop_Helicopter_West
+  Both Silent RemoveAbilityWithName ChargeEveryX Both Silent GainAbility FleeEveryX 75 SetSpriteToCube CubeConstant Drop_Helicopter_West
  If HasAbilityWithName Caster FleeEveryX
   If Or CubeExists CubeInDirectionFromCube Backwards Caster
    Not PositionExists PositionInDirectionFromPosition Backwards PositionOfThis
-   Both RemoveAbilityWithName FleeEveryX Both GainAbility ChargeEveryX 75 SetSpriteToCube CubeConstant Drop_Helicopter
+   Both Silent RemoveAbilityWithName FleeEveryX Both Silent GainAbility ChargeEveryX 75 SetSpriteToCube CubeConstant Drop_Helicopter
 Text: Before this is blocked from moving or the edge of the map, it swaps between charging and fleeing, facing the direction it's now moving End
 Ability: Faction_Colours
 Visual: Target 0 1 96 96 96
@@ -287,11 +287,11 @@ Text: After this moves in enemy territory with an enemy any distance below this,
 Ability: BeforeThisMoves IfElse HasAbilityWithName Caster ChargeEveryX
  If Or CubeExists CubeInDirectionFromCube Forwards Caster
   Not PositionExists PositionInDirectionFromPosition Forwards PositionOfThis
-  Both RemoveAbilityWithName ChargeEveryX Both GainAbility FleeEveryX 60 SetSpriteToCube CubeConstant Baby_War_Dragon_West
+  Both Silent RemoveAbilityWithName ChargeEveryX Both Silent GainAbility FleeEveryX 60 SetSpriteToCube CubeConstant Baby_War_Dragon_West
  If HasAbilityWithName Caster FleeEveryX
   If Or CubeExists CubeInDirectionFromCube Backwards Caster
    Not PositionExists PositionInDirectionFromPosition Backwards PositionOfThis
-   Both RemoveAbilityWithName FleeEveryX Both GainAbility ChargeEveryX 60 SetSpriteToCube CubeConstant Baby_War_Dragon
+   Both Silent RemoveAbilityWithName FleeEveryX Both Silent GainAbility ChargeEveryX 60 SetSpriteToCube CubeConstant Baby_War_Dragon
 Text: Before this is blocked from moving or the edge of the map, it swaps between charging and fleeing, facing the direction it's now moving End
 Ability: GrowthX 5
 Ability: RegenerationX 2
