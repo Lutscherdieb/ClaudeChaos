@@ -7,10 +7,10 @@ End
 COMPOUND: ABILITY
 VoidNova
 EveryXSeconds DoubleConstant 10 Both
- EveryCubeInRadiusXAroundTarget Addition GetStackingOfAbilityOnCube VoidExpansionX Caster DoubleConstant 2
+ EveryCubeInRadiusXAroundTarget Addition GetStackingOfAbilityOnCube VoidExpansionX Caster DoubleConstant 0
   If Not IsSameCube Target Caster
-   TakeXDamage Subtraction Addition GetStackingOfAbilityOnCube VoidExpansionX Caster DoubleConstant 3 DistanceOfPositions PositionOfThis PositionOfCube Target
- CreateAoEParticlesColourRadiusPosition DoubleConstant 16738816 Addition GetStackingOfAbilityOnCube VoidExpansionX Caster DoubleConstant 2 PositionOfThis
+   TakeXDamage Subtraction Addition GetStackingOfAbilityOnCube VoidExpansionX Caster DoubleConstant 1 DistanceOfPositions PositionOfThis PositionOfCube Target
+ CreateAoEParticlesColourRadiusPosition DoubleConstant 16738816 Addition GetStackingOfAbilityOnCube VoidExpansionX Caster DoubleConstant 0 PositionOfThis
 Text: Every 10 seconds deal damage to every other cube within its current Void Reach, reduced by 1 per space of distance - touching cubes take the most, the outer edge always takes 1 End
 End
 
@@ -39,24 +39,13 @@ Ability: VoidExpansionX 1
 Ability: VoidNova
 End
 
-CUBE: Calm_The_Waves 20 0 0
-IDENT 2 0 0 0 15
+CUBE: Void_Replika 30 1 1
+IDENT 3 0 15 0 30
 TYPE Special
-Ability: AfterThisIsCreated EveryCubeWhich CubeHasName Test True_Void
- SetStorage ARandomCubeInLibraryWhich True
-  If CubeExists Storage
-   If IsLarger AmountOfAbilitiesOfCubeWhich Storage
-    And Not StringContainsString DescriptionOfAbility Test StringConstant Projectile
-    And Not StringContainsString DescriptionOfAbility Test StringConstant Temporary
-    And Not AbilityHasName Test Debt
-     Not AbilityHasName Test SilentDieAfterX
-    DoubleConstant 0
-    TargetCube Test GainAbility ARandomAbilityOfCubeWhich Storage
-     And Not StringContainsString DescriptionOfAbility Test StringConstant Projectile
-     And Not StringContainsString DescriptionOfAbility Test StringConstant Temporary
-     And Not AbilityHasName Test Debt
-      Not AbilityHasName Test SilentDieAfterX
-Text: When this is created, each True Void on the battlefield gains a random non-projectile, non-temporary ability of a random cube from your library End
+TYPE Starter
+Ability: AfterThisIsCreated SetStorage ARandomCubeWhich CubeHasName Test True_Void
+ If CubeExists Storage GainAllAbilitiesOfCube Storage
+Text: When this is created, it gains all abilities of a random True Void on the battlefield End
 Ability: VoidTouched
 AiPlacementRule: True
 End

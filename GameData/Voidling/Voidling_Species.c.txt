@@ -31,7 +31,7 @@ Ability: AtTheStartOfTheBattle AddCubeToHandOfThis CubeConstant True_Void
 Ability: VoidLeaderWard
 Ability: VoidExcessManaCapture
 Ability: VoidReachSurge
-ObtainAction: AddCubeToInventory CubeConstant Calm_The_Waves
+ObtainAction: AddCubeToInventory CubeConstant Void_Replika
 ObtainAction: AddCubeToInventory CubeConstant Temple_The_Void
 ObtainAction: AddCubeToInventory CubeConstant Void_Warrior
 End

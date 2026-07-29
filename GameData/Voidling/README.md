@@ -9,7 +9,7 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 ### Cubes
 
 <img src="Preview/Voidling_Cubes_True_Void.png" width="700" alt="True Void cube card">
-<img src="Preview/Voidling_Cubes_Calm_The_Waves.png" width="700" alt="Calm The Waves cube card">
+<img src="Preview/Voidling_Cubes_Void_Replika.png" width="700" alt="Void Replika cube card">
 <img src="Preview/Voidling_Cubes_Temple_The_Void.png" width="700" alt="Temple The Void cube card">
 <img src="Preview/Voidling_Cubes_Void_Warrior.png" width="700" alt="Void Warrior cube card">
 
