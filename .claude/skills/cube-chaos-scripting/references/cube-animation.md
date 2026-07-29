@@ -29,8 +29,58 @@ file: ...` printed to the log, non-fatal (the cube just never animates).
 
 That PNG is sliced **exactly like a normal CUBE sprite sheet** — `SplitSpriteGrid(15, 15, i, 1)`, i.e. 17px-stride
 tiles (15×15 usable content after the same 1px trim every CUBE icon gets), one tile per frame, **row-major, index 0
-first**, sized to fit the animation's declared frame count (`Amount`, see grammar below) — same
-`grid_dim = ceil(sqrt(Amount))` sizing convention as any other sheet.
+first**.
+
+**The grid does not need to be square — a flat single-row sheet works and is the simpler choice for a dedicated
+animation file.** Confirmed from `ColourGrid.SplitSpriteGrid` itself (decompiled `dw/game/dd/BasicClasses/
+ColourGrid.class`, `ColourGrid.java:363-369` in the 2026-07-30 re-decompile):
+```java
+public ColourGrid SplitSpriteGrid(int SpriteWidth, int SpriteDepth, int WhichOne, int Border) {
+    int PerWidth = this.Width / (SpriteWidth += Border * 2);   // columns = image pixel width / 17, period
+    int Row = WhichOne / PerWidth;
+    int Column = WhichOne - Row * PerWidth;
+    return this.CutoutAt(Column * SpriteWidth, Row * (SpriteDepth += Border * 2), SpriteWidth, SpriteDepth).takeOffBorders(Border);
+}
+```
+Column count is derived purely from the PNG's own total pixel width divided by 17 — there's no dependency on `Amount`
+being a perfect square, and no requirement the sheet be roughly square like the `grid_dim = ceil(sqrt(N))` convention
+used for the main CUBE/PERK roster sheets (that convention is this repo's own choice for large multi-cube sheets, not
+an engine requirement). For a single animation's dedicated file, a **flat 1×`Amount` row** (width `Amount*17`,
+height `17`) is simpler to lay out and edit than a square grid, and parses identically: `PerWidth == Amount`, so
+`Row` is always `0` and `Column` is the frame index directly. Recommended default for new animation files going
+forward. Note also that `CutoutAt` silently zero-fills any read past the image's actual bounds (`if (j+x < Width &&
+j2+y < Depth)`, `ColourGrid.java:392`) — an undersized sheet doesn't error, it just yields blank/garbage frames, so
+still get the width arithmetic right rather than relying on this to fail loudly.
+
+**Put the cube's own idle/resting art in the LAST frame slot, not index 0 — `TRIGGER`/`CLOCK` settle onto the last
+array index, never back onto index 0.** This was wrong in an earlier version of this doc (fixed 2026-07-30 after a
+live playtest showed a `TRIGGER`-animated cube sitting permanently 1px off its resting pose) and is now confirmed
+straight from `TriggerAnimation.AutoChangedCheck`/`ClockAnimation.AutoChangedCheck` (both identical in shape,
+decompiled `dw/game/dd/BasicClasses/Animation/{Trigger,Clock}Animation.class`):
+```java
+int index = 0;
+while (index < this.Frames.length && Current >= this.Thresholds[index]) {
+    Current -= this.Thresholds[index];
+    ++index;
+}
+if (index > 0 && this.LastFrame != index - 1) {
+    this.OwnerCG.Changed = true;
+    this.LastFrame = index - 1;
+}
+```
+Walk through what this actually does: `LastFrame` only ever gets **written** when `index > 0`. Right when the bound
+ability just fired (`Current`/`Ratio` ≈ 0), `index` stays `0`, so `LastFrame` is left completely untouched — it keeps
+showing whatever it last settled on. As elapsed time crosses `Thresholds[0]`, `index` becomes `1` and `LastFrame`
+jumps to `0` (the first real frame); crossing `Thresholds[1]` moves it to `1`; and so on. Once elapsed exceeds the
+sum of **all** thresholds, `index` reaches `Frames.length` (the loop's own bound stops it there), so `LastFrame`
+locks onto `Frames.length - 1` — **and stays there indefinitely**, since further elapsed time can't push `index`
+past that bound. Net effect for a one-shot `TRIGGER` flourish: the cube sits on frame `N-1` at rest, briefly keeps
+showing frame `N-1` for `Thresholds[0]` after firing (a startup delay — keep this small/near-zero), then plays
+`0, 1, 2, ..., N-2` in order as elapsed time crosses each subsequent threshold, then locks back onto `N-1` once the
+last threshold is crossed. So: **frame `N-1` = permanent idle pose, frames `0..N-2` = the transient flourish**, in
+that literal order. (For `CLOCK`, the same mechanics read naturally the other way around — `Ratio` climbing 0→1 as
+a cooldown fills means `N-1` = "fully charged/ready" and `0` = "just used", which is usually exactly the desired
+reading, so this gotcha mainly bites `TRIGGER`.)
 
 ## Where to put an `Animation:` line
 
@@ -56,10 +106,13 @@ sliced PNG, indices 0..Amount-1 in file/sheet order.
   segments. Real example: `Animation: ManaGen CLOCK 0 EQUAL 3` (right after a mana-generating `Ability:`).
 - **`TRIGGER <EffectType> [EQUAL <Amount> <Total> | <Amount> <t0>...<t(n-1)>]`** — also tied to `lastAbility`, but
   driven by `(System.currentTimeMillis() - Ability.LastActionTime) / 16` (~frames since that ability last fired) —
-  a short one-shot flourish that plays right after the ability triggers, then settles back to frame 0. `EQUAL`'s
-  extra `<Total>` divides evenly across `<Amount>` frames (integer division — pick a `Total` that's a clean multiple
-  of `Amount` or the last segment silently absorbs the remainder). Real example: `Animation: Shoot CLOCK 0 EQUAL 4`
-  style entries tied to attack abilities, and `Animation: Gift TRIGGER 0 EQUAL 4 20`.
+  a short one-shot flourish that plays right after the ability triggers, **then locks onto the LAST frame index**
+  (see the frame-ordering section above — it is not frame 0). `EQUAL`'s extra `<Total>` divides evenly across
+  `<Amount>` frames (integer division — pick a `Total` that's a clean multiple of `Amount` or the last segment
+  silently absorbs the remainder), which gives every phase (startup delay + each flourish frame) equal dwell time;
+  use the explicit `<t0>...<t(n-1)>` form instead when you want a near-instant startup (`t0` small) followed by a
+  snappier flourish and a longer settle. Real example: `Animation: Shoot CLOCK 0 EQUAL 4` style entries tied to
+  attack abilities, and `Animation: Gift TRIGGER 0 EQUAL 4 20`.
 - **`HP <EffectType> [EQUAL <Amount> | <Amount> <t0>...<t(n-1)>]`** — no ability binding. `Ratio = 1 - Health/MaxHealth`
   (0 at full HP, →1 near death), same cumulative-threshold walk. The base game's whole `Crumble` family (walls,
   rocks, structures visibly cracking as they take damage) is this: `Animation: Crumble HP 0 EQUAL 4`.

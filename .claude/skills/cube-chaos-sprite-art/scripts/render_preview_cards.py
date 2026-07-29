@@ -294,6 +294,76 @@ def upscale(im, scale):
     return im.resize((im.width * scale, im.height * scale), Image.NEAREST)
 
 
+# --- Animated-cube preview GIFs -------------------------------------------
+# A CUBE: with a TRIGGER-type Animation: line (cube-chaos-scripting's
+# cube-animation.md) gets a looping .gif next to its static card:
+# <Mod>_Cubes_<CubeName>_<AnimName>.gif, same folder, same upscale factor.
+# Frame order/speed is read from the real Animation: line, not guessed --
+# TriggerAnimation.AutoChangedCheck locks onto the LAST frame as the
+# permanent idle pose and plays frames 0..N-2 as the flourish, each held for
+# its own Thresholds[i+1] * 16ms (see cube-animation.md). The one liberty
+# taken: the idle pause between triggers is fixed at GIF_IDLE_REST_MS rather
+# than the cube's real (often many-second) trigger cadence, so the preview
+# loop stays watchable -- the flourish itself plays at true speed.
+# Only TRIGGER is implemented: it's the only type any mod here uses yet.
+TICK_MS = 16
+GIF_IDLE_REST_MS = 1500
+ANIMATION_RE = re.compile(r'^Animation:\s*(\S+)\s+(\S+)\s+(-?\d+)\s+(.*)$')
+
+
+def parse_animation_lines(lines):
+    out = []
+    for l in lines:
+        if l.startswith("Animation:"):
+            m = ANIMATION_RE.match(l.strip())
+            if m:
+                name, atype, effect, rest = m.group(1), m.group(2), int(m.group(3)), m.group(4).split()
+                out.append((name, atype, effect, rest))
+    return out
+
+
+def load_animation_frames(mod_dir, cube_name, anim_name, tile=TILE_CUBE):
+    path = os.path.join(mod_dir, "Sprites", "Animations", f"{cube_name}_{anim_name}.png")
+    sheet = Image.open(path).convert("RGB")
+    amount = sheet.width // tile
+    return [crop_icon(sheet, i, tile, amount, strip_guide=True) for i in range(amount)]
+
+
+def build_trigger_gif(mod_dir, cube_name, anim_name, rest_tokens, scale, out_path):
+    if rest_tokens[0] == "EQUAL":
+        amount, total = int(rest_tokens[1]), int(rest_tokens[2])
+        thresholds = [total / amount] * amount
+    else:
+        amount = int(rest_tokens[0])
+        thresholds = [float(t) for t in rest_tokens[1:1 + amount]]
+    frames = load_animation_frames(mod_dir, cube_name, anim_name)
+    assert len(frames) == amount, (
+        f"{cube_name}_{anim_name}.png has {len(frames)} frames, Animation: declares {amount}")
+    order = [amount - 1] + list(range(0, amount - 1))
+    durations = [GIF_IDLE_REST_MS + thresholds[0] * TICK_MS] + [t * TICK_MS for t in thresholds[1:]]
+    imgs = [upscale(frames[i], scale) for i in order]
+    imgs[0].save(out_path, save_all=True, append_images=imgs[1:],
+                 duration=[int(d) for d in durations], loop=0, disposal=2)
+
+
+def build_cube_animation_gifs(mod_dir, mod_prefix, out_dir):
+    txt_path = os.path.join(mod_dir, f"{mod_prefix}_Cubes.c.txt")
+    if not os.path.exists(txt_path):
+        return []
+    blocks = parse_blocks(txt_path, CUBE_HEADER)
+    written = []
+    for b in blocks:
+        cube_name = b["header"].group(1)
+        for anim_name, atype, effect, rest in parse_animation_lines(b["lines"]):
+            if atype != "TRIGGER":
+                continue  # only TRIGGER's playback shape is implemented so far
+            out_name = f"{mod_prefix}_Cubes_{cube_name}_{anim_name}.gif"
+            build_trigger_gif(mod_dir, cube_name, anim_name, rest, 10,
+                               os.path.join(out_dir, out_name))
+            written.append(out_name)
+    return written
+
+
 def parse_blocks(path, header_re):
     """Split a .c.txt file into top-level CUBE:/PERK: blocks. Nested action
     chains never emit a bare 'End' line of their own (only inline '... End'
@@ -709,6 +779,8 @@ def render_mod(mod_dir, mod_prefix):
             fname = f"{prefix}{name}.png"
             card.save(os.path.join(OUT_DIR, fname))
             written.add(fname)
+        if category == "Cubes":
+            written.update(build_cube_animation_gifs(MOD_DIR, MOD_PREFIX, OUT_DIR))
     # Clean out stale files from a previous run: renamed/removed individual
     # items (same category prefix, but not written this run), leftover
     # combined per-category images from before the per-item switch, or a
