@@ -13,7 +13,7 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 
 On Cube Creation:
 
-<img src="Preview/DJ_Cubes_Speaker_Beat.gif" width="150" alt="Speaker recoil animation">
+<img src="Preview/DJ_Cubes_Speaker_Beat.gif" width="70" alt="Speaker recoil animation">
 
 <img src="Preview/DJ_Cubes_Record.png" width="700" alt="Record cube card">
 <img src="Preview/DJ_Cubes_Note.png" width="700" alt="Note cube card">
