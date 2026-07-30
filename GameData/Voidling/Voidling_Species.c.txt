@@ -6,14 +6,6 @@ Text: Your leader takes no damage from True Void End
 End
 
 COMPOUND: ABILITY
-VoidExcessManaCapture
-BeforeACubeTakesDamage If IsType Excessmana
- Both NegateX EventAmount
-  FactionXGainsYMana FactionOfThis EventAmount
-Text: Whenever you or an enemy would take excess mana damage, negate it End
-End
-
-COMPOUND: ABILITY
 VoidReachSurge
 EverySecond If CubeExists ARandomCubeWhich CubeHasName Test True_Void
  If Not IsLarger MaxManaOfFaction FactionOfThis ManaOfFaction FactionOfThis
@@ -26,10 +18,9 @@ End
 
 PERK: Voidling
 BelongsTo: SPECIES
-Description: Your leader is \C140 60 210 Void Touched \B : \CN \N \C96 96 96 (Cannot be damaged by True Void) \CN \N \C96 96 96 (Starts each battle with a True Void cube in hand) \CN \N Whenever you or an enemy would take excess mana damage, negate it \N Whenever your mana reaches its max or above, lose all of it - each True Void on the battlefield gains 1 \C160 100 220 Void Reach \CN for every 100 mana lost this way End
+Description: Your leader is \C140 60 210 Void Touched \B : \CN \N \C96 96 96 (Cannot be damaged by True Void) \CN \N \C96 96 96 (Starts each battle with a True Void cube in hand) \CN \N Whenever your mana reaches its max or above, lose all of it - each True Void on the battlefield gains 1 \C160 100 220 Void Reach \CN for every 100 mana lost this way End
 Ability: AtTheStartOfTheBattle AddCubeToHandOfThis CubeConstant True_Void
 Ability: VoidLeaderWard
-Ability: VoidExcessManaCapture
 Ability: VoidReachSurge
 ObtainAction: AddCubeToInventory CubeConstant Void_Replika
 ObtainAction: AddCubeToInventory CubeConstant Temple_The_Void

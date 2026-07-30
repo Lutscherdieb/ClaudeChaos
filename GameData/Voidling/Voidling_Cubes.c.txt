@@ -21,6 +21,14 @@ Text: True Void takes no damage End
 End
 
 COMPOUND: ABILITY
+VoidExcessManaCapture
+BeforeACubeTakesDamage If IsType Excessmana
+ Both NegateX EventAmount
+  FactionXGainsYMana DoubleConstant 1 EventAmount
+Text: Whenever you or an enemy would take excess mana damage, negate it End
+End
+
+COMPOUND: ABILITY
 VoidNovaWarrior
 EveryXSeconds DoubleConstant 10 Both
  EveryCubeInRadiusXAroundTarget Addition GetStackingOfAbilityOnCube VoidExpansionX Caster DoubleConstant 0
@@ -45,6 +53,7 @@ TOKEN
 Ability: Unmovable
 Ability: AlwaysNeutral
 Ability: VoidLifeIsEternal
+Ability: VoidExcessManaCapture
 Ability: VoidExpansionX 1
 Ability: VoidNova
 End
