@@ -242,7 +242,7 @@ IDENT 1 5 0 15 0
 TYPE Support
 Ability: ChargeEveryX 120
 Ability: EveryXMeleeY 180 1
-Ability: AfterThisCollides If IsAllyToCaster Target TargetCube Target HealXDamage DoubleConstant 1
+Ability: AfterThisCollides If IsAllyToCaster Victim TargetCube Victim HealXDamage DoubleConstant 1
 Text: After this moves into an ally, heal it for 1 hp End
 Ability: Faction_Colours
 Visual: Plus 0 0 0 254 33
