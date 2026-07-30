@@ -652,23 +652,43 @@ def build_synergies():
     return cards
 
 
-def perks_source_basename():
-    """DJ/General name their perk file `_Perks.c.txt`; a species mod (e.g. Unholy)
-    names its equivalent `_Species.c.txt` instead -- check for either, preferring
-    `_Perks` when (implausibly) both exist."""
-    if os.path.exists(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Perks.c.txt")):
-        return "Perks"
+def perks_source_basenames():
+    """DJ/General name their perk file `_Perks.c.txt`; a species mod (e.g.
+    Unholy, Voidling) folds its base species perk AND its ordinary reward
+    perks into `_Species.c.txt` instead -- `cube-chaos-mod-setup` now documents
+    this as a hard rule (a class/species's own reward perks must share ONE
+    file with its base perk, never split into a second file, since the game
+    loads .c.txt files alphabetically within a package and a reward perk's
+    `BelongsTo: <Name>` fails to resolve if its class/species hasn't been
+    parsed yet -- real incident, Voidling's Void_Growth, 2026-07-30: a separate
+    `Voidling_Perks.c.txt` sorted before `Voidling_Species.c.txt` and broke at
+    load time, fixed by merging it into the Species file instead). Both
+    basenames are still checked independently here (rather than one-or-the-
+    other) purely as defense-in-depth for whatever this function is fed --
+    a mod violating the one-file rule would otherwise silently lose one
+    basename's preview cards, the same regression this caused once already
+    before the checks were made independent."""
+    basenames = []
     if os.path.exists(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Species.c.txt")):
-        return "Species"
-    return "Perks"
+        basenames.append("Species")
+    if os.path.exists(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Perks.c.txt")):
+        basenames.append("Perks")
+    return basenames
 
 
 def build_perks():
-    basename = perks_source_basename()
-    blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_{basename}.c.txt"), PERK_HEADER)
-    sheet = load_sheet(f"{MOD_PREFIX}_{basename}.c.png")
-    cols = grid_cols(len(blocks))
-    name_to_idx = {b["header"].group(1): i for i, b in enumerate(blocks)}
+    basenames = perks_source_basenames()
+    # Each basename has its own file + sprite sheet + slot numbering -- keep
+    # them keyed separately rather than assuming one shared sheet/cols pair.
+    sources = {}
+    name_to_slot = {}  # perk name -> (basename, idx-within-that-basename's-sheet)
+    for basename in basenames:
+        blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_{basename}.c.txt"), PERK_HEADER)
+        sheet = load_sheet(f"{MOD_PREFIX}_{basename}.c.png")
+        cols = grid_cols(len(blocks))
+        sources[basename] = {"blocks": blocks, "sheet": sheet, "cols": cols}
+        for i, b in enumerate(blocks):
+            name_to_slot[b["header"].group(1)] = (basename, i)
 
     # Upgrades live in their own sprite-less file, matching base-game
     # convention (e.g. ZUpgradeClassPerks.c.txt) -- read it too, if present.
@@ -676,19 +696,21 @@ def build_perks():
     upgrade_blocks = parse_blocks(upgrade_path, PERK_HEADER) if os.path.exists(upgrade_path) else []
     upgrade_by_name = {b["header"].group(1): b for b in upgrade_blocks}
 
-    def resolve_icon_idx(target_name, seen=frozenset()):
+    def resolve_icon_slot(target_name, seen=frozenset()):
         # Walk the IsUpgradeFrom chain -- an upgrade can itself be the base
         # of a further upgrade (e.g. Mk3 -> Mk2 -> the real Mk1 perk) -- until
-        # landing on a name with a real slot in the main sheet.
-        if target_name in name_to_idx:
-            return name_to_idx[target_name]
+        # landing on a name with a real slot in one of the source sheets.
+        if target_name in name_to_slot:
+            return name_to_slot[target_name]
         if target_name in seen or target_name not in upgrade_by_name:
             raise KeyError(f"Cannot resolve icon: no real perk at the end of the "
                             f"IsUpgradeFrom chain starting at {target_name!r}")
         next_target = field(upgrade_by_name[target_name]["lines"], "IsUpgradeFrom:").split()[0]
-        return resolve_icon_idx(next_target, seen | {target_name})
+        return resolve_icon_slot(next_target, seen | {target_name})
 
-    def render_block(b, icon_idx):
+    def render_block(b, slot):
+        basename, idx = slot
+        src = sources[basename]
         name = b["header"].group(1)
         # A PERK's Description: is a single whole-perk field (unlike CUBE's
         # per-Ability Text:, which stacks) -- multiple Ability: lines share
@@ -698,13 +720,16 @@ def build_perks():
         desc = field(b["lines"], "Description:") or field(b["lines"], "AbilityText:")
         upgrade_of = field(b["lines"], "IsUpgradeFrom:")
         extra = [f"(Upgrade of {upgrade_of.split()[0].replace('_', ' ')})"] if upgrade_of else None
-        icon = upscale(crop_icon(sheet, icon_idx, TILE_PERK, cols, strip_guide=True), 7)
+        icon = upscale(crop_icon(src["sheet"], idx, TILE_PERK, src["cols"], strip_guide=True), 7)
         return name, render_card(pretty(name), desc, None, icon, extra_lines=extra)
 
-    cards = [render_block(b, i) for i, b in enumerate(blocks)]
+    cards = []
+    for basename in basenames:
+        for i, b in enumerate(sources[basename]["blocks"]):
+            cards.append(render_block(b, (basename, i)))
     for b in upgrade_blocks:
         base_name = field(b["lines"], "IsUpgradeFrom:").split()[0]
-        cards.append(render_block(b, resolve_icon_idx(base_name)))
+        cards.append(render_block(b, resolve_icon_slot(base_name)))
     return cards
 
 
@@ -767,12 +792,15 @@ def render_mod(mod_dir, mod_prefix):
     seen_prefixes = set()
     written = set()
     for category, builder in BUILDERS.items():
-        # "Perks" may live under a `_Species.c.txt` basename instead (see
-        # perks_source_basename) -- resolve that before the existence check.
-        basename = perks_source_basename() if category == "Perks" else category
-        txt_path = os.path.join(MOD_DIR, f"{MOD_PREFIX}_{basename}.c.txt")
-        if not os.path.exists(txt_path):
-            continue  # this mod has no content of this category -- skip it
+        # "Perks" may be spread across `_Species.c.txt` and/or `_Perks.c.txt`
+        # (see perks_source_basenames) -- skip only if neither exists.
+        if category == "Perks":
+            if not perks_source_basenames():
+                continue
+        else:
+            txt_path = os.path.join(MOD_DIR, f"{MOD_PREFIX}_{category}.c.txt")
+            if not os.path.exists(txt_path):
+                continue  # this mod has no content of this category -- skip it
         prefix = f"{MOD_PREFIX}_{category}_"
         seen_prefixes.add(prefix)
         for name, card in builder():

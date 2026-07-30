@@ -35,3 +35,10 @@ ObtainAction: AddCubeToInventory CubeConstant Void_Replika
 ObtainAction: AddCubeToInventory CubeConstant Temple_The_Void
 ObtainAction: AddCubeToInventory CubeConstant Void_Warrior
 End
+
+PERK: Void_Growth
+BelongsTo: Voidling
+Ability: BeforeACubeIsAddedToYourHand If CubeHasName Victim True_Void
+ TargetCube Victim GainAbilityStacking VoidExpansionX 0 DoubleConstant 2
+Description: Whenever a True Void is added to your hand, it gains \A VoidExpansionX 2 End
+End

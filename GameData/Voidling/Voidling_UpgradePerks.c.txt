@@ -1,0 +1,6 @@
+PERK: Boundless_Void
+Ability: BeforeACubeIsAddedToYourHand If CubeHasName Victim True_Void
+ TargetCube Victim GainAbilityStacking VoidExpansionX 0 GetStackingOfAbilityOnCube VoidExpansionX Victim
+Description: Whenever a True Void is added to your hand, its \C160 100 220 Void Reach \CN doubles End
+IsUpgradeFrom: Void_Growth 60
+End

@@ -21,6 +21,16 @@ Text: True Void takes no damage End
 End
 
 COMPOUND: ABILITY
+VoidNovaWarrior
+EveryXSeconds DoubleConstant 10 Both
+ EveryCubeInRadiusXAroundTarget Addition GetStackingOfAbilityOnCube VoidExpansionX Caster DoubleConstant 0
+  If Not IsAllyToCaster Target
+   TakeXDamage DoubleConstant 1
+ CreateAoEParticlesColourRadiusPosition DoubleConstant 16738816 Addition GetStackingOfAbilityOnCube VoidExpansionX Caster DoubleConstant 0 PositionOfThis
+Text: Every 10 seconds deal 1 damage to every non-ally within its current \C160 100 220 Void Reach \CN End
+End
+
+COMPOUND: ABILITY
 VoidTouched
 AfterThisIsCreated If Not CubeExists ARandomCubeWhich CubeHasName Test True_Void
  Both AddCubeToHandOfThis CubeConstant True_Void
@@ -47,6 +57,7 @@ Ability: AfterThisIsCreated SetStorage ARandomCubeWhich CubeHasName Test True_Vo
  If CubeExists Storage GainAllAbilitiesOfCube Storage
 Text: When this is created, it gains all abilities of a random True Void on the battlefield End
 Ability: VoidTouched
+Ability: DieAfterX 1800
 AiPlacementRule: True
 End
 
@@ -63,7 +74,9 @@ IDENT 2 20 0 10 10
 TYPE Attacker
 TYPE Starter
 Ability: ChargeEveryX 180
-Ability: VoidNova
+Ability: VoidNovaWarrior
+Ability: EveryXMeleeY 240 1
+Ability: Climbing
 Ability: VoidTouched
 Ability: AfterThisIsCreated Both Both Both SetVariable VOIDWARRIOR_REACH DoubleConstant 0
  EveryCubeWhich CubeHasName Test True_Void
