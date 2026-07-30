@@ -45,7 +45,8 @@ AfterThisIsCreated If Not CubeExists ARandomCubeWhich CubeHasName Test True_Void
   Both Exile
    RemoveThisAbility
 ExtraTrigger: BeforeThisTakesDamage If CubeHasName Culprit True_Void NegateX EventAmount
-Text: \C140 60 210 Void Touched \B : \CN \N \C96 96 96 (Cannot be damaged by True Void) \CN \N \C96 96 96 (After this is created, if there is no True Void on the battlefield, add a True Void to your hand and exile this instead) \CN End
+Text: Unique Ability: \C140 60 210 Void Touched \B : \CN \N \C96 96 96 (Cannot be damaged by True Void) \CN \N \C96 96 96 (After this is created, if there is no True Void on the battlefield, add a True Void to your hand and exile this instead) \CN End
+NO_DUPLICATES
 End
 
 CUBE: True_Void 0 100 100

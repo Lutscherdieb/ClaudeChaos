@@ -829,3 +829,4 @@ if __name__ == "__main__":
     render_mod(os.path.join(ROOT, "GameData", "Unholy"), "Unholy")
     render_mod(os.path.join(ROOT, "GameData", "Voidling"), "Voidling")
     render_mod(os.path.join(ROOT, "GameData", "Broker"), "Broker")
+    render_mod(os.path.join(ROOT, "GameData", "DJ_Voidling"), "DJ_Voidling")
