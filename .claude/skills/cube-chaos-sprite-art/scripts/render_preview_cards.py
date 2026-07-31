@@ -720,17 +720,21 @@ def compute_footer_row_h(class_species, ref_cubes):
     return h
 
 
-def draw_footer_row(d, im, x, y, footer_row_h, class_species, ref_cubes):
-    """Class/species name (text only, no icon) then referenced-cube icons
-    (icon only, no name) -- trimmed down from an earlier icon+name version
-    per user feedback while eyeballing the rendered cards (2026-08-01): the
-    icon was redundant next to the class/species name, and referenced-cube
-    names were redundant next to a real icon of the thing itself."""
+def draw_footer_row(d, im, class_x, ref_x, y, footer_row_h, class_species, ref_cubes):
+    """Class/species name (text only, no icon) at `class_x`, referenced-cube
+    icons (icon only, no name) starting at their OWN `ref_x` rather than
+    wherever the class/species text happens to end -- per user feedback
+    (2026-08-02), on a CUBE card `ref_x` is `ability_x` so the icons line up
+    with the ability bullets' own column above them, instead of drifting
+    with the class name's text width. (Name/icon trimmed from an earlier
+    icon+name version per separate 2026-08-01 feedback: the icon was
+    redundant next to the class/species name, and referenced-cube names
+    were redundant next to a real icon of the thing itself.)"""
     if class_species:
         name_font = font(24)
-        d.text((x, y + (footer_row_h - 24) // 2),
+        d.text((class_x, y + (footer_row_h - 24) // 2),
                class_species["name"], font=name_font, fill=class_species["color"])
-        x += text_width(d, class_species["name"], name_font) + 40
+    x = ref_x
     if ref_cubes:
         for ref_name, ref_icon in ref_cubes:
             if ref_icon is not None:
@@ -789,7 +793,14 @@ def render_card(title, description, value, icon_img, extra_lines=None,
         y += BODY_SIZE + LINE_GAP
 
     if class_species or ref_cubes:
-        draw_footer_row(d, im, MARGIN, TOP_MARGIN + content_h + FOOTER_GAP,
+        # No separate stat/ability column on a PERK card to align ref_cubes
+        # with (unlike render_cube_card's own call below, which uses
+        # ability_x) -- so ref_cubes still flows immediately after the
+        # class name's own text width, same as before that change.
+        ref_x = MARGIN
+        if class_species:
+            ref_x += text_width(d, class_species["name"], font(24)) + 40
+        draw_footer_row(d, im, MARGIN, ref_x, TOP_MARGIN + content_h + FOOTER_GAP,
                          footer_row_h, class_species, ref_cubes)
 
     return im
@@ -930,7 +941,10 @@ def render_cube_card(title, mana, hp, maxhp, is_token, ability_entries, icon_img
         y += 6
 
     if class_species or ref_cubes:
-        draw_footer_row(d, im, MARGIN, body_top + content_h + FOOTER_GAP,
+        # Referenced-cube icons align with ability_x -- the same x the
+        # ability bullets themselves start at above -- not with wherever
+        # the class name's text happens to end.
+        draw_footer_row(d, im, MARGIN, ability_x, body_top + content_h + FOOTER_GAP,
                          footer_row_h, class_species, ref_cubes)
 
     return im
