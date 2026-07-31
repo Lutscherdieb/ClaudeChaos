@@ -4,21 +4,23 @@
 %% -
 %% GitHub's website renders ```mermaid fenced blocks natively, but GitHub's
 %% mobile apps don't render Mermaid at all (shows the raw source as text
-%% instead of a graph) - so WORKFLOW_OVERVIEW.md embeds two pre-rendered SVGs
-%% (workflow-overview-light.svg / workflow-overview-dark.svg) via a <picture>
-%% tag instead of a live mermaid code block. Both work everywhere, at the
-%% cost of a manual regen step whenever this file changes.
+%% instead of a graph), and don't render bare SVG <img> tags either (showed
+%% a broken-image icon) - so WORKFLOW_OVERVIEW.md embeds two pre-rendered
+%% PNGs (workflow-overview-light.png / workflow-overview-dark.png) via a
+%% <picture> tag instead of a live mermaid code block. Both work everywhere,
+%% at the cost of a manual regen step whenever this file changes.
 %% -
-%% To regenerate the SVGs after editing this file (from the repo root, in
+%% To regenerate the PNGs after editing this file (from the repo root, in
 %% Git Bash - no Node/mermaid-cli install needed, uses the public
 %% mermaid.ink rendering service):
 %% -
 %%   B64=$(python3 -c "import base64; print(base64.urlsafe_b64encode(open('workflow-overview.mmd','rb').read()).decode())")
-%%   curl -sS -G "https://mermaid.ink/svg/${B64}" --data-urlencode "bgColor=transparent" -o workflow-overview-light.svg
-%%   curl -sS -G "https://mermaid.ink/svg/${B64}" --data-urlencode "theme=dark" --data-urlencode "bgColor=transparent" -o workflow-overview-dark.svg
+%%   curl -sS -G "https://mermaid.ink/img/${B64}" --data-urlencode "type=png" --data-urlencode "bgColor=white" -o workflow-overview-light.png
+%%   curl -sS -G "https://mermaid.ink/img/${B64}" --data-urlencode "type=png" --data-urlencode "theme=dark" --data-urlencode "bgColor=0d1117" -o workflow-overview-dark.png
 %% -
-%% Sanity-check both SVGs contain real diagram text (not an error page)
-%% before committing, e.g. `grep -o cube-chaos-audit workflow-overview-light.svg`.
+%% Sanity-check both PNGs decode and look like the diagram (not an error
+%% page) before committing, e.g. `file workflow-overview-light.png` should
+%% report "PNG image data" with sane dimensions, not "ASCII text".
 
 flowchart TD
     Start(["Request"]) --> Root{"In the game root?"}
