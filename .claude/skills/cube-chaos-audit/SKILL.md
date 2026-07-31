@@ -32,8 +32,9 @@ same checks. Every row in the checklist below carries a **Scope**:
   made a different, equally valid choice on purpose — flagging it as if it were a bug would be noise, not
   a finding. **Checked automatically for our own mods; asked about via questionnaire for anyone else's.**
 
-The four house-convention buckets, asked about only when auditing a foreign mod: **Rule-text wording style**,
-**Balance curve**, **Sprite authoring & polish conventions**, **File/folder organization conventions**.
+The five house-convention buckets, asked about only when auditing a foreign mod: **Rule-text wording style**,
+**Balance curve**, **Sprite authoring & polish conventions**, **File/folder organization conventions**,
+**Design depth (stacking value / upgrade mechanical variety)**.
 
 ## Research protocol — same discipline, one extra step
 
@@ -56,6 +57,7 @@ This keeps the checklist growing at the same rate the domain skills do, without 
      - *Balance curve* — "Check this mod's mana/hp/IDENT stats and perk Value:/BalanceCap: pricing against our own empirical ranges? A foreign mod may target a different power curve on purpose."
      - *Sprite authoring & polish conventions* — "Check this mod's sprites against our own authoring-guide markers and shading/color-count polish preference? (Real base-game border patterns and sheet math are checked regardless — this is just our extra house polish bar.)"
      - *File/folder organization conventions* — "Check this mod's file layout against our own per-category-file convention (dedicated UpgradePerks file, one file per perk category, Workshop Tag: hygiene)?"
+     - *Design depth* — "Flag perks/abilities whose stacking behavior looks degenerate or no-op where a cheap fix would add value, and upgrade perks that are a plain stat bump where a mechanical twist looks available? This is a design-taste call, not a correctness bug — a foreign mod's creator may have made either choice on purpose."
    - Say up front, briefly, what ended up in scope either way (which buckets, plus the always-on Universal rows) before scanning.
 3. **Detect.** For each in-scope checklist row, run its detection method (`references/detection-recipes.md` has the concrete grep/script for every row — load only the recipes for the categories actually in scope). Grep-based checks are cheap to run for everything; the judgment-based ones (rule-text-vs-ability accuracy, border-pixel-diff, balance-outlier lookup) need an actual read or a small script per hit.
 4. **Filter false positives before reporting anything.** A raw grep hit is a candidate, not a finding — read the surrounding chain/context and cross-check it against the owning skill's exact rule (e.g. an `East`/`West` grep hit inside a cube's own *name* isn't a direction; a `TargetCube CubeOfPosition` hit that's a genuine name-guarded swap handler isn't a bug — see `cube-chaos-scripting/references/creation-and-copying.md`). Don't report noise.
@@ -87,6 +89,8 @@ see "Running an audit" step 2).
 | A renamed `PERK:`/`CUBE:` didn't leave a stale literal-string self-reference (`StringConstant <OldName>`, `CubeHasName ... <OldName>`) | `references/perk-economy.md` — perk self-reference section | Bug | Universal |
 | `IsUpgradeFrom:` perks live in their own `<ModPrefix>_UpgradePerks.c.txt`, not mixed into the regular perks file (that file's sprite sheet, if any, is a real supported option, not required) | `cube-chaos-sprite-art` — upgrade-perk section | Bug | File/folder organization |
 | Each perk category (Curse/Blight/Boon/Consumable/Golden/Neutral/CubeUpgrade/Terrain) has its own dedicated `.c.txt` + sprite sheet, never mixed into a generic `Perks.c.txt` | `cube-chaos-mod-setup` | Convention | File/folder organization |
+| An `IsUpgradeFrom:` perk is a plain stat bump on its base perk (same effect shape, only a bigger number) where a mechanical twist looks reasonably available and wasn't considered | `references/perk-economy.md` — "Design quality: an upgrade should carry a mechanical twist" | Design | Design depth |
+| A perk's stacking behavior (2+ owned copies) or an ability's re-grant behavior (same ability granted twice to one cube) is degenerate/no-op where a cheap fix (XTimes-by-count, STACKING constructor) would add real value | `references/perk-economy.md` — "Design quality: does stacking actually add value" | Design | Design depth |
 
 ### Rule text & wording — `cube-chaos-rule-text`
 
@@ -134,5 +138,5 @@ see "Running an audit" step 2).
 ## Notes for extending this checklist
 
 - A new row always names the owning skill/section, never restates the rule. If a check doesn't cleanly belong to one existing domain skill, that's a signal the underlying convention itself hasn't been written down anywhere yet — go write it into the right domain skill first, then add the row here.
-- A new row also always gets a **Scope**. Default test: would this be wrong/broken for *any* Cube Chaos mod, regardless of who wrote it or what style they were going for (engine behavior, a base-game-confirmed rendering fact, a genuine silent-failure shape)? If yes, `Universal`. If the "correct" answer only holds because it's how *this repo* chose to write things — and a different, equally functional mod could reasonably disagree — it's a house-convention bucket (`Rule-text wording style` / `Balance curve` / `Sprite authoring & polish` / `File/folder organization`), reusing an existing bucket name rather than inventing a fifth without updating the questionnaire in "Running an audit" step 2 to match.
+- A new row also always gets a **Scope**. Default test: would this be wrong/broken for *any* Cube Chaos mod, regardless of who wrote it or what style they were going for (engine behavior, a base-game-confirmed rendering fact, a genuine silent-failure shape)? If yes, `Universal`. If the "correct" answer only holds because it's how *this repo* chose to write things — and a different, equally functional mod could reasonably disagree — it's a house-convention bucket (`Rule-text wording style` / `Balance curve` / `Sprite authoring & polish` / `File/folder organization` / `Design depth`), reusing an existing bucket name rather than inventing a new one without updating the questionnaire in "Running an audit" step 2 to match.
 - If a category above starts accumulating enough rows to feel unwieldy on its own, split its detection recipes further inside `references/detection-recipes.md` (per-category files) rather than growing this table's Tier/Check columns — the same "content shape, not line count" split rule every other skill here follows.

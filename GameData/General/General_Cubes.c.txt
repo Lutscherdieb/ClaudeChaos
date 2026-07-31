@@ -58,7 +58,7 @@ Ability: BeforeThisMoves IfElse HasAbilityWithName Caster ChargeEveryX
   If Or CubeExists CubeInDirectionFromCube Backwards Caster
    Not PositionExists PositionInDirectionFromPosition Backwards PositionOfThis
    Both Silent RemoveAbilityWithName FleeEveryX Both Silent GainAbility ChargeEveryX 60 SetSpriteToCube CubeConstant Bomber
-Text: Before this is blocked from moving or the edge of the map, it swaps between \C155 238 255 Charging \CN and \C155 238 255 Fleeing \CN, facing the direction it's now moving End
+Text: Turns around when blocked or at the map's edge End
 Ability: ExplodesX 5
 Ability: Faction_Colours
 Visual: Target 0 1 96 96 96
@@ -138,7 +138,7 @@ Ability: BeforeThisMoves IfElse HasAbilityWithName Caster ChargeEveryX
   If Or CubeExists CubeInDirectionFromCube Backwards Caster
    Not PositionExists PositionInDirectionFromPosition Backwards PositionOfThis
    Both Silent RemoveAbilityWithName FleeEveryX Both Silent GainAbility ChargeEveryX 75 SetSpriteToCube CubeConstant Drop_Helicopter
-Text: Before this is blocked from moving or the edge of the map, it swaps between \C155 238 255 Charging \CN and \C155 238 255 Fleeing \CN, facing the direction it's now moving End
+Text: Turns around when blocked or at the map's edge End
 Ability: Faction_Colours
 Visual: Target 0 1 96 96 96
 Visual: Target 0 2 96 96 96
@@ -292,7 +292,7 @@ Ability: BeforeThisMoves IfElse HasAbilityWithName Caster ChargeEveryX
   If Or CubeExists CubeInDirectionFromCube Backwards Caster
    Not PositionExists PositionInDirectionFromPosition Backwards PositionOfThis
    Both Silent RemoveAbilityWithName FleeEveryX Both Silent GainAbility ChargeEveryX 60 SetSpriteToCube CubeConstant Baby_War_Dragon
-Text: Before this is blocked from moving or the edge of the map, it swaps between \C155 238 255 Charging \CN and \C155 238 255 Fleeing \CN, facing the direction it's now moving End
+Text: Turns around when blocked or at the map's edge End
 Ability: GrowthX 5
 Ability: RegenerationX 2
 Ability: WorthXMore 25

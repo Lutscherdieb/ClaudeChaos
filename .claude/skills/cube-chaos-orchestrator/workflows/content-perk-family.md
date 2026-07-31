@@ -37,9 +37,13 @@ Full Blight/Boon/Nightmare conventions (ScalingPow:, Requirement: patterns, Invi
 
 **A fresh `IsUpgradeFrom:` upgrade perk goes in its own `<ModPrefix>_UpgradePerks.c.txt`, never appended into the same file as the perk it upgrades.** This matches the base game's own convention (upgrades always live in a separate, sprite-less file — see `cube-chaos-sprite-art`'s upgrade-perk section) and avoids ever having to reason about blank sprite-sheet slots for the regular perks file at all. If the perk being upgraded still lives in the mixed-file style from before this convention was adopted, that's a sign to split it out now rather than adding one more upgrade to the pile.
 
+**An upgrade perk should carry a mechanical twist, not just a bigger number, whenever one is reasonably available** — see `cube-chaos-scripting`'s perk-economy "Design quality: an upgrade should carry a mechanical twist" note. A plain stat-only upgrade is a legitimate deliberate call for effects with no natural twist, but it shouldn't be the unexamined default; decide it explicitly and say so in the preview below.
+
+**Also check whether the new perk/ability's stacking behavior (owning 2+ copies, or a cube being granted the same ability twice) is worth designing for** — see the same skill's "Design quality: does stacking actually add value" section. Complex effects don't need to stack cleanly, but a cheap fix for a degenerate/no-op stack is worth taking when one exists.
+
 ## Preview-and-approve gate (before the Sequence below)
 
-Before writing any file, run the orchestrator's **Step C preview-and-approve gate**: print the theoretical spec (category + `Value:`/`BalanceCap:` + the real trigger chain + the `Description:` *derived from that chain*, sprite/border as concept only) and get the user's explicit OK. Iterate on the printed table — not on files — until they approve. Sprites and the Sequence below happen only after that OK.
+Before writing any file, run the orchestrator's **Step C preview-and-approve gate**: print the theoretical spec (category + `Value:`/`BalanceCap:` + the real trigger chain + the `Description:` *derived from that chain*, sprite/border as concept only), plus a one-line note on the two design-quality checks above (mechanical twist for upgrades; stacking value), and get the user's explicit OK. Iterate on the printed table — not on files — until they approve. Sprites and the Sequence below happen only after that OK.
 
 ## Sequence
 
