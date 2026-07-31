@@ -55,6 +55,11 @@ Card design notes (reverse-engineered once so future regens don't redo this):
   class/species's own color. See render_cube_card() below and this skill's
   own "Rendering README preview cards" section for the full rationale,
   evidence, and the known heuristic/scope caveats each of these carries.
+- Every IsUpgradeFrom: perk (added 2026-08-01) also gets a small companion
+  "shine sweep" .gif -- a white diagonal line translating across its icon
+  every few seconds, matching the real in-game upgrade-perk visual cue.
+  See build_shine_frames()/draw_shine_line() and this skill's own
+  "Rendering README preview cards" section for the full writeup.
 """
 import math
 import os
@@ -459,6 +464,63 @@ def build_cube_animation_gifs(mod_dir, mod_prefix, out_dir):
                                os.path.join(out_dir, out_name))
             written.append(out_name)
     return written
+
+
+# --- IsUpgradeFrom: "shine sweep" gif ---------------------------------------
+# Every IsUpgradeFrom: perk gets a white diagonal shine sweeping across its
+# icon every few seconds in-game, signalling "this is an upgrade" -- unlike
+# the CUBE Animation: gif above, this isn't per-item DSL data at all, just a
+# fixed UI effect the engine applies to any upgrade perk, so the frames are
+# synthesized here rather than read from the mod's own files. Geometry
+# per the user's own description (2026-08-01): the line is oriented like a
+# "/" (one end lower-left, one end upper-right) and that whole line
+# translates diagonally down-and-right across the icon over the sweep,
+# entering near the top-left corner and exiting near the bottom-right.
+SHINE_SWEEP_STEPS = 14
+SHINE_FRAME_MS = 45
+SHINE_IDLE_REST_MS = 2200
+SHINE_LINE_WIDTH = 5
+SHINE_LINE_COLOR = (255, 255, 255)
+
+
+def draw_shine_line(icon_img, offset, width):
+    """One sweep frame: `icon_img` with a white "/"-oriented line drawn at
+    `offset` -- both endpoints of the line are shifted by the same
+    (offset, offset) vector along the tile's own down-right diagonal, so at
+    offset=0 the line runs corner-to-corner (bottom-left to top-right) and
+    increasing offset slides the whole line toward the bottom-right corner
+    (decreasing offset slides it toward/off the top-left). PIL clips a
+    line's off-canvas portion automatically, so offset can range well
+    beyond the tile's own bounds without extra bounds-checking here."""
+    im = icon_img.copy()
+    d = ImageDraw.Draw(im)
+    w, h = im.size
+    d.line([(offset, (h - 1) + offset), ((w - 1) + offset, offset)],
+           fill=SHINE_LINE_COLOR, width=width)
+    return im
+
+
+def build_shine_frames(icon_img):
+    """Idle frame (plain icon, no line) held for SHINE_IDLE_REST_MS, then
+    SHINE_SWEEP_STEPS quick frames sweeping the line from fully off-canvas
+    top-left to fully off-canvas bottom-right, then loop. Sweeping a full
+    tile-width beyond each side (offset range -w..+w) guarantees the line
+    is genuinely invisible at the sweep's start/end, not abruptly appearing
+    already mid-tile."""
+    w = icon_img.width
+    frames = [icon_img.copy()]
+    durations = [SHINE_IDLE_REST_MS]
+    for i in range(SHINE_SWEEP_STEPS):
+        offset = -w + i * (2 * w) // (SHINE_SWEEP_STEPS - 1)
+        frames.append(draw_shine_line(icon_img, offset, SHINE_LINE_WIDTH))
+        durations.append(SHINE_FRAME_MS)
+    return frames, durations
+
+
+def save_shine_gif(icon_img, out_path):
+    frames, durations = build_shine_frames(icon_img)
+    frames[0].save(out_path, save_all=True, append_images=frames[1:],
+                    duration=durations, loop=0, disposal=2)
 
 
 def parse_blocks(path, header_re):
@@ -1040,6 +1102,8 @@ def build_perks():
         next_target = field(upgrade_by_name[target_name]["lines"], "IsUpgradeFrom:").split()[0]
         return resolve_icon_slot(next_target, seen | {target_name})
 
+    shine_written = []
+
     def render_block(b, slot):
         basename, idx = slot
         src = sources[basename]
@@ -1054,6 +1118,14 @@ def build_perks():
         extra = [f"(Upgrade of {upgrade_of.split()[0].replace('_', ' ')})"] if upgrade_of else None
         icon = upscale(crop_icon(src["sheet"], idx, TILE_PERK, src["cols"], strip_guide=True), 7)
         ref_cubes = referenced_cubes_for(b["lines"], name)
+        if upgrade_of:
+            # Any IsUpgradeFrom: perk gets the shine-sweep companion gif,
+            # regardless of which file it lives in (the dedicated
+            # UpgradePerks file, or a regular Perks/Species file that mixes
+            # one in as a documented fallback) -- see build_shine_frames.
+            out_name = f"{MOD_PREFIX}_Perks_{name}_Shine.gif"
+            save_shine_gif(icon, os.path.join(OUT_DIR, out_name))
+            shine_written.append(out_name)
         return name, render_card(pretty(name), desc, None, icon, extra_lines=extra,
                                   class_species=CLASS_SPECIES, ref_cubes=ref_cubes)
 
@@ -1064,7 +1136,7 @@ def build_perks():
     for b in upgrade_blocks:
         base_name = field(b["lines"], "IsUpgradeFrom:").split()[0]
         cards.append(render_block(b, resolve_icon_slot(base_name)))
-    return cards
+    return cards, shine_written
 
 
 REF_CUBE_RE = re.compile(r'\b(?:CubeConstant|HiddenCubeConstant)\s+(\w+)')
@@ -1274,10 +1346,17 @@ def render_mod(mod_dir, mod_prefix):
                 continue  # this mod has no content of this category -- skip it
         prefix = f"{MOD_PREFIX}_{category}_"
         seen_prefixes.add(prefix)
-        for name, card in builder():
+        # build_perks() also returns its own shine-gif filenames (written as
+        # a side effect inside render_block, since it already has each
+        # upgrade perk's resolved icon on hand there) -- every other builder
+        # still returns a plain cards list.
+        result = builder()
+        cards, shine_gifs = result if category == "Perks" else (result, [])
+        for name, card in cards:
             fname = f"{prefix}{name}.png"
             card.save(os.path.join(OUT_DIR, fname))
             written.add(fname)
+        written.update(shine_gifs)
         if category == "Cubes":
             written.update(build_cube_animation_gifs(MOD_DIR, MOD_PREFIX, OUT_DIR))
     # Clean out stale files from a previous run: renamed/removed individual

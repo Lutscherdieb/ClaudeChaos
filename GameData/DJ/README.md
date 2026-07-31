@@ -33,14 +33,18 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 <img src="Preview/DJ_Perks_Inspiration.png" width="700" alt="Inspiration perk card">
 <img src="Preview/DJ_Perks_Finetuning.png" width="700" alt="Finetuning perk card">
 <img src="Preview/DJ_Perks_Mastering.png" width="700" alt="Mastering perk card (upgrade of Finetuning)">
+<img src="Preview/DJ_Perks_Mastering_Shine.gif" width="82" alt="Mastering upgrade shine (upgrade of Finetuning)">
 <img src="Preview/DJ_Perks_Bass_Drop.png" width="700" alt="Bass Drop perk card">
 <img src="Preview/DJ_Perks_Sampling.png" width="700" alt="Sampling perk card">
 <img src="Preview/DJ_Perks_Super_Sampling.png" width="700" alt="Super Sampling perk card (upgrade of Sampling)">
+<img src="Preview/DJ_Perks_Super_Sampling_Shine.gif" width="82" alt="Super Sampling upgrade shine (upgrade of Sampling)">
 <img src="Preview/DJ_Perks_Feedback.png" width="700" alt="Feedback perk card">
 <img src="Preview/DJ_Perks_Final_Countdown.png" width="700" alt="Final Countdown perk card">
 <img src="Preview/DJ_Perks_Grand_Finale.png" width="700" alt="Grand Finale perk card (upgrade of Final Countdown)">
+<img src="Preview/DJ_Perks_Grand_Finale_Shine.gif" width="82" alt="Grand Finale upgrade shine (upgrade of Final Countdown)">
 <img src="Preview/DJ_Perks_Bass_Dragon_Egg.png" width="700" alt="Bass Dragon Egg perk card">
 <img src="Preview/DJ_Perks_Baby_Bass_Dragon.png" width="700" alt="Baby Bass Dragon perk card (upgrade of Bass Dragon Egg)">
+<img src="Preview/DJ_Perks_Baby_Bass_Dragon_Shine.gif" width="82" alt="Baby Bass Dragon upgrade shine (upgrade of Bass Dragon Egg)">
 
 ### Curses
 
