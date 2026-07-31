@@ -610,6 +610,24 @@ def build_consumables():
     return cards
 
 
+def build_neutral():
+    """Neutral perks (BelongsTo: Neutral) live in their own
+    <ModPrefix>_Neutral.c.txt + matching sprite sheet, same shape as
+    Curses/Consumables (Style 2 clean-3-ring border, gray ring 1 --
+    cube-chaos-sprite-art's border pattern library)."""
+    blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Neutral.c.txt"), PERK_HEADER)
+    sheet = load_sheet(f"{MOD_PREFIX}_Neutral.c.png")
+    cols = grid_cols(len(blocks))
+    cards = []
+    for i, b in enumerate(blocks):
+        name = b["header"].group(1)
+        desc = field(b["lines"], "Description:")
+        val = field(b["lines"], "Value:")
+        icon = upscale(crop_icon(sheet, i, TILE_PERK, cols, strip_guide=True), 7)
+        cards.append((name, render_card(pretty(name), desc, val, icon)))
+    return cards
+
+
 CSVARIABLE_RE = re.compile(r'\bCSVARIABLE\s+\S+\b')
 
 
@@ -788,6 +806,7 @@ BUILDERS = {
     "Consumables": build_consumables,
     "CubeUpgrades": build_cubeupgrades,
     "TerrainPerks": build_terrain_perks,
+    "Neutral": build_neutral,
     "Synergies": build_synergies,
     "Perks": build_perks,
     "Cubes": build_cubes,
@@ -850,3 +869,4 @@ if __name__ == "__main__":
     render_mod(os.path.join(ROOT, "GameData", "Broker"), "Broker")
     render_mod(os.path.join(ROOT, "GameData", "DJ_Voidling"), "DJ_Voidling")
     render_mod(os.path.join(ROOT, "GameData", "Great_Wall"), "Great_Wall")
+    render_mod(os.path.join(ROOT, "GameData", "Home_Turf_Advantage"), "Home_Turf_Advantage")

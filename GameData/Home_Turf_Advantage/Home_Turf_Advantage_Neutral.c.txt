@@ -1,0 +1,25 @@
+PERK: Home_Turf_Advantage
+BelongsTo: Neutral
+WorldAbility: AtTheStartOfTheBattle
+ If CubeExists ARandomCubeWhich And IsEnemy Test CubeHasName Test Boss
+  EveryCubeWhich And IsLarger XOfPosition PositionOfCube Test DoubleConstant 25 And Not IsALeader Test
+   Not And Not IsPositionEmpty PositionFromXAndY Subtraction DoubleConstant 51 XOfPosition PositionOfCube Test
+    YOfPosition PositionOfCube Test
+   IsALeader CubeOfPosition PositionFromXAndY Subtraction DoubleConstant 51 XOfPosition PositionOfCube Test
+    YOfPosition PositionOfCube Test
+   IfElse IsPositionEmpty PositionFromXAndY Subtraction DoubleConstant 51 XOfPosition PositionOfCube Target
+    YOfPosition PositionOfCube Target
+    Silent TeleportToPosition PositionFromXAndY Subtraction DoubleConstant 51 XOfPosition PositionOfCube Target
+     YOfPosition PositionOfCube Target
+    Silent SwapWithPosition PositionFromXAndY Subtraction DoubleConstant 51 XOfPosition PositionOfCube Target
+     YOfPosition PositionOfCube Target
+AbilityText: In boss battles, the terrain's fortified advantage ends up on your side of the field instead of the boss's End
+WorldAbility: AtTheStartOfTheBattle
+ If CubeExists ARandomCubeWhich And IsEnemy Test CubeHasName Test Boss
+  EveryCubeWhich And IsSmaller XOfPosition PositionOfCube Test DoubleConstant 26 And IsEnemy Test Not IsALeader Test
+   SetFaction DoubleConstant 1
+AbilityText: Any of the boss's structures that end up on your side answer to you instead End
+Description: In boss battles, the terrain's fortified advantage ends up on your side of the field instead of the boss's, and any of their structures that land on your side answer to you instead End
+Value: 15
+BalanceCap: 5
+End
