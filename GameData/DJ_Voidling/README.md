@@ -6,7 +6,7 @@ A small bridge mod that adds the `DJ-Voidling` synergy perk. Pick both the DJ cl
 
 ## Preview — DJ_Voidling mod content
 
-Each card below is rendered to match the game's own in-game tooltip style (same `dogicapixel` pixel font, same per-category icon border colors and layout) rather than just showing the bare sprite sheet, so you can read the name/rule text of the perk without launching the game. Full-resolution sprite sheet original is in `Sprites/`.
+Each card below is rendered to match the game's own in-game tooltip style. Full-resolution sprite sheet original is in `Sprites/`.
 
 ### Perks
 

@@ -4,7 +4,7 @@ A full Class built with the skills in this repo's `.claude/` folder: a cube fami
 
 ## Preview — DJ mod content
 
-Each card below is rendered to match the game's own in-game tooltip style (same `dogicapixel` pixel font, same per-category icon border colors and layout) rather than just showing the bare sprite sheet, so you can read the name/rule text/value of every cube, perk, curse, consumable, and synergy without launching the game. Full-resolution sprite sheet originals are in `Sprites/`.
+Each card below is rendered to match the game's own in-game tooltip style. Full-resolution sprite sheet originals are in `Sprites/`.
 
 ### Cubes
 

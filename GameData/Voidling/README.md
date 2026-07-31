@@ -4,7 +4,7 @@ A Species built around one neutral cube at the center of the board: True Void. I
 
 ## Preview — Voidling mod content
 
-Each card below is rendered to match the game's own in-game tooltip style (same `dogicapixel` pixel font, same per-category icon border colors and layout) rather than just showing the bare sprite sheet, so you can read the name/rule text/value of every cube and perk without launching the game. Full-resolution sprite sheet originals are in `Sprites/`.
+Each card below is rendered to match the game's own in-game tooltip style. Full-resolution sprite sheet originals are in `Sprites/`.
 
 ### Cubes
 
