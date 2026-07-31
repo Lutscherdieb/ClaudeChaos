@@ -1283,6 +1283,54 @@ def build_cube_icon_index(mod_dir, mod_prefix):
             for i, b in enumerate(blocks)}
 
 
+# Base-game packages that define their own CUBE:s, for resolving a
+# ReferenceCube:/CubeConstant reference to a cube this mod doesn't own
+# itself -- e.g. General's `General-Undead` synergy perk creates a
+# CubeConstant Zombie, but Zombie is a base-game TOKEN cube
+# (Extra_Mechanics/TokenCubes.c.txt), not one of General's own. Read-only
+# (see CLAUDE.md's hard rule -- reading base-game files is always fine,
+# only writing to them is not). Fixed list of known files rather than a
+# directory scan, since these packages' own filenames are stable and this
+# avoids accidentally picking up something unrelated.
+BASE_GAME_CUBE_FILES = [
+    ("Base_Core", "3TokenCubes"),
+    ("Characters", "2TokenCubes"),
+    ("Characters", "GeneralCubes"),
+    ("Main", "2TokenCubes"),
+    ("Main", "3GeneralCubes"),
+    ("Extra_Mechanics", "TokenCubes"),
+    ("Modding_Example", "GeneralCubes"),
+]
+_BASE_GAME_CUBE_ICON_INDEX = None
+
+
+def base_game_cube_icon_index():
+    """name -> small upscaled icon for every CUBE: in the base game's own
+    packages (see BASE_GAME_CUBE_FILES) -- computed once total (not once
+    per mod, unlike CUBE_NAME_TO_ICON, since this is shared read-only
+    reference data with no per-mod variation) and memoized in
+    _BASE_GAME_CUBE_ICON_INDEX. Consulted as a fallback after a mod's own
+    CUBE_NAME_TO_ICON comes up empty for a given name."""
+    global _BASE_GAME_CUBE_ICON_INDEX
+    if _BASE_GAME_CUBE_ICON_INDEX is not None:
+        return _BASE_GAME_CUBE_ICON_INDEX
+    index = {}
+    for package, basename in BASE_GAME_CUBE_FILES:
+        txt_path = os.path.join(ROOT, "GameData", package, f"{basename}.c.txt")
+        png_path = os.path.join(ROOT, "GameData", package, "Sprites", f"{basename}.c.png")
+        if not (os.path.exists(txt_path) and os.path.exists(png_path)):
+            continue
+        blocks = parse_blocks(txt_path, CUBE_HEADER)
+        sheet = Image.open(png_path).convert("RGB")
+        cols = grid_cols(len(blocks))
+        for i, b in enumerate(blocks):
+            name = b["header"].group(1)
+            if name not in index:  # first package wins on a same-name collision
+                index[name] = upscale(crop_icon(sheet, i, TILE_CUBE, cols, strip_guide=True), 4)
+    _BASE_GAME_CUBE_ICON_INDEX = index
+    return index
+
+
 REFERENCE_CUBE_RE = re.compile(r'^ReferenceCube:\s*(\w+)')
 
 
@@ -1327,15 +1375,25 @@ def referenced_cubes_for(lines, self_name):
         if n not in seen:
             seen.add(n)
             names.append(n)
-    # Drop any name with no resolvable icon (a genuinely cross-mod/base-game
-    # reference, or -- as with Great_Wall's ReferenceCube: Anchored_Basalt/
-    # Water/Catapult -- a name that isn't in ANY _Cubes.c.txt at all, e.g. a
-    # terrain-scenario TOKEN cube defined inline elsewhere) rather than
-    # keeping a name-less blank entry: since this footer never shows text
-    # (see draw_footer_row), an icon-less entry contributes nothing visible
-    # but still reserved a full footer row's worth of vertical space --
-    # caught by eye comparing Great_Wall's card before/after this fix.
-    return [(n, CUBE_NAME_TO_ICON[n]) for n in names if n in CUBE_NAME_TO_ICON]
+    # Resolve each name to an icon: this mod's own CUBE:s first, then the
+    # base game's own packages as a fallback (see base_game_cube_icon_index
+    # -- real case: General's `General-Undead` synergy perk creates a
+    # CubeConstant Zombie, a base-game TOKEN cube General doesn't own
+    # itself; it rendered with no icon for Zombie until this fallback was
+    # added). Drop any name still unresolved (a genuinely different mod's
+    # own cube, or -- as with Great_Wall's ReferenceCube: Anchored_Basalt/
+    # Water/Catapult -- a terrain-scenario TOKEN cube defined inline
+    # somewhere this doesn't scan) rather than keeping a name-less blank
+    # entry: since this footer never shows text (see draw_footer_row), an
+    # icon-less entry contributes nothing visible but would still reserve a
+    # full footer row's worth of vertical space (caught on Great_Wall's card).
+    base_icons = base_game_cube_icon_index()
+    result = []
+    for n in names:
+        icon = CUBE_NAME_TO_ICON.get(n) or base_icons.get(n)
+        if icon is not None:
+            result.append((n, icon))
+    return result
 
 
 def build_cubes():
