@@ -1,6 +1,6 @@
 ---
 name: cube-chaos-repo-setup
-description: First-run session bootstrap for a Cube Chaos modding repo on a machine that hasn't been set up yet - decides how git/GitHub should work (your own fork, a branch on a shared repo, local-only git, or no git at all), checks that the tools every other skill assumes (git, python3+Pillow, bash, optionally gh/jq) are actually present, and runs a one-time personal-preferences questionnaire (preview-gate strictness, sprite effort, naming/color check-ins, README timing, proactive write-back, test-launch behavior) into a gitignored `.claude/preferences.local.md`. Trigger on "set up this repo", "new device", "new machine", "I'm new here", "fork this", "work on a branch", "work without git", "no git", "change my preferences", or whenever `cube-chaos-orchestrator`'s Step 0.5 detects `.claude/preferences.local.md` doesn't exist yet.
+description: First-run session bootstrap for a Cube Chaos modding repo on a machine that hasn't been set up yet - decides how git/GitHub should work (your own fork, a branch on a shared repo, local-only git, or no git at all), checks that the tools every other skill assumes (git, python3+Pillow, bash, optionally gh/jq) are actually present, and runs a one-time personal-preferences questionnaire (preview-gate strictness, sprite effort, naming/color check-ins, README timing, proactive write-back, test-launch behavior, concurrent-session git workflow) into a gitignored `.claude/preferences.local.md`. Also owns the worktree-per-session isolation procedure (`references/concurrent-sessions.md`) for running more than one Claude Code session against this repo at once. Trigger on "set up this repo", "new device", "new machine", "I'm new here", "fork this", "work on a branch", "work without git", "no git", "change my preferences", "run another session", "parallel session", "concurrent session", "worktree", or whenever `cube-chaos-orchestrator`'s Step 0.5 detects `.claude/preferences.local.md` doesn't exist yet.
 ---
 
 # Cube Chaos repo & session setup
@@ -52,6 +52,8 @@ Skip this step entirely if git is already configured the way the user wants (e.g
 
 If the user's actual goal is just "don't make me deal with a *remote*" rather than "no history at all," steer them to mode C instead — `git init` with no remote costs nothing, loses nothing, and keeps all five hooks live. Only pick D if they genuinely don't want local version control either (e.g. a very short-lived experiment).
 
+**Extra cost specific to mode D, worth surfacing if concurrent sessions ever comes up:** `references/concurrent-sessions.md`'s whole worktree-isolation scheme (letting more than one Claude Code session safely edit this repo at the same time) needs at least mode C — there's no branch/worktree primitive without git, and no safe way to isolate two sessions' concurrent writes to the same files otherwise. A user in mode D who wants to run sessions in parallel has to move to mode C first; there's no workaround.
+
 ## Step 3 — tool/path preflight
 
 | Tool/path | Needed for | If missing |
@@ -79,6 +81,7 @@ Ask via `AskUserQuestion` (batch across as many calls as needed, max 4 questions
 5. **Proactive write-back** — "After finishing a task to my satisfaction, write learnings back into the relevant skill/memory unprompted (Recommended)" vs. "Only write things back when I explicitly ask."
 6. **Test-launch behavior** — "Leave the game running after a clean `Log.txt` check so I can pick up manual testing right away (Recommended)" vs. "Close the game automatically once the check passes."
 7. **Preview-card icon border** — "Draw a faint steady grey outline around a cube card's sprite icon, matching the real in-game icon-slot border (Recommended, on by default)" vs. "No border around the icon."  — purely cosmetic on the generated `Preview/*.png` cards themselves, safe to flip and regenerate any time with no other effect.
+8. **Concurrent-session git workflow** (only ask if repo mode is C or better — see the mode-D cost note above) — "If another Claude Code session is already active on this same checkout, isolate this session into its own git worktree+branch, work there, and merge back through a gate (test-launch check, stop on any DSL/sprite-file conflict rather than auto-resolving) (Recommended)" vs. "Never isolate — always edit the main tree directly, even if sessions overlap." Only actually kicks in when a concurrency signal is present (another session's worktree already exists, or the user says one is coming) — a normal solo session is completely unaffected either way. Full procedure in `references/concurrent-sessions.md`.
 
 Write the answers to `.claude/preferences.local.md`:
 
@@ -92,6 +95,7 @@ Write the answers to `.claude/preferences.local.md`:
 - proactive_writeback: on | off
 - test_launch_behavior: leave-running | auto-close
 - preview_card_icon_border: on | off
+- session_git_workflow: worktree-gated | off
 ```
 
 ## Reference: where each preference is actually consulted
@@ -105,6 +109,7 @@ Write the answers to `.claude/preferences.local.md`:
 | `proactive_writeback` | `cube-chaos-orchestrator` Step D (the write-back-always rule) |
 | `test_launch_behavior` | `cube-chaos-mod-setup`'s test-and-iterate loop |
 | `preview_card_icon_border` | `cube-chaos-sprite-art`'s `render_preview_cards.py` (`render_cube_card`'s `icon_border` param) |
+| `session_git_workflow` | `cube-chaos-orchestrator` Step 0.6; procedure in `references/concurrent-sessions.md` |
 
 **If `.claude/preferences.local.md` doesn't exist for whatever reason (a quick drive-by session that skipped setup), every skill above defaults to the "Recommended" option in Step 4** — the questionnaire is how a user *changes* the default, not a prerequisite for sane behavior.
 

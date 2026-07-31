@@ -19,6 +19,12 @@ This skill set and the git repo both live inside the actual Cube Chaos game inst
 
 Check whether `.claude/preferences.local.md` exists. If it does, this machine/checkout has already been through setup — say nothing and go straight to Step A. **If it doesn't exist yet**, this is likely the first session on this machine or checkout: don't force a full setup wizard on someone who just wants to get one quick thing done, but do offer it via `AskUserQuestion` ("Looks like this machine hasn't been set up yet — want to run through git-mode and preference setup first (a few minutes), or skip for now and use the recommended defaults?"). Either answer is fine — "skip" just means every preference-driven step later in this session (Step C's gate, sprite effort, README timing, etc.) uses the "Recommended" default documented in `cube-chaos-repo-setup`, not a hard requirement to run setup before doing anything. If they want to run it, hand off to `cube-chaos-repo-setup` before continuing to Step A; it covers git/GitHub mode (own fork, branch on a shared repo, local-only git, or no git at all), a tool/path preflight (git, python3+Pillow, bash, optionally gh/jq), and the personal-preferences questionnaire.
 
+## Step 0.6 — concurrent-session check (only if `session_git_workflow: worktree-gated`)
+
+Skip this entirely if `.claude/preferences.local.md` doesn't exist, or sets `session_git_workflow: off` (or isn't set at all) — normal solo behavior, edit the main tree directly, nothing below applies.
+
+Otherwise, run `git worktree list` once. If it shows nothing beyond the main worktree, and the user hasn't said another session is about to run in parallel, there's no concurrency to isolate against — work directly in the main tree as normal, same as any other session. **Only if `git worktree list` already shows another `session/*` worktree still checked out, or the user says one's coming**, follow `cube-chaos-repo-setup/references/concurrent-sessions.md` to set up this session's own isolated worktree+branch before making any edits, and say so plainly (the user's already-open IDE tabs won't reflect this session's edits until it's merged back).
+
 ## Step A — new mod, or editing an existing one?
 
 Ask with `AskUserQuestion` unless it's already obvious from the request (e.g. the user names an existing mod folder or an existing perk to edit).
