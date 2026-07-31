@@ -46,6 +46,15 @@ Card design notes (reverse-engineered once so future regens don't redo this):
   can be several hops long, e.g. Mk3 upgrades from Mk2 which upgrades from
   the real base perk -- resolving only one hop was a real bug here, fixed
   alongside adding the separate-file support).
+- CUBE cards (only) now match several more real in-game tooltip elements,
+  added 2026-07-31 after the user supplied an actual gameplay screenshot of
+  Unholy's Brimstone tooltip: a boxed mana value, a red HP bar, a small
+  bullet glyph per ability (hollow square, or an hourglass for a
+  time-driven ability), a "Referenced Cubes" row for any cube this cube's
+  own abilities create/copy, and a class/species name+icon footer in that
+  class/species's own color. See render_cube_card() below and this skill's
+  own "Rendering README preview cards" section for the full rationale,
+  evidence, and the known heuristic/scope caveats each of these carries.
 """
 import math
 import os
@@ -57,9 +66,27 @@ MOD_DIR = os.path.join(ROOT, "GameData", "DJ")
 SPRITES = os.path.join(MOD_DIR, "Sprites")
 FONT_PATH = os.path.join(ROOT, "GeneralData", "dogicapixel.ttf")
 MODDING_INFO_PATH = os.path.join(ROOT, "ModdingInfo.txt")
+PREFERENCES_PATH = os.path.join(ROOT, ".claude", "preferences.local.md")
 OUT_DIR = os.path.join(MOD_DIR, "Preview")  # lives with the mod, e.g. for GameData/DJ/README.md
 MOD_PREFIX = "DJ"  # this mod's .c.txt/.c.png basename prefix
 COMPOUND_DOCS = {}  # built-ins + this mod's own COMPOUND: ABILITY name -> doc, set by render_mod()
+
+PREF_LINE_RE = re.compile(r'^-\s*(\S+):\s*(\S+)\s*$')
+
+
+def read_preference(name, default):
+    """Read a `- key: value` line from .claude/preferences.local.md (gitignored
+    personal settings, see cube-chaos-repo-setup). Missing file/key falls back
+    to `default` rather than erroring, since the file is optional/gitignored --
+    a fresh clone or a contributor who skipped setup shouldn't crash a preview
+    regen over it."""
+    if not os.path.exists(PREFERENCES_PATH):
+        return default
+    for line in open(PREFERENCES_PATH, encoding="utf-8").read().split("\n"):
+        m = PREF_LINE_RE.match(line)
+        if m and m.group(1) == name:
+            return m.group(2)
+    return default
 
 # A bare `Ability: Name arg1 arg2` line that grants a pre-registered built-in
 # ability (StrengthX, ChargeEveryX, FreePlacement, ...) needs no Text: of its
@@ -177,7 +204,19 @@ def load_mod_compound_docs(mod_dir):
                 for line in block_lines:
                     for g in GENERIC_RE.findall(line):
                         types.append({"Stacking": "STACKING", "Time": "TIME"}.get(g, "CODE"))
-                docs[name] = {"types": types, "template": text_tpl}
+                # The compound's OWN root trigger (block_lines[0]'s first
+                # token) decides whether a bare top-level grant of this
+                # compound (see build_cubes' COMPOUND_DOCS fallback) gets a
+                # timed bullet -- the compound's own NAME is not a reliable
+                # signal (see is_timed_trigger's own caveat). Real case:
+                # Voidling's `VoidNova` doesn't contain "Every" in its own
+                # name, but its body's root line is `EveryXSeconds ...` --
+                # confirmed via a rendered card showing the wrong (square,
+                # not hourglass) bullet before this fix.
+                primary_trigger = block_lines[0].strip().split()[0] if block_lines else ""
+                docs[name] = {"types": types, "template": text_tpl,
+                              "timed": is_timed_trigger(primary_trigger),
+                              "body": "\n".join(block_lines)}
             i = j + 1
     return docs
 
@@ -219,31 +258,74 @@ def resolve_inline_abilities(s, compound_docs):
     return "".join(out)
 
 
+TIMED_TRIGGER_RE = re.compile(r'Every')
+
+
+def is_timed_trigger(name):
+    """Heuristic for the game's own "recurring timer vs one-shot event"
+    bullet-icon distinction (hourglass vs plain square) -- confirmed real
+    in-game via a user-supplied Brimstone tooltip screenshot: its
+    `ChargeEveryX`/`EveryXSeconds` abilities get an hourglass bullet, its
+    `AfterThisDies` ability gets a plain square. Every recurring built-in
+    trigger name checked in ModdingInfo.txt contains the substring "Every"
+    (`ChargeEveryX`, `EverySecond`, `EveryXSeconds`, `EveryXMeleeY`,
+    `EveryXAcidicY`, `EveryXTicks`) while every one-shot trigger checked does
+    not (`AfterThisDies`, `AfterThisCollides`, `AfterACubeCollides`,
+    `AtTheStartOfTheBattle`, `BeforeThisIsDrawn`) -- and neither group's own
+    declared arg TYPEs (TIME vs not) line up consistently enough to use
+    instead (`EverySecond`/`EveryXSeconds` don't even declare a TIME-typed
+    arg). Classifying on the trigger name substring is therefore the more
+    reliable signal of the two, not just the simpler one. This only
+    classifies BUILT-IN trigger names by name -- a mod's own COMPOUND:
+    ABILITY granted directly as a top-level Ability: line is instead
+    classified from ITS OWN root trigger line (see load_mod_compound_docs'
+    "timed" field), not this function, precisely because a compound's own
+    name is not a reliable signal (real case caught rendering Voidling's
+    `True_Void`: `VoidNova` doesn't contain "Every" in its own name, but its
+    body's root line is `EveryXSeconds ...` -- classifying by name alone
+    showed the wrong square bullet instead of an hourglass)."""
+    return bool(TIMED_TRIGGER_RE.search(name))
+
+
 def collect_ability_texts(lines, ability_docs):
-    """Top-level Ability:/Text: pairs, in file order. A custom ability's own
-    immediately-following Text: is used verbatim (existing behavior); a bare
-    built-in-only Ability: line (no Text: right after it) falls back to
-    resolve_builtin_ability_text instead of being silently dropped."""
+    """Top-level Ability:/Text: pairs, in file order, each paired with
+    whether its own trigger is time-driven (for the bullet-glyph choice on
+    cube cards). A custom ability's own immediately-following Text: is used
+    verbatim (existing behavior); a bare built-in-only Ability: line (no
+    Text: right after it) falls back to resolve_builtin_ability_text instead
+    of being silently dropped. Returns a list of (text, is_timed) tuples.
+    `is_timed` prefers `ability_docs[trigger]["timed"]` when present (set by
+    load_mod_compound_docs for this mod's own compounds, from the compound's
+    OWN root trigger rather than its name) and falls back to
+    is_timed_trigger(trigger) by name otherwise (built-ins have no "timed"
+    key at all, but their names are a reliable signal -- see
+    is_timed_trigger)."""
     top = [l for l in lines if l and not l[0].isspace()]
-    texts = []
+    entries = []
     i = 0
     while i < len(top):
         line = top[i]
         if line.startswith("Ability:"):
+            tokens = line[len("Ability:"):].strip().split()
+            trigger = tokens[0] if tokens else ""
+            doc_for_trigger = ability_docs.get(trigger)
+            if doc_for_trigger is not None and "timed" in doc_for_trigger:
+                timed = doc_for_trigger["timed"]
+            else:
+                timed = bool(tokens) and is_timed_trigger(trigger)
             if i + 1 < len(top) and top[i + 1].startswith("Text:"):
                 content = top[i + 1][len("Text:"):].strip()
                 if content.endswith(" End"):
                     content = content[:-4].strip()
-                texts.append(content)
+                entries.append((content, timed))
                 i += 2
                 continue
-            tokens = line[len("Ability:"):].strip().split()
             if tokens:
                 resolved = resolve_builtin_ability_text(tokens[0], tokens[1:], ability_docs)
                 if resolved:
-                    texts.append(resolved)
+                    entries.append((resolved, timed))
         i += 1
-    return texts
+    return entries
 
 # Grid columns are derived from the actual tile count (ceil(sqrt(n)), matching
 # the game's own square-sheet convention -- see SKILL.md) rather than
@@ -255,9 +337,22 @@ def grid_cols(n):
 BG = (0, 0, 0)
 WHITE = (255, 255, 255)
 MANA_BLUE = (80, 140, 255)
+DIM_GRAY = (96, 96, 96)  # this repo's standing "dimmed explanation" gray, see cube-chaos-rule-text
+GREY_BORDER = (130, 130, 130)  # faint steady grey icon-slot outline, cube cards only (icon_border preference)
+HP_RED = (190, 30, 30)
+HP_RED_DARK = (110, 15, 15)
+TIMED_BULLET_COLOR = (155, 238, 255)  # matches ChargeEveryX's own "Charging:" header color in ModdingInfo.txt
+SQUARE_BULLET_COLOR = (150, 150, 150)
 
 TILE_PERK = 27
 TILE_CUBE = 17
+
+STAT_COL_W = 150
+MANA_BOX_H = 62
+HP_BAR_H = 40
+STAT_GAP = 10
+BULLET_SIZE = 7
+BULLET_COL_W = 28
 
 W = 1500
 MARGIN = 40
@@ -578,6 +673,174 @@ def render_card(title, description, value, icon_img, extra_lines=None):
     return im
 
 
+def draw_bullet(d, x, cy, timed):
+    """Small bullet glyph drawn before an ability's first wrapped line only
+    (continuation lines just hang-indent under it, no repeated bullet) --
+    a solid hourglass silhouette for a time-driven trigger, a hollow square
+    otherwise. Matches the real in-game tooltip distinction confirmed via a
+    user-supplied Brimstone screenshot: `ChargeEveryX`/`EveryXSeconds` get
+    an hourglass, `AfterThisDies` gets a plain square (see is_timed_trigger
+    for the actual classification rule)."""
+    s = BULLET_SIZE
+    if timed:
+        top, bot = cy - s, cy + s
+        d.polygon([(x, top), (x + 2 * s, top), (x + s, cy)], fill=TIMED_BULLET_COLOR)
+        d.polygon([(x, bot), (x + 2 * s, bot), (x + s, cy)], fill=TIMED_BULLET_COLOR)
+    else:
+        d.rectangle((x, cy - s, x + 2 * s, cy + s), outline=SQUARE_BULLET_COLOR, width=2)
+
+
+def render_cube_card(title, mana, hp, maxhp, is_token, ability_entries, icon_img,
+                      ref_cubes, class_species, icon_border):
+    """CUBE-only card layout (see the module docstring's 2026-07-31 entry) --
+    a boxed mana value + red HP bar in a left stat column, one bullet glyph
+    per top-level ability (see draw_bullet), an optional "Referenced Cubes"
+    row for any cube this one creates/copies (see find_referenced_cubes),
+    and a class/species name+icon footer in that class/species's own color
+    (see find_class_species). Unlike the shared render_card(), the icon is
+    pinned to the top-right corner rather than vertically centered over the
+    whole card -- this card can grow tall below the title (referenced
+    cubes/footer rows), and the real in-game tooltip's icon doesn't drift
+    down to re-center when that happens either."""
+    dummy = ImageDraw.Draw(Image.new("RGB", (10, 10)))
+    f_title, f_body = font(TITLE_SIZE), font(BODY_SIZE)
+    f_stat_big, f_stat_small = font(34), font(16)
+    f_dim = font(18)
+
+    icon_w, icon_h = icon_img.size
+    border_pad = 6 if icon_border else 0
+    icon_x = W - MARGIN - icon_w
+    icon_y = TOP_MARGIN
+
+    stat_col_x = MARGIN
+    ability_x = stat_col_x + STAT_COL_W + 24
+    ability_w = icon_x - border_pad - 20 - ability_x
+
+    def prep(raw):
+        # \A must resolve before humanize()/tokenize_colored(), same reasons
+        # as render_card's own prep() above.
+        resolved = resolve_inline_abilities(raw, COMPOUND_DOCS)
+        return tokenize_colored(humanize(resolved), WHITE)
+
+    # Wrap each ability entry independently (not concatenated into one flat
+    # body like render_card does) so exactly one bullet can be drawn per
+    # ability, positioned against that entry's own first line.
+    entry_lines = []
+    for text, timed in ability_entries:
+        lines = wrap_colored_tokens(dummy, prep(text), f_body, ability_w - BULLET_COL_W)
+        entry_lines.append((timed, lines))
+    ability_h = sum(len(lines) * (BODY_SIZE + LINE_GAP) for _, lines in entry_lines)
+    if entry_lines:
+        ability_h += (len(entry_lines) - 1) * 6  # small gap between separate abilities
+
+    stat_h = MANA_BOX_H
+    if hp or maxhp:
+        stat_h += STAT_GAP + HP_BAR_H
+    if is_token:
+        stat_h += STAT_GAP + BODY_SIZE
+
+    content_h = max(stat_h, ability_h, icon_h)
+
+    # Class/species + referenced-cubes share ONE footer row (not two stacked
+    # blocks) specifically to cap how much a long referenced-cubes list can
+    # grow the card's height -- user feedback 2026-07-31 after the first
+    # (stacked) version. FOOTER_GAP is added to `y` verbatim below, and
+    # `footer_row_h` is reused as-is for every element's vertical centering,
+    # so the estimate here can't drift from what's actually drawn.
+    FOOTER_GAP = 20
+    FOOTER_TEXT_H = 24  # room for a name/label's own text line, no icon
+    footer_row_h = 0
+    if class_species:
+        footer_row_h = max(footer_row_h, class_species["icon"].size[1])
+    if ref_cubes:
+        footer_row_h = max(footer_row_h, FOOTER_TEXT_H,
+                            *(ic.size[1] for _, ic in ref_cubes if ic is not None))
+    footer_h = (FOOTER_GAP + footer_row_h) if (class_species or ref_cubes) else 0
+
+    H = TOP_MARGIN + TITLE_SIZE + TITLE_GAP + content_h + footer_h + BOTTOM_MARGIN
+
+    im = Image.new("RGB", (W, H), BG)
+    d = ImageDraw.Draw(im)
+
+    d.text((MARGIN, TOP_MARGIN), title.upper(), font=f_title, fill=WHITE)
+
+    im.paste(icon_img, (icon_x, icon_y))
+    if icon_border:
+        d.rectangle((icon_x - border_pad, icon_y - border_pad,
+                      icon_x + icon_w + border_pad - 1, icon_y + icon_h + border_pad - 1),
+                     outline=GREY_BORDER, width=2)
+
+    body_top = TOP_MARGIN + TITLE_SIZE + TITLE_GAP
+
+    # --- stat column: mana box + hp bar ---
+    y = body_top
+    mana_s = str(mana)
+    box_w = max(STAT_COL_W, text_width(d, mana_s, f_stat_big) + 24)
+    d.rounded_rectangle((stat_col_x, y, stat_col_x + box_w, y + MANA_BOX_H),
+                         radius=8, outline=MANA_BLUE, width=2)
+    num_w = text_width(d, mana_s, f_stat_big)
+    d.text((stat_col_x + (box_w - num_w) // 2, y + 4), mana_s, font=f_stat_big, fill=WHITE)
+    label_w = text_width(d, "MANA", f_stat_small)
+    d.text((stat_col_x + (box_w - label_w) // 2, y + MANA_BOX_H - 20), "MANA",
+           font=f_stat_small, fill=MANA_BLUE)
+    y += MANA_BOX_H
+
+    if hp or maxhp:
+        y += STAT_GAP
+        d.rounded_rectangle((stat_col_x, y, stat_col_x + box_w, y + HP_BAR_H),
+                             radius=6, fill=HP_RED, outline=HP_RED_DARK, width=2)
+        # Always "current/max", even when equal -- confirmed via the real
+        # Brimstone screenshot showing "6/6" rather than a collapsed "6".
+        hp_s = f"{hp}/{maxhp}"
+        hp_w = text_width(d, hp_s, f_body)
+        d.text((stat_col_x + (box_w - hp_w) // 2, y + (HP_BAR_H - BODY_SIZE) // 2),
+               hp_s, font=f_body, fill=WHITE)
+        y += HP_BAR_H
+
+    if is_token:
+        y += STAT_GAP
+        d.text((stat_col_x, y), "TOKEN", font=f_dim, fill=DIM_GRAY)
+
+    # --- ability list: one bullet glyph per ability ---
+    y = body_top
+    for timed, lines in entry_lines:
+        first = True
+        for indent, tokens in lines:
+            if first:
+                draw_bullet(d, ability_x, y + BODY_SIZE // 2, timed)
+                first = False
+            draw_colored_tokens_line(d, (ability_x + BULLET_COL_W, y), indent, tokens, f_body)
+            y += BODY_SIZE + LINE_GAP
+        y += 6
+
+    # --- footer row: class/species (left) + referenced cubes (right), one
+    # shared row so a referenced-cubes list doesn't stack a second block's
+    # worth of height under the class/species line ---
+    if class_species or ref_cubes:
+        y = body_top + content_h + FOOTER_GAP
+        x = MARGIN
+        if class_species:
+            icon = class_species["icon"]
+            iw, ih = icon.size
+            im.paste(icon, (x, y + (footer_row_h - ih) // 2))
+            name_font = font(24)
+            d.text((x + iw + 10, y + (footer_row_h - 24) // 2),
+                   class_species["name"], font=name_font, fill=class_species["color"])
+            x += iw + 10 + text_width(d, class_species["name"], name_font) + 40
+
+        if ref_cubes:
+            for ref_name, ref_icon in ref_cubes:
+                if ref_icon is not None:
+                    rw, rh = ref_icon.size
+                    im.paste(ref_icon, (x, y + (footer_row_h - rh) // 2))
+                    x += rw + 8
+                name_label = pretty(ref_name)
+                d.text((x, y + (footer_row_h - 18) // 2), name_label, font=f_dim, fill=WHITE)
+                x += text_width(d, name_label, f_dim) + 28
+
+    return im
+
+
 def pretty(name):
     return name.replace("_", " ").upper()
 
@@ -769,6 +1032,102 @@ def build_perks():
     return cards
 
 
+REF_CUBE_RE = re.compile(r'\b(?:CubeConstant|HiddenCubeConstant)\s+(\w+)')
+
+
+def find_referenced_cubes(lines, self_name, compound_docs):
+    """Cube names this CUBE's own Ability: chains create/copy/reference via
+    a `CubeConstant <Name>`/`HiddenCubeConstant <Name>` token pair (see
+    ModdingInfo.txt's CUBE: production grammar -- a CUBE-typed arg is always
+    spelled as that keyword plus the literal name, never the name alone;
+    same fact `resolve_builtin_ability_text` already relies on for its own
+    CODE-substitution). Scans the WHOLE block body (not just top-level
+    lines, unlike collect_ability_texts) since these references live on
+    indented sub-lines of a chain, e.g. Brimstone's
+    `CreateCubeOnPosition CopyWithAction CubeConstant Molten_Brimstone ...`.
+    Self-references are excluded (a cube mentioning its own name isn't a
+    "referenced cube" in the sense the card footer means), order is
+    file-order-of-first-mention, and duplicates are collapsed.
+
+    A bare top-level `Ability: <CompoundName> args` grant of this mod's own
+    COMPOUND (no inline CubeConstant token at the call site itself) is also
+    expanded into that compound's own body -- one hop only, via
+    `compound_docs[name]["body"]` (see load_mod_compound_docs). Real gap
+    this closes: DJ's `Speaker` grants `Ability: SpeakerNoteSpawn` bare, and
+    `SpeakerNoteSpawn`'s own body is what actually contains
+    `CubeConstant Note` -- scanning only Speaker's own block missed it
+    entirely, a real miss caught reading the rendered card back (no "Note"
+    in Speaker's Referenced Cubes row despite it visibly spawning one).
+    Compounds granting further compounds aren't followed recursively; no
+    such case exists in this repo's mods yet."""
+    seen, out = set(), []
+
+    def scan(text):
+        for name in REF_CUBE_RE.findall(text):
+            if name != self_name and name not in seen:
+                seen.add(name)
+                out.append(name)
+
+    for l in lines:
+        scan(l)
+        if l.startswith("Ability:"):
+            tokens = l[len("Ability:"):].strip().split()
+            doc = compound_docs.get(tokens[0]) if tokens else None
+            if doc and doc.get("body"):
+                scan(doc["body"])
+    return out
+
+
+def sample_dominant_color(im):
+    """Most common non-background, non-guide color in a tile -- for a
+    class/species base perk tile this is reliably that class/species's own
+    color, since "Base class/species icon style" (this skill's SKILL.md)
+    confirms the icon fill and its border ring are always the identical
+    color for that one perk. Never use this against a content-bearing
+    REWARD perk tile -- only the single BelongsTo: CLASS/SPECIES tile has
+    this fill-matches-border guarantee."""
+    from collections import Counter
+    SPRITE_BG = (0, 148, 255)  # the sheet's own default background (cube-chaos-sprite-art SKILL.md) --
+    # NOT this script's card-canvas BG (0,0,0), a real bug caught rendering Unholy's own
+    # footer: the tile is mostly SPRITE_BG pixels, which dominated the count and got
+    # returned as "the class color" instead of the actual (150,20,20) icon/border color.
+    cnt = Counter(im.getdata())
+    cnt.pop(SPRITE_BG, None)
+    cnt.pop((255, 0, 220), None)  # magenta guide ring
+    if not cnt:
+        return WHITE
+    return cnt.most_common(1)[0][0]
+
+
+def find_class_species(mod_dir, mod_prefix):
+    """This mod's own class/species name+color+icon, for the cube-card
+    footer -- read from slot 0 of its own `_Species.c.txt`/`_Perks.c.txt`
+    (whichever perks_source_basenames() finds first), which is always the
+    single `BelongsTo: CLASS`/`BelongsTo: SPECIES` perk by this repo's own
+    file-ordering convention (confirmed 2026-07-31 across every mod that has
+    one: DJ/General/Broker's own class perk and Unholy/Voidling's own
+    species perk are each literally the first PERK: block in their file).
+    Returns None for a mod with neither file, or whose first block isn't
+    actually a CLASS/SPECIES perk (Great_Wall/Home_Turf_Advantage are
+    Terrain/Neutral-only mods with no class or species of their own) --
+    the cube-card footer is simply omitted in that case, not left blank."""
+    for basename in perks_source_basenames():
+        path = os.path.join(mod_dir, f"{mod_prefix}_{basename}.c.txt")
+        blocks = parse_blocks(path, PERK_HEADER)
+        if not blocks:
+            continue
+        b = blocks[0]
+        if not any(l.strip() in ("BelongsTo: CLASS", "BelongsTo: SPECIES") for l in b["lines"]):
+            continue
+        name = b["header"].group(1)
+        sheet = load_sheet(f"{mod_prefix}_{basename}.c.png")
+        cols = grid_cols(len(blocks))
+        tile = crop_icon(sheet, 0, TILE_PERK, cols, strip_guide=True)
+        color = sample_dominant_color(tile)
+        return {"name": name, "color": color, "icon": upscale(tile, 2)}
+    return None
+
+
 def build_cubes():
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Cubes.c.txt"), CUBE_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Cubes.c.png")
@@ -781,23 +1140,27 @@ def build_cubes():
     # resolve_inline_abilities' \A path, or these render as silently missing
     # lines instead of their real tooltip text.
     ability_docs = {**load_builtin_ability_docs(), **COMPOUND_DOCS}
+    name_to_index = {b["header"].group(1): i for i, b in enumerate(blocks)}
+    class_species = find_class_species(MOD_DIR, MOD_PREFIX)
+    icon_border = read_preference("preview_card_icon_border", "on") == "on"
     cards = []
     for i, b in enumerate(blocks):
         h = b["header"]
         name, mana, hp, maxhp = h.group(1), int(h.group(2)), int(h.group(3)), int(h.group(4))
         is_token = any(l.strip() == "TOKEN" for l in b["lines"])
-        texts = collect_ability_texts(b["lines"], ability_docs)
-        stat_bits = [f"Mana Cost: {mana}"]
-        if hp or maxhp:
-            stat_bits.append(f"HP: {hp}" if hp == maxhp else f"HP: {hp}/{maxhp}")
-        if is_token:
-            stat_bits.append("Token (not independently obtainable)")
-        extra = ["  |  ".join(stat_bits)]
-        if texts:
-            extra.append("")
-            extra.extend(f"- {t}" for t in texts)
+        ability_entries = collect_ability_texts(b["lines"], ability_docs)
+        ref_names = find_referenced_cubes(b["lines"], name, ability_docs)
+        ref_cubes = []
+        for ref_name in ref_names:
+            if ref_name in name_to_index:
+                ref_icon = upscale(crop_icon(sheet, name_to_index[ref_name], TILE_CUBE, cols, strip_guide=True), 4)
+            else:
+                ref_icon = None  # base-game/other-mod cube -- name only, no sprite available here
+            ref_cubes.append((ref_name, ref_icon))
         icon = upscale(crop_icon(sheet, i, TILE_CUBE, cols, strip_guide=True), 10)
-        cards.append((name, render_card(pretty(name), None, None, icon, extra_lines=extra)))
+        card = render_cube_card(pretty(name), mana, hp, maxhp, is_token, ability_entries,
+                                 icon, ref_cubes, class_species, icon_border)
+        cards.append((name, card))
     return cards
 
 

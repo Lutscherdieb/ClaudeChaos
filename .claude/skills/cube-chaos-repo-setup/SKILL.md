@@ -78,6 +78,7 @@ Ask via `AskUserQuestion` (batch across as many calls as needed, max 4 questions
 4. **README timing** — "Create a mod's README only when asked, or when a session's work has clearly reached a feature-complete point — ask first even then (Recommended)" vs. "Set one up right away when a mod is created."
 5. **Proactive write-back** — "After finishing a task to my satisfaction, write learnings back into the relevant skill/memory unprompted (Recommended)" vs. "Only write things back when I explicitly ask."
 6. **Test-launch behavior** — "Leave the game running after a clean `Log.txt` check so I can pick up manual testing right away (Recommended)" vs. "Close the game automatically once the check passes."
+7. **Preview-card icon border** — "Draw a faint steady grey outline around a cube card's sprite icon, matching the real in-game icon-slot border (Recommended, on by default)" vs. "No border around the icon."  — purely cosmetic on the generated `Preview/*.png` cards themselves, safe to flip and regenerate any time with no other effect.
 
 Write the answers to `.claude/preferences.local.md`:
 
@@ -90,6 +91,7 @@ Write the answers to `.claude/preferences.local.md`:
 - readme_timing: late-ask-first | early
 - proactive_writeback: on | off
 - test_launch_behavior: leave-running | auto-close
+- preview_card_icon_border: on | off
 ```
 
 ## Reference: where each preference is actually consulted
@@ -102,6 +104,7 @@ Write the answers to `.claude/preferences.local.md`:
 | `readme_timing` | `cube-chaos-mod-setup`'s README/`Preview/` governance section |
 | `proactive_writeback` | `cube-chaos-orchestrator` Step D (the write-back-always rule) |
 | `test_launch_behavior` | `cube-chaos-mod-setup`'s test-and-iterate loop |
+| `preview_card_icon_border` | `cube-chaos-sprite-art`'s `render_preview_cards.py` (`render_cube_card`'s `icon_border` param) |
 
 **If `.claude/preferences.local.md` doesn't exist for whatever reason (a quick drive-by session that skipped setup), every skill above defaults to the "Recommended" option in Step 4** — the questionnaire is how a user *changes* the default, not a prerequisite for sane behavior.
 
