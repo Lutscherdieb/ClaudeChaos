@@ -1322,7 +1322,17 @@ def base_game_cube_icon_index():
             continue
         blocks = parse_blocks(txt_path, CUBE_HEADER)
         sheet = Image.open(png_path).convert("RGB")
-        cols = grid_cols(len(blocks))
+        # cols MUST come from the sheet's own real width, not
+        # grid_cols(len(blocks)) -- unlike every mod file in this repo (which
+        # this script itself generated as a square ceil(sqrt(n)) grid), the
+        # base game's own sheets are NOT reliably square (see this skill's
+        # own "sheet does NOT need to be square" correction). Confirmed by
+        # measuring all 7 files here: 6 of 7 have real_cols != ceil(sqrt(n))
+        # (e.g. Extra_Mechanics/TokenCubes.c.png is a real 10-wide sheet for
+        # 78 cubes, not the 9-wide square grid_cols() assumed) -- using the
+        # wrong column count silently landed on a neighboring cube's tile
+        # instead (caught: Zombie showed a different cube's art entirely).
+        cols = sheet.width // TILE_CUBE
         for i, b in enumerate(blocks):
             name = b["header"].group(1)
             if name not in index:  # first package wins on a same-name collision
