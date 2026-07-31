@@ -4,17 +4,13 @@ A mod for battlefields (Terrain perks). Right now it holds one: **Great Wall**, 
 
 ## Preview — Great_Wall mod content
 
-Each card below is rendered to match the game's own in-game tooltip style (same `dogicapixel` pixel font, same per-category icon border colors and layout) rather than just showing the bare sprite sheet, so you can read the name/rule text of every terrain without launching the game. Full-resolution sprite sheet originals are in `Sprites/`.
+Each card below is rendered to match the game's own in-game tooltip style. Full-resolution sprite sheet originals are in `Sprites/`.
 
 ### Terrain
 
 <img src="Preview/Great_Wall_TerrainPerks_Great_Wall.png" width="700" alt="Great Wall terrain perk card">
-
-### In-game screenshot
-
-_Not added yet — drop a screenshot in as `Screenshots/Great_Wall.png` and it'll show here:_
-
-<img src="Screenshots/Great_Wall.png" width="700" alt="Great Wall terrain, in game">
+<img src="Screenshots/GreatWall.png" width="700" alt="Great Wall - terrain, in game">
+<img src="Screenshots/GreatWall_Boss.png" width="700" alt="Great Wall - Boss Battle terrain, in game">
 
 ## Installing this mod (to play it)
 
