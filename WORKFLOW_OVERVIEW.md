@@ -2,12 +2,48 @@
 
 One entry point (`cube-chaos-orchestrator`) routes every request to a content-type workflow, which pulls in whichever domain skills it needs — or, for an existing mod, to `cube-chaos-audit` instead if the ask is "check this for consistency" rather than "add/change something." Two hard gates bookend the actual writing: a design preview before anything is written, and a launch-and-log check before anything is called done; the audit path mirrors the first of those (findings, then approval) before it touches any file. The audited mod doesn't have to be one of this repo's own — for a foreign/Workshop mod, the audit opens with a short scope questionnaire, since a chunk of the checklist is this repo's own house style rather than universal correctness; the mod's own creator may have made a different, equally valid choice on purpose.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="workflow-overview-dark.png">
-  <img src="workflow-overview-light.png" alt="Flowchart: a modding request enters at the game root, routes through the repo-setup offer, new-vs-existing-mod and audit-vs-add/edit branches, out to the matching content-type workflow file and domain skills, through the preview-and-approve gate, the write/research step, and the launch-and-log gate to done.">
-</picture>
+```mermaid
+flowchart TD
+    Start(["Request"]) --> Root{"In the game root?"}
+    Root -- no --> AskRoot["Ask for install path"]
+    Root -- yes --> SetupQ{"preferences.local.md<br/>exists yet?"}
+    SetupQ -- no --> SetupOffer["Offer cube-chaos-repo-setup<br/>(git mode &middot; tool preflight &middot; preferences)"]
+    SetupOffer --> ModQ
+    SetupQ -- yes --> ModQ{"New or existing mod?"}
+    ModQ -- new --> NewMod["new-mod.md"]
+    ModQ -- existing --> AuditQ{"Add/edit content,<br/>or audit what's there?"}
+    AuditQ -- audit --> AuthorQ{"Ours, or a<br/>foreign/Workshop mod?"}
+    AuthorQ -- ours --> Audit["cube-chaos-audit<br/>(detect &middot; report findings)"]
+    AuthorQ -- foreign --> ScopeQ["Scope questionnaire &middot;<br/>4 house-convention buckets<br/>(Universal rows always run)"]
+    ScopeQ --> Audit
+    Audit --> GateAudit{{"Findings approved?"}}
+    GateAudit -- adjust --> Audit
+    GateAudit -- approved --> Skills
+    AuditQ -- add/edit --> TypeQ{"What content type?"}
 
-Rendered as a static PNG (light/dark variants picked automatically to match your GitHub theme) rather than a live `mermaid` code block, so it also displays correctly in clients that don't render Mermaid, like the GitHub mobile app — PNG rather than SVG since the mobile app's image viewer doesn't render SVG either (a bare `<img>` for one showed as a broken-image icon). The source lives in [`workflow-overview.mmd`](workflow-overview.mmd); regenerate the PNGs from it if the diagram changes (see the comment at the top of that file).
+    TypeQ --> Cube["Cube"]
+    TypeQ --> Perk["Perk-family:<br/>reward &middot; Curse &middot; Blight &middot; Boon<br/>Nightmare &middot; Consumable &middot; Golden &middot; Neutral &middot; CubeUpgrade"]
+    TypeQ --> ClassSp["Class &middot; Species &middot; Synergy &middot; Dragon line"]
+    TypeQ --> Scenario["Terrain &middot; Battle type<br/>Node-map &middot; Challenge &middot; Reward screen"]
+
+    Cube --> WCube["content-cube.md"]
+    Perk --> WPerk["content-perk-family.md"]
+    ClassSp --> WClass["content-class-species.md<br/>content-dragon-line.md"]
+    Scenario --> WScenario["content-terrain.md &middot; content-battle-scenario.md<br/>content-nodemap.md &middot; content-challenge-scenario.md<br/>content-reward-scenario.md"]
+
+    WCube --> Skills["Domain skills<br/>scripting &middot; scenario-scripting<br/>rule-text &middot; sprite-art &middot; balancing"]
+    WPerk --> Skills
+    WClass --> Skills
+    WScenario --> Skills
+
+    Skills --> GateC{{"Step C &middot; preview &amp; approve"}}
+    GateC -- revise spec --> Skills
+    GateC -- OK'd --> Write["Write the files"]
+    Write --> ResearchNote["Step D &middot; if base game was consulted,<br/>write the finding back into the skill"]
+    ResearchNote --> GateLaunch{{"Launch &amp; check Log.txt"}}
+    GateLaunch -- errors --> Skills
+    GateLaunch -- clean --> Done(["Done &middot; regen README previews if any exist"])
+```
 
 Shapes carry the meaning, so this reads the same whether GitHub renders it light or dark: **rounded ends** are the start/end of a request, **diamonds** are questions/branches, **plain rectangles** are workflow files or write/research steps, and **hexagons** are the hard gates (the design-preview gate, the audit-findings gate, and the launch-and-log gate).
 

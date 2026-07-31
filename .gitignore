@@ -10,11 +10,6 @@
 #   - GameData/Great_Wall/ the battlefields (Terrain perk) mod (same deal)
 #   - README.md        repo-level docs
 #   - WORKFLOW_OVERVIEW.md  repo-level docs (diagram of the modding workflow)
-#   - workflow-overview.mmd, workflow-overview-{light,dark}.png
-#                      mermaid source + pre-rendered PNGs for the diagram
-#                      above (static images so it also renders on clients,
-#                      like the GitHub mobile app, that support neither
-#                      Mermaid nor SVG <img> tags)
 # Everything else (game binaries, base-game GameData folders, and any other
 # mod folders that come and go as you subscribe/unsubscribe on the Workshop)
 # is deliberately left untracked.
@@ -26,9 +21,6 @@
 !/CLAUDE.md
 !/README.md
 !/WORKFLOW_OVERVIEW.md
-!/workflow-overview.mmd
-!/workflow-overview-light.png
-!/workflow-overview-dark.png
 !/.claude/
 !/GameData/
 
