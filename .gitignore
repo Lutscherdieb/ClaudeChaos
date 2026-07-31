@@ -6,8 +6,14 @@
 #   - GameData/Unholy/  the Unholy species mod (same deal)
 #   - GameData/Broker/  the Broker class mod (same deal)
 #   - GameData/Voidling/ the Voidling species mod (same deal)
+#   - GameData/DJ_Voidling/ the DJ+Voidling crossover synergy mod (same deal)
+#   - GameData/Great_Wall/ the battlefields (Terrain perk) mod (same deal)
 #   - README.md        repo-level docs
 #   - WORKFLOW_OVERVIEW.md  repo-level docs (diagram of the modding workflow)
+#   - workflow-overview.mmd, workflow-overview-{light,dark}.svg
+#                      mermaid source + pre-rendered SVGs for the diagram
+#                      above (static images so it also renders on clients,
+#                      like the GitHub mobile app, that don't support Mermaid)
 # Everything else (game binaries, base-game GameData folders, and any other
 # mod folders that come and go as you subscribe/unsubscribe on the Workshop)
 # is deliberately left untracked.
@@ -19,6 +25,9 @@
 !/CLAUDE.md
 !/README.md
 !/WORKFLOW_OVERVIEW.md
+!/workflow-overview.mmd
+!/workflow-overview-light.svg
+!/workflow-overview-dark.svg
 !/.claude/
 !/GameData/
 
@@ -29,6 +38,8 @@
 !/GameData/Unholy/
 !/GameData/Broker/
 !/GameData/Voidling/
+!/GameData/DJ_Voidling/
+!/GameData/Great_Wall/
 
 # Personal/machine-local Claude Code settings - contains local permission rules
 # with absolute paths tied to whoever's machine set them up (usernames, drive

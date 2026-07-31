@@ -1,0 +1,56 @@
+SCENARIO: Great_Wall_Terrain
+Info: A barren field split by a great wall End
+End
+
+ADDITIONALMAP: // 52 28 //
+CUBE: 1 Earth
+CUBE: 2 Anchored_Basalt
+CUBE: 3 Water
+
+DATARECT: 1 0 0 22 52 6
+
+DATARECT: 3 0 21 22 3 6
+DATARECT: 3 0 28 22 3 6
+
+DATARECT: 2 0 24 3 4 25
+
+PLACERECT: 0 0 21 28 1
+PLACERECT: 31 0 21 28 2
+
+EndMapData
+SEnd
+
+SCENARIO: Great_Wall_Boss_Terrain
+Info: A barren field split by a castle's two walls, guarded from atop by catapults End
+End
+
+ADDITIONALMAP: // 52 28 //
+CUBE: 1 Earth
+CUBE: 2 Anchored_Basalt
+CUBE: 3 Water
+CUBE: 4 Catapult
+CUBE: 5 Stable_Plates
+CUBE: 6 Boss
+
+DATARECT: 1 0 0 22 52 6
+
+DATARECT: 3 0 21 22 3 6
+DATARECT: 2 0 24 13 4 15
+
+DATARECT: 3 0 34 22 3 6
+DATARECT: 2 0 37 3 4 25
+
+DATA: 4 38 2 2
+
+DATARECT: 2 0 35 11 2 1
+DATA: 4 35 10 2
+
+DATA: 5 50 21 2
+DATA: 5 51 20 2
+DATA: 6 51 21 2
+
+PLACERECT: 0 0 24 28 1
+PLACERECT: 24 0 28 28 2
+
+EndMapData
+SEnd

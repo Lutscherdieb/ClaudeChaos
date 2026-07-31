@@ -1,6 +1,6 @@
 # ClaudeChaos
 
-A set of Claude Code skills that build [Cube Chaos](https://store.steampowered.com/app/1958340/Cube_Chaos/) mods — classes, species, cubes, perks, curses, synergies, terrain, even whole battle/campaign scenarios — plus five mods built with them.
+A set of Claude Code skills that build [Cube Chaos](https://store.steampowered.com/app/1958340/Cube_Chaos/) mods — classes, species, cubes, perks, curses, synergies, terrain, even whole battle/campaign scenarios — plus seven mods built with them.
 
 ## The mods
 
@@ -11,6 +11,8 @@ A set of Claude Code skills that build [Cube Chaos](https://store.steampowered.c
 | [`GameData/Unholy/`](GameData/Unholy/README.md) | A winged-demon Species: any allied cube that would be created with 0 hp is instead rescued into a teleporting bomb. |
 | [`GameData/Voidling/`](GameData/Voidling/README.md) | A Species built around one neutral cube at the center of the board: True Void. |
 | [`GameData/Broker/`](GameData/Broker/README.md) | A gold-and-gambling Class: cube upgrades never run out of uses, and gold income doubles as mana income. |
+| [`GameData/DJ_Voidling/`](GameData/DJ_Voidling/README.md) | A small crossover mod bridging DJ + Voidling — requires both to be installed. |
+| [`GameData/Great_Wall/`](GameData/Great_Wall/README.md) | A battlefields mod (Terrain perks) — starts with one: a barren field split by a great wall. |
 
 Each mod's own README has a full preview of its content, rendered to match the game's in-game tooltip style.
 

@@ -638,6 +638,24 @@ def build_cubeupgrades():
     return cards
 
 
+def build_terrain_perks():
+    """Terrain perks (BelongsTo: Terrain) live in their own
+    <ModPrefix>_TerrainPerks.c.txt + matching sprite sheet, same shape as
+    Curses/Consumables -- except they never carry Value:/BalanceCap: (see
+    cube-chaos-balancing's TOKEN/Terrain note), so the card has no value
+    line, same as a synergy card."""
+    blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_TerrainPerks.c.txt"), PERK_HEADER)
+    sheet = load_sheet(f"{MOD_PREFIX}_TerrainPerks.c.png")
+    cols = grid_cols(len(blocks))
+    cards = []
+    for i, b in enumerate(blocks):
+        name = b["header"].group(1)
+        desc = field(b["lines"], "Description:")
+        icon = upscale(crop_icon(sheet, i, TILE_PERK, cols, strip_guide=True), 7)
+        cards.append((name, render_card(pretty(name), desc, None, icon)))
+    return cards
+
+
 def build_synergies():
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Synergies.c.txt"), PERK_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Synergies.c.png")
@@ -769,6 +787,7 @@ BUILDERS = {
     "Curses": build_curses,
     "Consumables": build_consumables,
     "CubeUpgrades": build_cubeupgrades,
+    "TerrainPerks": build_terrain_perks,
     "Synergies": build_synergies,
     "Perks": build_perks,
     "Cubes": build_cubes,
@@ -830,3 +849,4 @@ if __name__ == "__main__":
     render_mod(os.path.join(ROOT, "GameData", "Voidling"), "Voidling")
     render_mod(os.path.join(ROOT, "GameData", "Broker"), "Broker")
     render_mod(os.path.join(ROOT, "GameData", "DJ_Voidling"), "DJ_Voidling")
+    render_mod(os.path.join(ROOT, "GameData", "Great_Wall"), "Great_Wall")

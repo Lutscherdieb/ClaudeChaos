@@ -1,0 +1,12 @@
+PERK: Great_Wall
+BelongsTo: Terrain
+WorldAbility: MapGenerationTPEB
+ ReadAPartialScenario Great_Wall_Terrain
+ ReadAPartialScenario Battle_Normal_Player
+ ReadAPartialScenario Battle_Normal_Enemy
+ ReadAPartialScenario Great_Wall_Boss_Terrain
+Description: A barren field split by a great wall End
+ReferenceCube: Anchored_Basalt
+ReferenceCube: Water
+ReferenceCube: Catapult
+End

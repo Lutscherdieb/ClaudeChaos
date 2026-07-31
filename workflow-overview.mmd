@@ -1,0 +1,62 @@
+%% Source of truth for the flowchart embedded in WORKFLOW_OVERVIEW.md.
+%% (NOTE: mermaid.ink's parser errors on a bare "%%" comment line with no
+%% trailing text, so every comment line below has at least a "-" filler.)
+%% -
+%% GitHub's website renders ```mermaid fenced blocks natively, but GitHub's
+%% mobile apps don't render Mermaid at all (shows the raw source as text
+%% instead of a graph) - so WORKFLOW_OVERVIEW.md embeds two pre-rendered SVGs
+%% (workflow-overview-light.svg / workflow-overview-dark.svg) via a <picture>
+%% tag instead of a live mermaid code block. Both work everywhere, at the
+%% cost of a manual regen step whenever this file changes.
+%% -
+%% To regenerate the SVGs after editing this file (from the repo root, in
+%% Git Bash - no Node/mermaid-cli install needed, uses the public
+%% mermaid.ink rendering service):
+%% -
+%%   B64=$(python3 -c "import base64; print(base64.urlsafe_b64encode(open('workflow-overview.mmd','rb').read()).decode())")
+%%   curl -sS -G "https://mermaid.ink/svg/${B64}" --data-urlencode "bgColor=transparent" -o workflow-overview-light.svg
+%%   curl -sS -G "https://mermaid.ink/svg/${B64}" --data-urlencode "theme=dark" --data-urlencode "bgColor=transparent" -o workflow-overview-dark.svg
+%% -
+%% Sanity-check both SVGs contain real diagram text (not an error page)
+%% before committing, e.g. `grep -o cube-chaos-audit workflow-overview-light.svg`.
+
+flowchart TD
+    Start(["Request"]) --> Root{"In the game root?"}
+    Root -- no --> AskRoot["Ask for install path"]
+    Root -- yes --> SetupQ{"preferences.local.md<br/>exists yet?"}
+    SetupQ -- no --> SetupOffer["Offer cube-chaos-repo-setup<br/>(git mode &middot; tool preflight &middot; preferences)"]
+    SetupOffer --> ModQ
+    SetupQ -- yes --> ModQ{"New or existing mod?"}
+    ModQ -- new --> NewMod["new-mod.md"]
+    ModQ -- existing --> AuditQ{"Add/edit content,<br/>or audit what's there?"}
+    AuditQ -- audit --> AuthorQ{"Ours, or a<br/>foreign/Workshop mod?"}
+    AuthorQ -- ours --> Audit["cube-chaos-audit<br/>(detect &middot; report findings)"]
+    AuthorQ -- foreign --> ScopeQ["Scope questionnaire &middot;<br/>4 house-convention buckets<br/>(Universal rows always run)"]
+    ScopeQ --> Audit
+    Audit --> GateAudit{{"Findings approved?"}}
+    GateAudit -- adjust --> Audit
+    GateAudit -- approved --> Skills
+    AuditQ -- add/edit --> TypeQ{"What content type?"}
+
+    TypeQ --> Cube["Cube"]
+    TypeQ --> Perk["Perk-family:<br/>reward &middot; Curse &middot; Blight &middot; Boon<br/>Nightmare &middot; Consumable &middot; Golden &middot; Neutral &middot; CubeUpgrade"]
+    TypeQ --> ClassSp["Class &middot; Species &middot; Synergy &middot; Dragon line"]
+    TypeQ --> Scenario["Terrain &middot; Battle type<br/>Node-map &middot; Challenge &middot; Reward screen"]
+
+    Cube --> WCube["content-cube.md"]
+    Perk --> WPerk["content-perk-family.md"]
+    ClassSp --> WClass["content-class-species.md<br/>content-dragon-line.md"]
+    Scenario --> WScenario["content-terrain.md &middot; content-battle-scenario.md<br/>content-nodemap.md &middot; content-challenge-scenario.md<br/>content-reward-scenario.md"]
+
+    WCube --> Skills["Domain skills<br/>scripting &middot; scenario-scripting<br/>rule-text &middot; sprite-art &middot; balancing"]
+    WPerk --> Skills
+    WClass --> Skills
+    WScenario --> Skills
+
+    Skills --> GateC{{"Step C &middot; preview &amp; approve"}}
+    GateC -- revise spec --> Skills
+    GateC -- OK'd --> Write["Write the files"]
+    Write --> ResearchNote["Step D &middot; if base game was consulted,<br/>write the finding back into the skill"]
+    ResearchNote --> GateLaunch{{"Launch &amp; check Log.txt"}}
+    GateLaunch -- errors --> Skills
+    GateLaunch -- clean --> Done(["Done &middot; regen README previews if any exist"])

@@ -1,0 +1,6 @@
+PERK: DJ-Voidling
+BelongsTo: CLASSSPECIES
+Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller ManaCostOfCube Victim DoubleConstant 1
+ TargetCube Victim GainAbility VoidTouched
+Description: Whenever an allied 0 mana cost cube is created, it becomes \C140 60 210 Void Touched \CN and cannot be damaged by True Void End
+End
