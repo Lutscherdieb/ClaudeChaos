@@ -10,35 +10,25 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 
 <img src="Preview/General_Perks_General.png" width="700" alt="General class perk card">
 <img src="Preview/General_Perks_Arms_Race.png" width="700" alt="Arms Race perk card">
-<img src="Preview/General_Perks_Arms_Race_Mk2.png" width="700" alt="Arms Race Mk2 perk card (upgrade of Arms Race)">
-<img src="Preview/General_Perks_Arms_Race_Mk2_Shine.gif" width="82" alt="Arms Race Mk2 upgrade shine (upgrade of Arms Race)">
-<img src="Preview/General_Perks_Arms_Race_Mk3.png" width="700" alt="Arms Race Mk3 perk card (upgrade of Arms Race Mk2)">
-<img src="Preview/General_Perks_Arms_Race_Mk3_Shine.gif" width="82" alt="Arms Race Mk3 upgrade shine (upgrade of Arms Race Mk2)">
+<img src="Preview/General_Perks_Arms_Race_Mk2.gif" width="700" alt="Arms Race Mk2 perk card (upgrade of Arms Race)">
+<img src="Preview/General_Perks_Arms_Race_Mk3.gif" width="700" alt="Arms Race Mk3 perk card (upgrade of Arms Race Mk2)">
 <img src="Preview/General_Perks_Air_Superiority.png" width="700" alt="Air Superiority perk card">
-<img src="Preview/General_Perks_Air_Superiority_Mk2.png" width="700" alt="Air Superiority Mk2 perk card (upgrade of Air Superiority)">
-<img src="Preview/General_Perks_Air_Superiority_Mk2_Shine.gif" width="82" alt="Air Superiority Mk2 upgrade shine (upgrade of Air Superiority)">
+<img src="Preview/General_Perks_Air_Superiority_Mk2.gif" width="700" alt="Air Superiority Mk2 perk card (upgrade of Air Superiority)">
 <img src="Preview/General_Perks_Dig_In.png" width="700" alt="Dig In perk card">
-<img src="Preview/General_Perks_Entrenchment.png" width="700" alt="Entrenchment perk card (upgrade of Dig In)">
-<img src="Preview/General_Perks_Entrenchment_Shine.gif" width="82" alt="Entrenchment upgrade shine (upgrade of Dig In)">
+<img src="Preview/General_Perks_Entrenchment.gif" width="700" alt="Entrenchment perk card (upgrade of Dig In)">
 <img src="Preview/General_Perks_Revenge.png" width="700" alt="Revenge perk card">
-<img src="Preview/General_Perks_Blood_for_Blood.png" width="700" alt="Blood for Blood perk card (upgrade of Revenge)">
-<img src="Preview/General_Perks_Blood_for_Blood_Shine.gif" width="82" alt="Blood for Blood upgrade shine (upgrade of Revenge)">
+<img src="Preview/General_Perks_Blood_for_Blood.gif" width="700" alt="Blood for Blood perk card (upgrade of Revenge)">
 <img src="Preview/General_Perks_Air_Support.png" width="700" alt="Air Support perk card">
-<img src="Preview/General_Perks_Air_Raid.png" width="700" alt="Air Raid perk card (upgrade of Air Support)">
-<img src="Preview/General_Perks_Air_Raid_Shine.gif" width="82" alt="Air Raid upgrade shine (upgrade of Air Support)">
+<img src="Preview/General_Perks_Air_Raid.gif" width="700" alt="Air Raid perk card (upgrade of Air Support)">
 <img src="Preview/General_Perks_Thirst_for_Blood.png" width="700" alt="Thirst for Blood perk card">
 <img src="Preview/General_Perks_Experienced_Fighter.png" width="700" alt="Experienced Fighter perk card">
-<img src="Preview/General_Perks_Heroic_Warrior.png" width="700" alt="Heroic Warrior perk card (upgrade of Experienced Fighter)">
-<img src="Preview/General_Perks_Heroic_Warrior_Shine.gif" width="82" alt="Heroic Warrior upgrade shine (upgrade of Experienced Fighter)">
+<img src="Preview/General_Perks_Heroic_Warrior.gif" width="700" alt="Heroic Warrior perk card (upgrade of Experienced Fighter)">
 <img src="Preview/General_Perks_Wartime_Logistics.png" width="700" alt="Wartime Logistics perk card">
-<img src="Preview/General_Perks_Splendid_Logistics.png" width="700" alt="Splendid Logistics perk card (upgrade of Wartime Logistics)">
-<img src="Preview/General_Perks_Splendid_Logistics_Shine.gif" width="82" alt="Splendid Logistics upgrade shine (upgrade of Wartime Logistics)">
+<img src="Preview/General_Perks_Splendid_Logistics.gif" width="700" alt="Splendid Logistics perk card (upgrade of Wartime Logistics)">
 <img src="Preview/General_Perks_Believer.png" width="700" alt="Believer perk card">
-<img src="Preview/General_Perks_Blinding_Faith.png" width="700" alt="Blinding Faith perk card (upgrade of Believer)">
-<img src="Preview/General_Perks_Blinding_Faith_Shine.gif" width="82" alt="Blinding Faith upgrade shine (upgrade of Believer)">
+<img src="Preview/General_Perks_Blinding_Faith.gif" width="700" alt="Blinding Faith perk card (upgrade of Believer)">
 <img src="Preview/General_Perks_War_Dragon_Egg.png" width="700" alt="War Dragon Egg perk card">
-<img src="Preview/General_Perks_Baby_War_Dragon.png" width="700" alt="Baby War Dragon perk card (upgrade of War Dragon Egg)">
-<img src="Preview/General_Perks_Baby_War_Dragon_Shine.gif" width="82" alt="Baby War Dragon upgrade shine (upgrade of War Dragon Egg)">
+<img src="Preview/General_Perks_Baby_War_Dragon.gif" width="700" alt="Baby War Dragon perk card (upgrade of War Dragon Egg)">
 
 ### Cubes
 

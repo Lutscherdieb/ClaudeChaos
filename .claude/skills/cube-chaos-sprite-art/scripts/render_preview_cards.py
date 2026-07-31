@@ -55,11 +55,13 @@ Card design notes (reverse-engineered once so future regens don't redo this):
   class/species's own color. See render_cube_card() below and this skill's
   own "Rendering README preview cards" section for the full rationale,
   evidence, and the known heuristic/scope caveats each of these carries.
-- Every IsUpgradeFrom: perk (added 2026-08-01) also gets a small companion
-  "shine sweep" .gif -- a white diagonal line translating across its icon
-  every few seconds, matching the real in-game upgrade-perk visual cue.
-  See build_shine_frames()/draw_shine_line() and this skill's own
-  "Rendering README preview cards" section for the full writeup.
+- Every IsUpgradeFrom: perk's own card (added 2026-08-01) is itself an
+  animated .gif, not a separate static .png -- a white diagonal line,
+  drawn pixelated at the icon's native resolution then NEAREST-upscaled,
+  translating across the icon every few seconds, matching the real in-game
+  upgrade-perk visual cue. See build_shine_icon_frames()/
+  draw_shine_line_native() and this skill's own "Rendering README preview
+  cards" section for the full writeup.
 """
 import math
 import os
@@ -466,61 +468,71 @@ def build_cube_animation_gifs(mod_dir, mod_prefix, out_dir):
     return written
 
 
-# --- IsUpgradeFrom: "shine sweep" gif ---------------------------------------
+# --- IsUpgradeFrom: "shine sweep" animated card -----------------------------
 # Every IsUpgradeFrom: perk gets a white diagonal shine sweeping across its
 # icon every few seconds in-game, signalling "this is an upgrade" -- unlike
 # the CUBE Animation: gif above, this isn't per-item DSL data at all, just a
 # fixed UI effect the engine applies to any upgrade perk, so the frames are
-# synthesized here rather than read from the mod's own files. Geometry
-# per the user's own description (2026-08-01): the line is oriented like a
-# "/" (one end lower-left, one end upper-right) and that whole line
-# translates diagonally down-and-right across the icon over the sweep,
-# entering near the top-left corner and exiting near the bottom-right.
+# synthesized here rather than read from the mod's own files. Geometry per
+# the user's own description (2026-08-01): the line is oriented like a "/"
+# (one end lower-left, one end upper-right) and that whole line translates
+# diagonally down-and-right across the icon over the sweep, entering near
+# the top-left corner and exiting near the bottom-right.
+#
+# This animates the perk's OWN preview card in place (a .gif instead of a
+# .png at the exact same name/position), not a separate companion file --
+# an earlier version generated a small standalone "_Shine.gif" shown as an
+# extra image below the static card; user feedback (2026-08-01) was that
+# the shine belongs IN the existing preview image, not bolted on beside it.
+#
+# The line must be drawn at the icon's own NATIVE (pre-upscale) resolution,
+# not on the already-upscaled card icon -- drawing it post-upscale (the
+# first attempt) produced a smooth, sub-pixel-thin line (width 5 screen-px
+# at a 7x scale is well under 1 native pixel), which reads as anti-aliased
+# and "too smooth" for what's actually a ~25x25-native pixel-art effect in
+# the real game (user feedback: should be chunkier/pixelated and about
+# twice as big). Drawing at native resolution with a 2-native-pixel width,
+# THEN upscaling with NEAREST (same as every other sprite in this file),
+# gives the same blocky look as the rest of the icon.
 SHINE_SWEEP_STEPS = 14
 SHINE_FRAME_MS = 45
 SHINE_IDLE_REST_MS = 2200
-SHINE_LINE_WIDTH = 5
+SHINE_LINE_WIDTH_NATIVE = 2  # native pixels, pre-upscale
 SHINE_LINE_COLOR = (255, 255, 255)
 
 
-def draw_shine_line(icon_img, offset, width):
-    """One sweep frame: `icon_img` with a white "/"-oriented line drawn at
-    `offset` -- both endpoints of the line are shifted by the same
-    (offset, offset) vector along the tile's own down-right diagonal, so at
-    offset=0 the line runs corner-to-corner (bottom-left to top-right) and
-    increasing offset slides the whole line toward the bottom-right corner
-    (decreasing offset slides it toward/off the top-left). PIL clips a
-    line's off-canvas portion automatically, so offset can range well
-    beyond the tile's own bounds without extra bounds-checking here."""
-    im = icon_img.copy()
+def draw_shine_line_native(native_icon, offset):
+    """One sweep frame at native resolution: `native_icon` (the raw,
+    pre-upscale cropped icon) with a white "/"-oriented line drawn at
+    `offset` -- both endpoints shifted by the same (offset, offset) vector
+    along the tile's own down-right diagonal, so at offset=0 the line runs
+    corner-to-corner (bottom-left to top-right); increasing offset slides
+    it toward the bottom-right corner, decreasing toward/off the top-left.
+    PIL clips a line's off-canvas portion automatically."""
+    im = native_icon.copy()
     d = ImageDraw.Draw(im)
     w, h = im.size
     d.line([(offset, (h - 1) + offset), ((w - 1) + offset, offset)],
-           fill=SHINE_LINE_COLOR, width=width)
+           fill=SHINE_LINE_COLOR, width=SHINE_LINE_WIDTH_NATIVE)
     return im
 
 
-def build_shine_frames(icon_img):
+def build_shine_icon_frames(native_icon, scale):
     """Idle frame (plain icon, no line) held for SHINE_IDLE_REST_MS, then
     SHINE_SWEEP_STEPS quick frames sweeping the line from fully off-canvas
-    top-left to fully off-canvas bottom-right, then loop. Sweeping a full
-    tile-width beyond each side (offset range -w..+w) guarantees the line
-    is genuinely invisible at the sweep's start/end, not abruptly appearing
-    already mid-tile."""
-    w = icon_img.width
-    frames = [icon_img.copy()]
-    durations = [SHINE_IDLE_REST_MS]
+    top-left to fully off-canvas bottom-right, then loop -- each frame
+    drawn at `native_icon`'s own raw resolution and NEAREST-upscaled by
+    `scale` only afterward (see the module note above for why). Sweeping a
+    full tile-width beyond each side (offset range -w..+w) guarantees the
+    line is genuinely invisible at the sweep's start/end, not abruptly
+    appearing already mid-tile. Returns (upscaled_icon_frames, durations)."""
+    w = native_icon.width
+    native_frames = [native_icon.copy()]
     for i in range(SHINE_SWEEP_STEPS):
         offset = -w + i * (2 * w) // (SHINE_SWEEP_STEPS - 1)
-        frames.append(draw_shine_line(icon_img, offset, SHINE_LINE_WIDTH))
-        durations.append(SHINE_FRAME_MS)
-    return frames, durations
-
-
-def save_shine_gif(icon_img, out_path):
-    frames, durations = build_shine_frames(icon_img)
-    frames[0].save(out_path, save_all=True, append_images=frames[1:],
-                    duration=durations, loop=0, disposal=2)
+        native_frames.append(draw_shine_line_native(native_icon, offset))
+    durations = [SHINE_IDLE_REST_MS] + [SHINE_FRAME_MS] * SHINE_SWEEP_STEPS
+    return [upscale(f, scale) for f in native_frames], durations
 
 
 def parse_blocks(path, header_re):
@@ -1102,8 +1114,6 @@ def build_perks():
         next_target = field(upgrade_by_name[target_name]["lines"], "IsUpgradeFrom:").split()[0]
         return resolve_icon_slot(next_target, seen | {target_name})
 
-    shine_written = []
-
     def render_block(b, slot):
         basename, idx = slot
         src = sources[basename]
@@ -1116,16 +1126,23 @@ def build_perks():
         desc = field(b["lines"], "Description:") or field(b["lines"], "AbilityText:")
         upgrade_of = field(b["lines"], "IsUpgradeFrom:")
         extra = [f"(Upgrade of {upgrade_of.split()[0].replace('_', ' ')})"] if upgrade_of else None
-        icon = upscale(crop_icon(src["sheet"], idx, TILE_PERK, src["cols"], strip_guide=True), 7)
+        raw_icon = crop_icon(src["sheet"], idx, TILE_PERK, src["cols"], strip_guide=True)
+        icon = upscale(raw_icon, 7)
         ref_cubes = referenced_cubes_for(b["lines"], name)
         if upgrade_of:
-            # Any IsUpgradeFrom: perk gets the shine-sweep companion gif,
-            # regardless of which file it lives in (the dedicated
+            # Any IsUpgradeFrom: perk gets its own card animated in place
+            # (a .gif at this exact name/slot, not a separate companion
+            # file) -- regardless of which file it lives in (the dedicated
             # UpgradePerks file, or a regular Perks/Species file that mixes
-            # one in as a documented fallback) -- see build_shine_frames.
-            out_name = f"{MOD_PREFIX}_Perks_{name}_Shine.gif"
-            save_shine_gif(icon, os.path.join(OUT_DIR, out_name))
-            shine_written.append(out_name)
+            # one in as a documented fallback). Re-render the full card once
+            # per shine frame, varying only the icon -- title/desc/value/
+            # footer are identical across frames since every other render_card
+            # input is unchanged, so only the icon area actually animates.
+            icon_frames, durations = build_shine_icon_frames(raw_icon, 7)
+            card_frames = [render_card(pretty(name), desc, None, f, extra_lines=extra,
+                                        class_species=CLASS_SPECIES, ref_cubes=ref_cubes)
+                           for f in icon_frames]
+            return name, ("gif", card_frames, durations)
         return name, render_card(pretty(name), desc, None, icon, extra_lines=extra,
                                   class_species=CLASS_SPECIES, ref_cubes=ref_cubes)
 
@@ -1136,7 +1153,7 @@ def build_perks():
     for b in upgrade_blocks:
         base_name = field(b["lines"], "IsUpgradeFrom:").split()[0]
         cards.append(render_block(b, resolve_icon_slot(base_name)))
-    return cards, shine_written
+    return cards
 
 
 REF_CUBE_RE = re.compile(r'\b(?:CubeConstant|HiddenCubeConstant)\s+(\w+)')
@@ -1346,17 +1363,22 @@ def render_mod(mod_dir, mod_prefix):
                 continue  # this mod has no content of this category -- skip it
         prefix = f"{MOD_PREFIX}_{category}_"
         seen_prefixes.add(prefix)
-        # build_perks() also returns its own shine-gif filenames (written as
-        # a side effect inside render_block, since it already has each
-        # upgrade perk's resolved icon on hand there) -- every other builder
-        # still returns a plain cards list.
-        result = builder()
-        cards, shine_gifs = result if category == "Perks" else (result, [])
-        for name, card in cards:
-            fname = f"{prefix}{name}.png"
-            card.save(os.path.join(OUT_DIR, fname))
+        # A card is normally a plain PIL Image (saved as .png), but
+        # build_perks() returns ("gif", frames, durations) for an
+        # IsUpgradeFrom: perk (its own shine-sweep animation, see
+        # build_shine_icon_frames) -- saved as an animated .gif at the same
+        # name/slot instead, no separate companion file.
+        for name, card in builder():
+            if isinstance(card, tuple) and card[0] == "gif":
+                _, frames, durations = card
+                fname = f"{prefix}{name}.gif"
+                frames[0].save(os.path.join(OUT_DIR, fname), save_all=True,
+                                append_images=frames[1:], duration=durations,
+                                loop=0, disposal=2)
+            else:
+                fname = f"{prefix}{name}.png"
+                card.save(os.path.join(OUT_DIR, fname))
             written.add(fname)
-        written.update(shine_gifs)
         if category == "Cubes":
             written.update(build_cube_animation_gifs(MOD_DIR, MOD_PREFIX, OUT_DIR))
     # Clean out stale files from a previous run: renamed/removed individual

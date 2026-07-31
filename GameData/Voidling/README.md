@@ -17,8 +17,7 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 
 <img src="Preview/Voidling_Perks_Voidling.png" width="700" alt="Voidling species perk card">
 <img src="Preview/Voidling_Perks_Void_Growth.png" width="700" alt="Void Growth perk card">
-<img src="Preview/Voidling_Perks_Boundless_Void.png" width="700" alt="Boundless Void upgrade perk card">
-<img src="Preview/Voidling_Perks_Boundless_Void_Shine.gif" width="82" alt="Boundless Void upgrade upgrade shine">
+<img src="Preview/Voidling_Perks_Boundless_Void.gif" width="700" alt="Boundless Void upgrade perk card">
 
 ## Installing this mod (to play it)
 

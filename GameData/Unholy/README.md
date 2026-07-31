@@ -28,14 +28,11 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 
 <img src="Preview/Unholy_Perks_Unholy.png" width="700" alt="Unholy species perk card">
 <img src="Preview/Unholy_Perks_Hell_Dragon_Egg.png" width="700" alt="Hell Dragon Egg perk card">
-<img src="Preview/Unholy_Perks_Baby_Hell_Dragon.png" width="700" alt="Baby Hell Dragon perk card (upgrade of Hell Dragon Egg)">
-<img src="Preview/Unholy_Perks_Baby_Hell_Dragon_Shine.gif" width="82" alt="Baby Hell Dragon upgrade shine (upgrade of Hell Dragon Egg)">
+<img src="Preview/Unholy_Perks_Baby_Hell_Dragon.gif" width="700" alt="Baby Hell Dragon perk card (upgrade of Hell Dragon Egg)">
 <img src="Preview/Unholy_Perks_Phylactery.png" width="700" alt="Phylactery perk card">
-<img src="Preview/Unholy_Perks_Lichdom.png" width="700" alt="Lichdom perk card (upgrade of Phylactery)">
-<img src="Preview/Unholy_Perks_Lichdom_Shine.gif" width="82" alt="Lichdom upgrade shine (upgrade of Phylactery)">
+<img src="Preview/Unholy_Perks_Lichdom.gif" width="700" alt="Lichdom perk card (upgrade of Phylactery)">
 <img src="Preview/Unholy_Perks_Mutations.png" width="700" alt="Mutations perk card">
-<img src="Preview/Unholy_Perks_Rebirth_of_the_Chosen.png" width="700" alt="Rebirth of the Chosen perk card (upgrade of Mutations)">
-<img src="Preview/Unholy_Perks_Rebirth_of_the_Chosen_Shine.gif" width="82" alt="Rebirth of the Chosen upgrade shine (upgrade of Mutations)">
+<img src="Preview/Unholy_Perks_Rebirth_of_the_Chosen.gif" width="700" alt="Rebirth of the Chosen perk card (upgrade of Mutations)">
 
 ### Cube Upgrades
 
