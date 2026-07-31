@@ -1027,7 +1027,12 @@ def build_terrain_perks():
     <ModPrefix>_TerrainPerks.c.txt + matching sprite sheet, same shape as
     Curses/Consumables -- except they never carry Value:/BalanceCap: (see
     cube-chaos-balancing's TOKEN/Terrain note), so the card has no value
-    line, same as a synergy card."""
+    line, same as a synergy card. No Referenced Cubes row either (user
+    feedback 2026-08-02): a Terrain perk's own ReferenceCube:/CubeConstant
+    hits are battlefield-decoration cubes it PLACES on the map (e.g.
+    Great_Wall's Anchored_Basalt/Water/Catapult), not cubes granted/
+    created for a player's deck the way a normal perk/cube's Referenced
+    Cubes row means -- showing them read as misleading in this category."""
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_TerrainPerks.c.txt"), PERK_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_TerrainPerks.c.png")
     cols = grid_cols(len(blocks))
@@ -1036,9 +1041,8 @@ def build_terrain_perks():
         name = b["header"].group(1)
         desc = field(b["lines"], "Description:")
         icon = upscale(crop_icon(sheet, i, TILE_PERK, cols, strip_guide=True), 7)
-        ref_cubes = referenced_cubes_for(b["lines"], name)
         cards.append((name, render_card(pretty(name), desc, None, icon,
-                                         class_species=CLASS_SPECIES, ref_cubes=ref_cubes)))
+                                         class_species=CLASS_SPECIES)))
     return cards
 
 
