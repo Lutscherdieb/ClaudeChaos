@@ -1283,12 +1283,59 @@ def build_cube_icon_index(mod_dir, mod_prefix):
             for i, b in enumerate(blocks)}
 
 
+REFERENCE_CUBE_RE = re.compile(r'^ReferenceCube:\s*(\w+)')
+
+
 def referenced_cubes_for(lines, self_name):
-    """find_referenced_cubes + CUBE_NAME_TO_ICON icon lookup, in one call --
-    the common path every card category (CUBE and PERK alike) uses to build
-    its `ref_cubes` list for render_card/render_cube_card's footer row."""
-    ref_names = find_referenced_cubes(lines, self_name, COMPOUND_DOCS)
-    return [(n, CUBE_NAME_TO_ICON.get(n)) for n in ref_names]
+    """The common path every card category (CUBE and PERK alike) uses to
+    build its `ref_cubes` list for render_card/render_cube_card's footer
+    row. Two sources, combined:
+    1. Explicit `ReferenceCube: <Name>` declarations -- a real, repeatable
+       `PERK:` field (see cube-chaos-scripting's authoring-and-inheritance.md,
+       confirmed real usage e.g. Cryomancer.c.txt:68-70) that an author uses
+       specifically to curate a perk's tooltip cube list -- e.g. an egg perk
+       declaring its whole egg/baby/adult chain (General's `War_Dragon_Egg`
+       declares all 3 stages), or a perk that grants a RANDOM cube from a
+       pool declaring every possible pick (Unholy's `Lichdom` declares
+       `Damned_Soul`/`Plague_Imp`/`Imp`, none of which appear as a literal
+       `CubeConstant` token anywhere in its own Ability: chain -- the actual
+       selection goes through `ARandomCubeInLibraryWhich`-style productions
+       the heuristic scan below has no way to enumerate). These are
+       AUTHORITATIVE and NOT self-name-filtered -- a perk can and does
+       legitimately declare a `ReferenceCube:` matching its own name (e.g.
+       `War_Dragon_Egg` itself lists `ReferenceCube: War_Dragon_Egg`, to
+       show the exact cube it grants), unlike the heuristic scan's
+       self-exclusion. Missed entirely until 2026-08-02 -- this script had
+       no `ReferenceCube:` support at all, so any perk whose own Ability:
+       chain only referenced ITSELF (e.g. `War_Dragon_Egg`'s
+       `FreeCopy CubeConstant War_Dragon_Egg`) rendered with an empty
+       Referenced Cubes row despite explicitly declaring 3 relevant cubes.
+    2. The `find_referenced_cubes` heuristic scan (`CubeConstant`/
+       `HiddenCubeConstant` tokens), for cubes a perk creates/copies/obtains
+       but never explicitly declared -- still useful as a fallback for
+       perks with no `ReferenceCube:` field of their own (most of them).
+    Declared names come first (file-declaration order), then any
+    heuristic-found names not already covered, deduped."""
+    declared = []
+    for l in lines:
+        m = REFERENCE_CUBE_RE.match(l)
+        if m:
+            declared.append(m.group(1))
+    seen = set(declared)
+    names = list(declared)
+    for n in find_referenced_cubes(lines, self_name, COMPOUND_DOCS):
+        if n not in seen:
+            seen.add(n)
+            names.append(n)
+    # Drop any name with no resolvable icon (a genuinely cross-mod/base-game
+    # reference, or -- as with Great_Wall's ReferenceCube: Anchored_Basalt/
+    # Water/Catapult -- a name that isn't in ANY _Cubes.c.txt at all, e.g. a
+    # terrain-scenario TOKEN cube defined inline elsewhere) rather than
+    # keeping a name-less blank entry: since this footer never shows text
+    # (see draw_footer_row), an icon-less entry contributes nothing visible
+    # but still reserved a full footer row's worth of vertical space --
+    # caught by eye comparing Great_Wall's card before/after this fix.
+    return [(n, CUBE_NAME_TO_ICON[n]) for n in names if n in CUBE_NAME_TO_ICON]
 
 
 def build_cubes():

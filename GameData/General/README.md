@@ -49,6 +49,8 @@ Each card below is rendered to match the game's own in-game tooltip style (same 
 <img src="Preview/General_Cubes_War_Dragon_Egg.png" width="700" alt="War Dragon Egg cube card">
 <img src="Preview/General_Cubes_Baby_War_Dragon.png" width="700" alt="Baby War Dragon cube card">
 <img src="Preview/General_Cubes_War_Dragon.png" width="700" alt="War Dragon cube card">
+<img src="Preview/General_Cubes_Annex.png" width="700" alt="Annex cube card">
+<img src="Preview/General_Cubes_Retreat.png" width="700" alt="Retreat cube card">
 
 ### Curses
 
