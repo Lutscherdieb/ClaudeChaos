@@ -70,6 +70,8 @@ PREFERENCES_PATH = os.path.join(ROOT, ".claude", "preferences.local.md")
 OUT_DIR = os.path.join(MOD_DIR, "Preview")  # lives with the mod, e.g. for GameData/DJ/README.md
 MOD_PREFIX = "DJ"  # this mod's .c.txt/.c.png basename prefix
 COMPOUND_DOCS = {}  # built-ins + this mod's own COMPOUND: ABILITY name -> doc, set by render_mod()
+CLASS_SPECIES = None  # this mod's find_class_species() result, set by render_mod()
+CUBE_NAME_TO_ICON = {}  # this mod's own CUBE: name -> small icon, for PERK cards' Referenced Cubes row
 
 PREF_LINE_RE = re.compile(r'^-\s*(\S+):\s*(\S+)\s*$')
 
@@ -626,7 +628,46 @@ def humanize(s):
     return s.replace("_", " ")
 
 
-def render_card(title, description, value, icon_img, extra_lines=None):
+FOOTER_GAP = 20
+FOOTER_TEXT_H = 24  # class/species name's own text line height
+
+
+def compute_footer_row_h(class_species, ref_cubes):
+    """Shared sizing for the class/species + referenced-cubes footer row,
+    used by both render_card (PERK categories) and render_cube_card
+    (CUBE:s) so the two card styles' footers stay pixel-identical and this
+    math only needs fixing in one place. See draw_footer_row for the
+    matching draw-time logic."""
+    h = 0
+    if class_species:
+        h = max(h, FOOTER_TEXT_H)
+    if ref_cubes:
+        h = max(h, FOOTER_TEXT_H, *(ic.size[1] for _, ic in ref_cubes if ic is not None))
+    return h
+
+
+def draw_footer_row(d, im, x, y, footer_row_h, class_species, ref_cubes):
+    """Class/species name (text only, no icon) then referenced-cube icons
+    (icon only, no name) -- trimmed down from an earlier icon+name version
+    per user feedback while eyeballing the rendered cards (2026-08-01): the
+    icon was redundant next to the class/species name, and referenced-cube
+    names were redundant next to a real icon of the thing itself."""
+    if class_species:
+        name_font = font(24)
+        d.text((x, y + (footer_row_h - 24) // 2),
+               class_species["name"], font=name_font, fill=class_species["color"])
+        x += text_width(d, class_species["name"], name_font) + 40
+    if ref_cubes:
+        for ref_name, ref_icon in ref_cubes:
+            if ref_icon is not None:
+                rw, rh = ref_icon.size
+                im.paste(ref_icon, (x, y + (footer_row_h - rh) // 2))
+                x += rw + 8
+    return x
+
+
+def render_card(title, description, value, icon_img, extra_lines=None,
+                 class_species=None, ref_cubes=None):
     dummy = ImageDraw.Draw(Image.new("RGB", (10, 10)))
     f_title, f_body = font(TITLE_SIZE), font(BODY_SIZE)
 
@@ -649,13 +690,16 @@ def render_card(title, description, value, icon_img, extra_lines=None):
 
     text_block_h = TITLE_SIZE + TITLE_GAP + len(body_lines) * (BODY_SIZE + LINE_GAP)
     icon_block_h = icon_h + ((BODY_SIZE + 16) if value is not None else 0)
-    H = TOP_MARGIN + max(text_block_h, icon_block_h) + BOTTOM_MARGIN
+    content_h = max(text_block_h, icon_block_h)
+    footer_row_h = compute_footer_row_h(class_species, ref_cubes)
+    footer_h = (FOOTER_GAP + footer_row_h) if (class_species or ref_cubes) else 0
+    H = TOP_MARGIN + content_h + footer_h + BOTTOM_MARGIN
 
     im = Image.new("RGB", (W, H), BG)
     d = ImageDraw.Draw(im)
 
     icon_x = W - MARGIN - icon_w
-    icon_y = TOP_MARGIN + (max(text_block_h, icon_block_h) - icon_block_h) // 2
+    icon_y = TOP_MARGIN + (content_h - icon_block_h) // 2
     im.paste(icon_img, (icon_x, icon_y))
 
     if value is not None:
@@ -669,6 +713,10 @@ def render_card(title, description, value, icon_img, extra_lines=None):
     for indent, line in body_lines:
         draw_colored_tokens_line(d, (MARGIN, y), indent, line, f_body)
         y += BODY_SIZE + LINE_GAP
+
+    if class_species or ref_cubes:
+        draw_footer_row(d, im, MARGIN, TOP_MARGIN + content_h + FOOTER_GAP,
+                         footer_row_h, class_species, ref_cubes)
 
     return im
 
@@ -744,17 +792,10 @@ def render_cube_card(title, mana, hp, maxhp, is_token, ability_entries, icon_img
     # Class/species + referenced-cubes share ONE footer row (not two stacked
     # blocks) specifically to cap how much a long referenced-cubes list can
     # grow the card's height -- user feedback 2026-07-31 after the first
-    # (stacked) version. FOOTER_GAP is added to `y` verbatim below, and
-    # `footer_row_h` is reused as-is for every element's vertical centering,
-    # so the estimate here can't drift from what's actually drawn.
-    FOOTER_GAP = 20
-    FOOTER_TEXT_H = 24  # class/species name's own text line height
-    footer_row_h = 0
-    if class_species:
-        footer_row_h = max(footer_row_h, FOOTER_TEXT_H)
-    if ref_cubes:
-        footer_row_h = max(footer_row_h, FOOTER_TEXT_H,
-                            *(ic.size[1] for _, ic in ref_cubes if ic is not None))
+    # (stacked) version. Sizing/drawing both come from the shared
+    # compute_footer_row_h/draw_footer_row helpers (also used by render_card
+    # for PERK cards) so the two card styles' footers can't drift apart.
+    footer_row_h = compute_footer_row_h(class_species, ref_cubes)
     footer_h = (FOOTER_GAP + footer_row_h) if (class_species or ref_cubes) else 0
 
     H = TOP_MARGIN + TITLE_SIZE + TITLE_GAP + content_h + footer_h + BOTTOM_MARGIN
@@ -814,27 +855,9 @@ def render_cube_card(title, mana, hp, maxhp, is_token, ability_entries, icon_img
             y += BODY_SIZE + LINE_GAP
         y += 6
 
-    # --- footer row: class/species name (left, text only, no icon) +
-    # referenced cube icons (right, icon only, no name) -- both trimmed down
-    # from an earlier icon+name version per user feedback while eyeballing
-    # the rendered cards (2026-08-01): the icon was redundant next to the
-    # class/species name, and referenced-cube names were redundant next to
-    # a real icon of the thing itself. ---
     if class_species or ref_cubes:
-        y = body_top + content_h + FOOTER_GAP
-        x = MARGIN
-        if class_species:
-            name_font = font(24)
-            d.text((x, y + (footer_row_h - 24) // 2),
-                   class_species["name"], font=name_font, fill=class_species["color"])
-            x += text_width(d, class_species["name"], name_font) + 40
-
-        if ref_cubes:
-            for ref_name, ref_icon in ref_cubes:
-                if ref_icon is not None:
-                    rw, rh = ref_icon.size
-                    im.paste(ref_icon, (x, y + (footer_row_h - rh) // 2))
-                    x += rw + 8
+        draw_footer_row(d, im, MARGIN, body_top + content_h + FOOTER_GAP,
+                         footer_row_h, class_species, ref_cubes)
 
     return im
 
@@ -853,7 +876,9 @@ def build_curses():
         desc = field(b["lines"], "Description:")
         val = field(b["lines"], "Value:")
         icon = upscale(crop_icon(sheet, i, TILE_PERK, cols, strip_guide=True), 7)
-        cards.append((name, render_card(pretty(name), desc, val, icon)))
+        ref_cubes = referenced_cubes_for(b["lines"], name)
+        cards.append((name, render_card(pretty(name), desc, val, icon,
+                                         class_species=CLASS_SPECIES, ref_cubes=ref_cubes)))
     return cards
 
 
@@ -867,7 +892,9 @@ def build_consumables():
         desc = field(b["lines"], "Description:")
         val = field(b["lines"], "Value:")
         icon = upscale(crop_icon(sheet, i, TILE_PERK, cols, strip_guide=True), 7)
-        cards.append((name, render_card(pretty(name), desc, val, icon)))
+        ref_cubes = referenced_cubes_for(b["lines"], name)
+        cards.append((name, render_card(pretty(name), desc, val, icon,
+                                         class_species=CLASS_SPECIES, ref_cubes=ref_cubes)))
     return cards
 
 
@@ -885,7 +912,9 @@ def build_neutral():
         desc = field(b["lines"], "Description:")
         val = field(b["lines"], "Value:")
         icon = upscale(crop_icon(sheet, i, TILE_PERK, cols, strip_guide=True), 7)
-        cards.append((name, render_card(pretty(name), desc, val, icon)))
+        ref_cubes = referenced_cubes_for(b["lines"], name)
+        cards.append((name, render_card(pretty(name), desc, val, icon,
+                                         class_species=CLASS_SPECIES, ref_cubes=ref_cubes)))
     return cards
 
 
@@ -913,7 +942,9 @@ def build_cubeupgrades():
             desc = CSVARIABLE_RE.sub("(the upgraded cube)", desc)
         val = field(b["lines"], "Value:")
         icon = upscale(crop_icon(sheet, i, TILE_PERK, cols, strip_guide=True), 7)
-        cards.append((name, render_card(pretty(name), desc, val, icon)))
+        ref_cubes = referenced_cubes_for(b["lines"], name)
+        cards.append((name, render_card(pretty(name), desc, val, icon,
+                                         class_species=CLASS_SPECIES, ref_cubes=ref_cubes)))
     return cards
 
 
@@ -931,7 +962,9 @@ def build_terrain_perks():
         name = b["header"].group(1)
         desc = field(b["lines"], "Description:")
         icon = upscale(crop_icon(sheet, i, TILE_PERK, cols, strip_guide=True), 7)
-        cards.append((name, render_card(pretty(name), desc, None, icon)))
+        ref_cubes = referenced_cubes_for(b["lines"], name)
+        cards.append((name, render_card(pretty(name), desc, None, icon,
+                                         class_species=CLASS_SPECIES, ref_cubes=ref_cubes)))
     return cards
 
 
@@ -945,7 +978,9 @@ def build_synergies():
         desc = field(b["lines"], "Description:")
         icon = upscale(crop_icon(sheet, i, TILE_PERK, cols, strip_guide=False), 6)
         title = name.replace("_", " ").replace("-", " + ").upper()
-        cards.append((name, render_card(title, desc, None, icon)))
+        ref_cubes = referenced_cubes_for(b["lines"], name)
+        cards.append((name, render_card(title, desc, None, icon,
+                                         class_species=CLASS_SPECIES, ref_cubes=ref_cubes)))
     return cards
 
 
@@ -1018,7 +1053,9 @@ def build_perks():
         upgrade_of = field(b["lines"], "IsUpgradeFrom:")
         extra = [f"(Upgrade of {upgrade_of.split()[0].replace('_', ' ')})"] if upgrade_of else None
         icon = upscale(crop_icon(src["sheet"], idx, TILE_PERK, src["cols"], strip_guide=True), 7)
-        return name, render_card(pretty(name), desc, None, icon, extra_lines=extra)
+        ref_cubes = referenced_cubes_for(b["lines"], name)
+        return name, render_card(pretty(name), desc, None, icon, extra_lines=extra,
+                                  class_species=CLASS_SPECIES, ref_cubes=ref_cubes)
 
     cards = []
     for basename in basenames:
@@ -1138,6 +1175,33 @@ def find_class_species(mod_dir, mod_prefix):
     return None
 
 
+def build_cube_icon_index(mod_dir, mod_prefix):
+    """name -> small upscaled icon for every one of this mod's own CUBE:s --
+    computed once per mod (set into the CUBE_NAME_TO_ICON global by
+    render_mod()) so every card category's Referenced Cubes row (not just
+    build_cubes' own cross-references) can resolve a cube name to its real
+    icon without each category builder re-loading the cube sheet itself.
+    Returns {} for a mod with no _Cubes.c.txt at all (e.g. Great_Wall,
+    Home_Turf_Advantage) -- Referenced Cubes then just never finds a match,
+    same as a genuinely cross-mod/base-game reference."""
+    path = os.path.join(mod_dir, f"{mod_prefix}_Cubes.c.txt")
+    if not os.path.exists(path):
+        return {}
+    blocks = parse_blocks(path, CUBE_HEADER)
+    sheet = load_sheet(f"{mod_prefix}_Cubes.c.png")
+    cols = grid_cols(len(blocks))
+    return {b["header"].group(1): upscale(crop_icon(sheet, i, TILE_CUBE, cols, strip_guide=True), 4)
+            for i, b in enumerate(blocks)}
+
+
+def referenced_cubes_for(lines, self_name):
+    """find_referenced_cubes + CUBE_NAME_TO_ICON icon lookup, in one call --
+    the common path every card category (CUBE and PERK alike) uses to build
+    its `ref_cubes` list for render_card/render_cube_card's footer row."""
+    ref_names = find_referenced_cubes(lines, self_name, COMPOUND_DOCS)
+    return [(n, CUBE_NAME_TO_ICON.get(n)) for n in ref_names]
+
+
 def build_cubes():
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Cubes.c.txt"), CUBE_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Cubes.c.png")
@@ -1150,8 +1214,6 @@ def build_cubes():
     # resolve_inline_abilities' \A path, or these render as silently missing
     # lines instead of their real tooltip text.
     ability_docs = {**load_builtin_ability_docs(), **COMPOUND_DOCS}
-    name_to_index = {b["header"].group(1): i for i, b in enumerate(blocks)}
-    class_species = find_class_species(MOD_DIR, MOD_PREFIX)
     icon_border = read_preference("preview_card_icon_border", "on") == "on"
     cards = []
     for i, b in enumerate(blocks):
@@ -1159,17 +1221,10 @@ def build_cubes():
         name, mana, hp, maxhp = h.group(1), int(h.group(2)), int(h.group(3)), int(h.group(4))
         is_token = any(l.strip() == "TOKEN" for l in b["lines"])
         ability_entries = collect_ability_texts(b["lines"], ability_docs)
-        ref_names = find_referenced_cubes(b["lines"], name, ability_docs)
-        ref_cubes = []
-        for ref_name in ref_names:
-            if ref_name in name_to_index:
-                ref_icon = upscale(crop_icon(sheet, name_to_index[ref_name], TILE_CUBE, cols, strip_guide=True), 4)
-            else:
-                ref_icon = None  # base-game/other-mod cube -- name only, no sprite available here
-            ref_cubes.append((ref_name, ref_icon))
+        ref_cubes = referenced_cubes_for(b["lines"], name)
         icon = upscale(crop_icon(sheet, i, TILE_CUBE, cols, strip_guide=True), 10)
         card = render_cube_card(pretty(name), mana, hp, maxhp, is_token, ability_entries,
-                                 icon, ref_cubes, class_species, icon_border)
+                                 icon, ref_cubes, CLASS_SPECIES, icon_border)
         cards.append((name, card))
     return cards
 
@@ -1187,7 +1242,7 @@ BUILDERS = {
 
 
 def render_mod(mod_dir, mod_prefix):
-    global MOD_DIR, SPRITES, OUT_DIR, MOD_PREFIX, COMPOUND_DOCS
+    global MOD_DIR, SPRITES, OUT_DIR, MOD_PREFIX, COMPOUND_DOCS, CLASS_SPECIES, CUBE_NAME_TO_ICON
     MOD_DIR, MOD_PREFIX = mod_dir, mod_prefix
     SPRITES = os.path.join(MOD_DIR, "Sprites")
     OUT_DIR = os.path.join(MOD_DIR, "Preview")
@@ -1196,6 +1251,11 @@ def render_mod(mod_dir, mod_prefix):
     # for any granted keyword, not just this mod's own COMPOUND: ABILITY
     # ones) -- mod-own docs take precedence on a name collision.
     COMPOUND_DOCS = {**load_builtin_ability_docs(), **load_mod_compound_docs(MOD_DIR)}
+    # Computed once per mod (not per category) since every category's cards
+    # share the same mod-wide class/species footer and the same pool of this
+    # mod's own CUBE:s to resolve a Referenced Cubes icon against.
+    CLASS_SPECIES = find_class_species(MOD_DIR, MOD_PREFIX)
+    CUBE_NAME_TO_ICON = build_cube_icon_index(MOD_DIR, MOD_PREFIX)
     os.makedirs(OUT_DIR, exist_ok=True)
     # One PNG per item (not one stacked image per category) -- editing a
     # single perk/cube then only touches that one file, instead of forcing
