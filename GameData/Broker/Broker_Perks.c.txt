@@ -1,7 +1,8 @@
 PERK: Broker
 BelongsTo: CLASS
-Ability: BeforeACubeGainsAnAbility If IsAllyToCaster Victim If AbilityHasName AffectedAbility RegeneratingUsesX NegateX DoubleConstant 1
-AbilityText: Cubes you upgrade keep infinite uses instead of the usual limited uses End
+Ability: AtTheStartOfTheBattle EveryCubeInHandOfFactionWhich FactionOfThis IsLimited Test
+ Both Exile AddCubeToHandOfFactionInfinitly CopyWithAction Target Both RemoveAbilityWithName RegeneratingUsesX SetLimited False FactionOfThis
+AbilityText: At the start of each battle, exile each cube with limited uses from your hand and add an unlimited-use copy of it End
 CampaignAbility: AfterAMapIsGenerated ReadAScenario Broker_Cube_Forge
 AbilityText: At the start of each map, enter a Forge offering only Cube Upgrades End
 CampaignAbility: AfterYouGainOrLoseCurrency If IsLarger EventAmount DoubleConstant 0 GenerateXMana EventAmount
