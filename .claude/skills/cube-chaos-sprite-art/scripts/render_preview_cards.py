@@ -748,10 +748,10 @@ def render_cube_card(title, mana, hp, maxhp, is_token, ability_entries, icon_img
     # `footer_row_h` is reused as-is for every element's vertical centering,
     # so the estimate here can't drift from what's actually drawn.
     FOOTER_GAP = 20
-    FOOTER_TEXT_H = 24  # room for a name/label's own text line, no icon
+    FOOTER_TEXT_H = 24  # class/species name's own text line height
     footer_row_h = 0
     if class_species:
-        footer_row_h = max(footer_row_h, class_species["icon"].size[1])
+        footer_row_h = max(footer_row_h, FOOTER_TEXT_H)
     if ref_cubes:
         footer_row_h = max(footer_row_h, FOOTER_TEXT_H,
                             *(ic.size[1] for _, ic in ref_cubes if ic is not None))
@@ -775,9 +775,10 @@ def render_cube_card(title, mana, hp, maxhp, is_token, ability_entries, icon_img
     # --- stat column: mana box + hp bar ---
     y = body_top
     mana_s = str(mana)
+    # No box outline here -- matches the real in-game tooltip, which shows
+    # "50 MANA" as plain stacked text with no border (user feedback
+    # 2026-08-01, comparing against the reference screenshot again).
     box_w = max(STAT_COL_W, text_width(d, mana_s, f_stat_big) + 24)
-    d.rounded_rectangle((stat_col_x, y, stat_col_x + box_w, y + MANA_BOX_H),
-                         radius=8, outline=MANA_BLUE, width=2)
     num_w = text_width(d, mana_s, f_stat_big)
     d.text((stat_col_x + (box_w - num_w) // 2, y + 4), mana_s, font=f_stat_big, fill=WHITE)
     label_w = text_width(d, "MANA", f_stat_small)
@@ -813,20 +814,20 @@ def render_cube_card(title, mana, hp, maxhp, is_token, ability_entries, icon_img
             y += BODY_SIZE + LINE_GAP
         y += 6
 
-    # --- footer row: class/species (left) + referenced cubes (right), one
-    # shared row so a referenced-cubes list doesn't stack a second block's
-    # worth of height under the class/species line ---
+    # --- footer row: class/species name (left, text only, no icon) +
+    # referenced cube icons (right, icon only, no name) -- both trimmed down
+    # from an earlier icon+name version per user feedback while eyeballing
+    # the rendered cards (2026-08-01): the icon was redundant next to the
+    # class/species name, and referenced-cube names were redundant next to
+    # a real icon of the thing itself. ---
     if class_species or ref_cubes:
         y = body_top + content_h + FOOTER_GAP
         x = MARGIN
         if class_species:
-            icon = class_species["icon"]
-            iw, ih = icon.size
-            im.paste(icon, (x, y + (footer_row_h - ih) // 2))
             name_font = font(24)
-            d.text((x + iw + 10, y + (footer_row_h - 24) // 2),
+            d.text((x, y + (footer_row_h - 24) // 2),
                    class_species["name"], font=name_font, fill=class_species["color"])
-            x += iw + 10 + text_width(d, class_species["name"], name_font) + 40
+            x += text_width(d, class_species["name"], name_font) + 40
 
         if ref_cubes:
             for ref_name, ref_icon in ref_cubes:
@@ -834,9 +835,6 @@ def render_cube_card(title, mana, hp, maxhp, is_token, ability_entries, icon_img
                     rw, rh = ref_icon.size
                     im.paste(ref_icon, (x, y + (footer_row_h - rh) // 2))
                     x += rw + 8
-                name_label = pretty(ref_name)
-                d.text((x, y + (footer_row_h - 18) // 2), name_label, font=f_dim, fill=WHITE)
-                x += text_width(d, name_label, f_dim) + 28
 
     return im
 
@@ -1033,6 +1031,7 @@ def build_perks():
 
 
 REF_CUBE_RE = re.compile(r'\b(?:CubeConstant|HiddenCubeConstant)\s+(\w+)')
+SET_SPRITE_RE = re.compile(r'SetSpriteToCube\s+(?:CubeConstant|HiddenCubeConstant)\s+(\w+)')
 
 
 def find_referenced_cubes(lines, self_name, compound_docs):
@@ -1059,10 +1058,21 @@ def find_referenced_cubes(lines, self_name, compound_docs):
     entirely, a real miss caught reading the rendered card back (no "Note"
     in Speaker's Referenced Cubes row despite it visibly spawning one).
     Compounds granting further compounds aren't followed recursively; no
-    such case exists in this repo's mods yet."""
+    such case exists in this repo's mods yet.
+
+    A `SetSpriteToCube CubeConstant <Name>` target is excluded entirely --
+    this is the "directional cube icon" sprite-swap pattern (see
+    cube-chaos-sprite-art's `_Arc`/`_West` icon-only helper cubes), not a
+    cube actually being created/copied/referenced. Real case caught
+    reading rendered cards back: General's `Bomber`/`Drop_Helicopter`/
+    `Baby_War_Dragon` each swap to a `_West` icon-only twin via
+    `SetSpriteToCube` when reversing direction, and that swap target was
+    showing up in the Referenced Cubes row as if it were a spawned cube."""
     seen, out = set(), []
+    sprite_swap_targets = set()
 
     def scan(text):
+        sprite_swap_targets.update(SET_SPRITE_RE.findall(text))
         for name in REF_CUBE_RE.findall(text):
             if name != self_name and name not in seen:
                 seen.add(name)
@@ -1075,7 +1085,7 @@ def find_referenced_cubes(lines, self_name, compound_docs):
             doc = compound_docs.get(tokens[0]) if tokens else None
             if doc and doc.get("body"):
                 scan(doc["body"])
-    return out
+    return [n for n in out if n not in sprite_swap_targets]
 
 
 def sample_dominant_color(im):
