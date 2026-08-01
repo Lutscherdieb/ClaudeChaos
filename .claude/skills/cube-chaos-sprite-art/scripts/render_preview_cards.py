@@ -414,6 +414,17 @@ TICK_MS = 16
 GIF_IDLE_REST_MS = 1500
 ANIMATION_RE = re.compile(r'^Animation:\s*(\S+)\s+(\S+)\s+(-?\d+)\s+(.*)$')
 
+# How big a CUBE's own icon actually renders on-screen inside its static
+# card: the card's icon is upscale(crop, 10) = 150px native (17px tile - 2px
+# guide-strip = 15, x10) on a fixed W=1500 canvas shown at width="700" in the
+# README, so 150 * 700/1500 = 70px. Generating the animation gif AT roughly
+# this native size (rather than a much bigger 150px asset the README's own
+# <img width="70"> has to shrink) keeps it visually matched even in a viewer
+# that doesn't scale an animated GIF's `width=` the same way it scales a
+# static PNG's -- confirmed as the actual cause of a real size mismatch the
+# user spotted between DJ's Speaker_Beat.gif and Speaker's own card icon.
+CUBE_ANIM_GIF_PX = 70
+
 
 def parse_animation_lines(lines):
     out = []
@@ -433,7 +444,7 @@ def load_animation_frames(mod_dir, cube_name, anim_name, tile=TILE_CUBE):
     return [crop_icon(sheet, i, tile, amount, strip_guide=True) for i in range(amount)]
 
 
-def build_trigger_gif(mod_dir, cube_name, anim_name, rest_tokens, scale, out_path):
+def build_trigger_gif(mod_dir, cube_name, anim_name, rest_tokens, out_path):
     if rest_tokens[0] == "EQUAL":
         amount, total = int(rest_tokens[1]), int(rest_tokens[2])
         thresholds = [total / amount] * amount
@@ -445,7 +456,11 @@ def build_trigger_gif(mod_dir, cube_name, anim_name, rest_tokens, scale, out_pat
         f"{cube_name}_{anim_name}.png has {len(frames)} frames, Animation: declares {amount}")
     order = [amount - 1] + list(range(0, amount - 1))
     durations = [GIF_IDLE_REST_MS + thresholds[0] * TICK_MS] + [t * TICK_MS for t in thresholds[1:]]
-    imgs = [upscale(frames[i], scale) for i in order]
+    # NEAREST straight to CUBE_ANIM_GIF_PX (not an intermediate upscale()
+    # factor) -- the source tile is only 15px native, so any target size is
+    # a non-integer multiple of it anyway; resizing directly avoids a second
+    # lossy resampling pass on top of an arbitrary intermediate size.
+    imgs = [frames[i].resize((CUBE_ANIM_GIF_PX, CUBE_ANIM_GIF_PX), Image.NEAREST) for i in order]
     imgs[0].save(out_path, save_all=True, append_images=imgs[1:],
                  duration=[int(d) for d in durations], loop=0, disposal=2)
 
@@ -462,7 +477,7 @@ def build_cube_animation_gifs(mod_dir, mod_prefix, out_dir):
             if atype != "TRIGGER":
                 continue  # only TRIGGER's playback shape is implemented so far
             out_name = f"{mod_prefix}_Cubes_{cube_name}_{anim_name}.gif"
-            build_trigger_gif(mod_dir, cube_name, anim_name, rest, 10,
+            build_trigger_gif(mod_dir, cube_name, anim_name, rest,
                                os.path.join(out_dir, out_name))
             written.append(out_name)
     return written

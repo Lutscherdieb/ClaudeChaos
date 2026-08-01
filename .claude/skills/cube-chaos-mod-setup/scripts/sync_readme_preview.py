@@ -40,17 +40,28 @@ cosmetic, never functional -- alt text has no in-game effect):
   different heading spelling (e.g. DJ's old singular "Consumable" vs the
   plural "Consumables" every other mod already used) -- this canonicalization
   is the point: one predictable shape, not eight hand-drifted ones.
-- A CUBE's own companion trigger-animation gif (see render_preview_cards.py's
-  build_cube_animation_gifs) gets a plain small <img> right after its parent
-  cube's own card, alt-texted from the animation's own name -- not the
-  bespoke captioned <table> (e.g. DJ's old "On Cube Creation" label for
-  Speaker's Beat animation) a human had hand-authored, which named the
-  animation's TRIGGER rather than its own name. Regenerate that caption by
-  hand afterward if the trigger name matters more than the animation name.
 - A terrain's own battlefield Screenshots/*.png get an alt caption derived
   mechanically from the filename (camelCase/underscore -> spaced words), not
   the exact hand-picked wording an older README used (e.g. "Boss Battle" for
   a screenshot literally named `..._Boss.png`).
+
+A CUBE's own companion trigger-animation gif is NOT simplified, unlike the
+two points above -- it keeps the bespoke captioned <table> a human
+originally hand-authored (DJ's "On Cube Creation" label for Speaker's Beat
+animation), per cube-chaos-sprite-art/SKILL.md's own documented convention
+(width="70" -- matches how big the icon actually renders inside the static
+card, not the gif's native pixel size; plain unstyled <table>/<tr>/<td
+valign="middle">, no inline style= -- GitHub's sanitizer strips it). A
+2026-08-01 version of this script DID replace it with a plain wide <img
+width="120">, reasoning the caption couldn't be mechanically derived from
+the .c.txt -- reverted the same day once the width math turned out wrong too
+(120 is nearly double the icon's actual ~70px on-card size) and the caption
+turned out to just need a small hand-maintained lookup (ANIMATION_TRIGGER_
+CAPTIONS below), the same one-time judgment call a human already made once
+for Speaker. Update that dict whenever a new TRIGGER-animated cube is added;
+a missing entry falls back to a generic caption plus a printed warning
+(never a hard error -- this runs inside a non-blocking PostToolUse hook, so
+a missing caption should be visible, not fatal to every other edit).
 """
 import glob
 import importlib.util
@@ -87,6 +98,38 @@ PREVIEW_END = "<!-- PREVIEW:END -->"
 
 def pretty(name):
     return name.replace("_", " ")
+
+
+# Hand-authored per-(mod_prefix, cube_name, anim_name) caption describing
+# WHEN a cube's own TRIGGER animation fires -- not mechanically derivable
+# from the .c.txt (it's a judgment call about which ability the flourish is
+# tied to, same call a human already made once for DJ's Speaker: "On Cube
+# Creation", tied to the ability that creates its Note). See module
+# docstring for why this exists instead of a plain <img>.
+ANIMATION_TRIGGER_CAPTIONS = {
+    ("DJ", "Speaker", "Beat"): "On Cube Creation",
+}
+
+
+def animation_table_lines(entries):
+    """entries: list of (caption, rel_path, alt). Renders the <table>
+    convention documented in cube-chaos-sprite-art/SKILL.md's "Rendering
+    README preview cards" section -- plain unstyled table/tr/td (no inline
+    style=, GitHub's README sanitizer strips it), valign="middle" on every
+    cell, width="70" per gif (matches how big the icon actually renders
+    inside the static card above it, not the gif's own native pixel size),
+    2 (caption, gif) entries per row -- a lone trailing entry (the common
+    case: most cubes have exactly one TRIGGER animation) just gets its own
+    row, not padded with an empty cell."""
+    lines = ["<table>"]
+    for i in range(0, len(entries), 2):
+        lines.append("<tr>")
+        for caption, rel, alt in entries[i:i + 2]:
+            lines.append(f'<td valign="middle">{caption}</td>')
+            lines.append(f'<td valign="middle"><img src="{rel}" width="70" alt="{alt}"></td>')
+        lines.append("</tr>")
+    lines.append("</table>")
+    return lines
 
 
 def discover_mods():
@@ -333,9 +376,18 @@ def build_section(mod_dir, prefix):
             lines.append(img_tag(rel, 700, alt))
 
             if category == "Cubes":
-                for fname, anim_name in cube_animation_gifs(mod_dir, prefix, name):
-                    lines.append(img_tag(f"Preview/{fname}", 120,
-                                          f"{title} {pretty(anim_name)} animation"))
+                anims = cube_animation_gifs(mod_dir, prefix, name)
+                if anims:
+                    entries = []
+                    for fname, anim_name in anims:
+                        caption = ANIMATION_TRIGGER_CAPTIONS.get((prefix, name, anim_name))
+                        if caption is None:
+                            print(f"WARNING: no trigger caption for {prefix}/{name}/{anim_name} -- "
+                                  f"add one to ANIMATION_TRIGGER_CAPTIONS in sync_readme_preview.py")
+                            caption = "On Trigger"
+                        alt = f"{title} {pretty(anim_name)} animation"
+                        entries.append((caption, f"Preview/{fname}", alt))
+                    lines.extend(animation_table_lines(entries))
 
         if category == "TerrainPerks":
             shots_dir = os.path.join(mod_dir, "Screenshots")

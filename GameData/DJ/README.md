@@ -11,7 +11,12 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 
 <img src="Preview/DJ_Cubes_Microphone.png" width="700" alt="Microphone cube card">
 <img src="Preview/DJ_Cubes_Speaker.png" width="700" alt="Speaker cube card">
-<img src="Preview/DJ_Cubes_Speaker_Beat.gif" width="120" alt="Speaker Beat animation">
+<table>
+<tr>
+<td valign="middle">On Cube Creation</td>
+<td valign="middle"><img src="Preview/DJ_Cubes_Speaker_Beat.gif" width="70" alt="Speaker Beat animation"></td>
+</tr>
+</table>
 <img src="Preview/DJ_Cubes_Record.png" width="700" alt="Record cube card">
 <img src="Preview/DJ_Cubes_Note.png" width="700" alt="Note cube card">
 <img src="Preview/DJ_Cubes_Keyboard.png" width="700" alt="Keyboard cube card">
