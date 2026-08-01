@@ -33,7 +33,7 @@
             "shell": "bash",
             "command": "bash .claude/hooks/regen-terrain-screenshots.sh",
             "timeout": 30,
-            "statusMessage": "Regenerating Great_Wall terrain screenshots..."
+            "statusMessage": "Regenerating terrain battlefield screenshots..."
           }
         ]
       }

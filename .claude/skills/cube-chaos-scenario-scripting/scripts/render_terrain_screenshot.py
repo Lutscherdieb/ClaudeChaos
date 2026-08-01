@@ -67,6 +67,20 @@ player's `CAMPAIGNSETUP:` tile and the enemy's own `Difficulty_Leader`
 (`RANDOMFITTINGSETUP:`), which places additional units unpredictably and
 isn't map DSL data at all.
 
+Reusable for any terrain mod, not just Great_Wall: `render_terrain_mod()`
+takes the map file, output dir, and output list as plain arguments, plus an
+optional `mod_dir`/`mod_prefix` pair so a terrain's own ground TOKEN cubes
+(if it defines any of its own, rather than reusing Extra_Mechanics/
+TokenCubes.c.txt ones the way Great_Wall does) resolve correctly. Add a new
+call at the bottom of this file for a new terrain mod rather than repointing
+the Great_Wall-specific call -- see the "Registered terrain mods" comment
+there. This is wired into `content-terrain.md`'s own workflow (run it right
+after writing a new terrain's ground-layout partial(s), show the PNG to the
+user, and iterate on tile coordinates before moving on to sprites/test-
+launch -- much faster than a full game launch for catching a misplaced
+`DATARECT:`) and into `.claude/hooks/regen-terrain-screenshots.sh`, which
+reruns every registered terrain mod after any `GameData/*.c.txt` edit.
+
 Boss-battle compositing (see battle-and-terrain-maps.md for the full
 derivation): a `*_Boss_Terrain`-flavored battle fires
 Battle_Terrain_Generation + Battle_Boss_Generation + Battle_Player_Generation
@@ -186,15 +200,16 @@ def _all_base_game_blocks():
     built once. Mirrors render_preview_cards.base_game_cube_icon_index's own
     file list/first-package-wins order, but keeps the block's raw lines
     (for Animation: detection) and the sheet path (for the animation-frame
-    fallback's package-relative Sprites/Animations/ lookup) instead of just
-    the final icon."""
+    fallback's own Sprites/Animations/ lookup) instead of just the final
+    icon."""
     global _BLOCK_CACHE
     if _BLOCK_CACHE is not None:
         return _BLOCK_CACHE
     index = {}
     for package, basename in rpc.BASE_GAME_CUBE_FILES:
-        txt_path = os.path.join(ROOT, "GameData", package, f"{basename}.c.txt")
-        png_path = os.path.join(ROOT, "GameData", package, "Sprites", f"{basename}.c.png")
+        base_dir = os.path.join(ROOT, "GameData", package)
+        txt_path = os.path.join(base_dir, f"{basename}.c.txt")
+        png_path = os.path.join(base_dir, "Sprites", f"{basename}.c.png")
         if not (os.path.exists(txt_path) and os.path.exists(png_path)):
             continue
         blocks = rpc.parse_blocks(txt_path, rpc.CUBE_HEADER)
@@ -202,10 +217,47 @@ def _all_base_game_blocks():
             name = b["header"].group(1)
             if name not in index:
                 index[name] = {
-                    "lines": b["lines"], "package": package, "sheet": png_path, "index": i,
+                    "lines": b["lines"], "base_dir": base_dir, "sheet": png_path, "index": i,
                 }
     _BLOCK_CACHE = index
     return index
+
+
+_MOD_BLOCK_CACHE = {}
+
+
+def _mod_own_blocks(mod_dir, mod_prefix):
+    """Same shape as _all_base_game_blocks(), but for one terrain mod's own
+    `<ModPrefix>_Cubes.c.txt` -- checked FIRST (see resolve_tile_rgba below)
+    so a new terrain's own decorative TOKEN ground cubes (content-terrain.md
+    step 2 -- these go through the normal CUBE: workflow, which for a mod
+    that isn't Extra_Mechanics means this file, not a base-game one) resolve
+    to real art instead of silently rendering blank. Mirrors
+    render_preview_cards.py's own CUBE_NAME_TO_ICON-before-base-game-
+    fallback order for a PERK card's Referenced Cubes row. Great_Wall itself
+    needs none of this -- its own ground tokens (Anchored_Basalt,
+    Stable_Plates) live in Extra_Mechanics/TokenCubes.c.txt, already covered
+    by _all_base_game_blocks() -- so this is a no-op ({}) until a future
+    terrain mod actually defines its own ground TOKEN cubes."""
+    key = (mod_dir, mod_prefix)
+    if key in _MOD_BLOCK_CACHE:
+        return _MOD_BLOCK_CACHE[key]
+    index = {}
+    txt_path = os.path.join(mod_dir, f"{mod_prefix}_Cubes.c.txt")
+    png_path = os.path.join(mod_dir, "Sprites", f"{mod_prefix}_Cubes.c.png")
+    if os.path.exists(txt_path) and os.path.exists(png_path):
+        blocks = rpc.parse_blocks(txt_path, rpc.CUBE_HEADER)
+        for i, b in enumerate(blocks):
+            name = b["header"].group(1)
+            if name not in index:
+                index[name] = {
+                    "lines": b["lines"], "base_dir": mod_dir, "sheet": png_path, "index": i,
+                }
+    _MOD_BLOCK_CACHE[key] = index
+    return index
+
+
+_CURRENT_MOD = (None, None)  # (mod_dir, mod_prefix) of the terrain mod currently being rendered, set by render_terrain_mod()
 
 
 ANIMATION_HP_RE = re.compile(r'^Animation:\s*(\S+)\s+HP\b')
@@ -232,10 +284,15 @@ _TILE_CACHE = {}
 
 
 def _resolve_tile_rgba_unflipped(cube_name):
-    if cube_name in _TILE_CACHE:
-        return _TILE_CACHE[cube_name]
-    blocks = _all_base_game_blocks()
-    info = blocks.get(cube_name)
+    mod_dir, mod_prefix = _CURRENT_MOD
+    cache_key = (mod_dir, cube_name)
+    if cache_key in _TILE_CACHE:
+        return _TILE_CACHE[cache_key]
+    info = None
+    if mod_dir and mod_prefix:
+        info = _mod_own_blocks(mod_dir, mod_prefix).get(cube_name)
+    if info is None:
+        info = _all_base_game_blocks().get(cube_name)
     result = None
     if info is not None:
         for l in info["lines"]:
@@ -243,7 +300,7 @@ def _resolve_tile_rgba_unflipped(cube_name):
             if not m:
                 continue
             anim_name = m.group(1)
-            anim_path = os.path.join(ROOT, "GameData", info["package"], "Sprites", "Animations",
+            anim_path = os.path.join(info["base_dir"], "Sprites", "Animations",
                                       f"{cube_name}_{anim_name}.png")
             if os.path.exists(anim_path):
                 strip = Image.open(anim_path).convert("RGBA")
@@ -256,7 +313,7 @@ def _resolve_tile_rgba_unflipped(cube_name):
             row, col = divmod(info["index"], cols)
             tile17 = sheet.crop((col * 17, row * 17, col * 17 + 17, row * 17 + 17))
             result = _strip_and_key_alpha(tile17)
-    _TILE_CACHE[cube_name] = result
+    _TILE_CACHE[cache_key] = result
     return result
 
 
@@ -280,7 +337,7 @@ def resolve_tile_rgba(cube_name, faction=1):
         return None
     if faction == 1 or faction == -1:
         return base
-    key = (cube_name, "flipped")
+    key = (_CURRENT_MOD[0], cube_name, "flipped")
     if key not in _TILE_CACHE:
         _TILE_CACHE[key] = base.transpose(Image.FLIP_LEFT_RIGHT)
     return _TILE_CACHE[key]
@@ -438,7 +495,13 @@ GREAT_WALL_OUTPUTS = [
 ]
 
 
-def render_terrain_mod(map_file, out_dir, outputs, shared_map_file=None):
+def render_terrain_mod(map_file, out_dir, outputs, shared_map_file=None, mod_dir=None, mod_prefix=None):
+    """mod_dir/mod_prefix (both required together) let a terrain's own
+    ground TOKEN cubes -- when it isn't Extra_Mechanics itself -- resolve
+    via `_mod_own_blocks()` above; omit both for a terrain whose ground
+    cubes are all base-game ones (Great_Wall's own case)."""
+    global _CURRENT_MOD
+    _CURRENT_MOD = (mod_dir, mod_prefix)
     all_scenarios = parse_scenarios(map_file)
     if shared_map_file:
         all_scenarios.update({k: v for k, v in parse_scenarios(shared_map_file).items()
@@ -452,10 +515,20 @@ def render_terrain_mod(map_file, out_dir, outputs, shared_map_file=None):
         print(f"wrote {fname} ({w}x{h} tiles, {im.width}x{im.height}px)")
 
 
+# Registered terrain mods -- mirrors render_preview_cards.py's own
+# render_mod(...) call-list convention (see cube-chaos-mod-setup SKILL.md's
+# "Each mod keeps its own README.md..." section for that convention's
+# rationale): add a new render_terrain_mod(...) call here for a new terrain
+# mod's own <Name>_Maps.c.txt rather than repointing GREAT_WALL_OUTPUTS.
+# Every real terrain scenario's shared Battle_*_Player/Battle_*_Enemy leader
+# partials live in Extra_Mechanics/Battle_Maps.c.txt regardless of which mod
+# owns the terrain itself, so shared_map_file is the same for every entry.
+SHARED_MAP_FILE = os.path.join(ROOT, "GameData", "Extra_Mechanics", "Battle_Maps.c.txt")
+
 if __name__ == "__main__":
     render_terrain_mod(
         os.path.join(ROOT, "GameData", "Great_Wall", "Great_Wall_Maps.c.txt"),
         os.path.join(ROOT, "GameData", "Great_Wall", "Screenshots"),
         GREAT_WALL_OUTPUTS,
-        shared_map_file=os.path.join(ROOT, "GameData", "Extra_Mechanics", "Battle_Maps.c.txt"),
+        shared_map_file=SHARED_MAP_FILE,
     )
