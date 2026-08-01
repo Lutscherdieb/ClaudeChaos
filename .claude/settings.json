@@ -27,6 +27,13 @@
             "command": "bash .claude/hooks/regen-preview-cards.sh",
             "timeout": 30,
             "statusMessage": "Regenerating mod preview cards..."
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash .claude/hooks/regen-terrain-screenshots.sh",
+            "timeout": 30,
+            "statusMessage": "Regenerating Great_Wall terrain screenshots..."
           }
         ]
       }

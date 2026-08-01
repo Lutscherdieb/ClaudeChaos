@@ -40,6 +40,12 @@ Sheet dimensions = `tile_size * columns` wide by `tile_size * rows` tall. Icons 
 
 `RGB(0, 148, 255)` — confirmed as the overwhelmingly most-common pixel color in every real cube and perk sheet checked. Use this exact value for new sprite sheets, not an approximation.
 
+**Confirmed as a real engine chroma-key, not just a convention (2026-08-01, decompiled `ColourGrid.ApplyLightingGrid`/`Cube.DrawLightingStep`):** the literal int `38143` both methods pass as `BackgroundColour` is `RGB(0,148,255)` packed as a single int (`0x0094FF` = `0,148,255`). Any pixel matching this color is treated as fully transparent/"air" by the engine's own rendering and lighting code, not drawn as a visible blue square. Anything compositing a cube/perk tile onto something other than the sheet's own flat canvas (a battlefield render, a card over a non-matching background) must key this color out to alpha=0 itself — pasting it verbatim leaves a visibly wrong solid-blue box where the real game shows through to whatever's behind. (`render_preview_cards.py`'s own cards don't need this — their canvas background already happens to read as intentional black, not a visible bug — but a script compositing tiles over anything else does.)
+
+**A placed battlefield cube is mirrored left-right whenever its faction is not 1 or -1** (decompiled `Cube.DrawFactionStep`: `if (Faction != 1 && Faction != -1) FactionCG = Input2.FlipYAchse();`, called every draw). This means an enemy-faction (2) unit is drawn as the horizontal mirror of the exact same cube placed at faction 1 — confirmed on `Great_Wall`'s own `Catapult` (`DATA: 4 38 2 2`, faction 2): its raw tooltip icon has the throwing arm's pole on the RIGHT, but both a real in-game screenshot and the correctly-flipped render show the pole on the LEFT. **Faction 0 (ordinary neutral terrain decoration) also matches this condition and gets flipped too** — only faction 1 (player) and the special faction -1 are left unflipped — though this is only visually detectable for asymmetric art; a symmetric repeating texture (Great_Wall's own Earth/Water/Anchored_Basalt fills) looks identical either way. When rendering a battlefield from map DSL data, mirror (`Image.transpose(Image.FLIP_LEFT_RIGHT)`) any tile whose placing `DATA:`/`DATARECT:` line's own faction argument isn't 1, not just obviously-enemy cubes.
+
+**A placed battlefield cube's ambient shading is per-pixel ambient occlusion based on distance to the nearest open/background pixel, searched only upward — never sideways or from below** (decompiled `ColourGrid.UpdateLighting`, called from `Cube.DrawLightingStep` only when `Pos.Zone >= 2`, i.e. only for cubes actually placed on a battle map, never a hand/tooltip icon). The distance-transform DP only ever reads the row above (`Result[x-1][y-1]`/`Result[x][y-1]`/`Result[x+1][y-1]`), and its cross-tile fallback (`GridPoint.NorthG`/`EastG`/`WestG`) never checks `SouthG` — so a solid pixel only lightens based on open air reachable by a strictly-upward-or-diagonally-upward path, capped at distance 15 (`Cap = sqrt[225] = 15.0`). `ColourGrid.ApplyLightingGrid` then HSV-shifts every non-background pixel: `V = (Cap-L)/Cap * 0.5 * (V*0.9+0.1) + V*0.5` (distance-15+ halves brightness, distance-0 leaves it ~unchanged) and `S = (L/Cap - S)*0.09 + S` (mild saturation drift toward `L/Cap`). A full from-scratch Python reimplementation of this (computed once over a whole assembled map rather than per-tile-plus-neighbor-lookups, which produces an identical result in far less code since tile boundaries are just adjacent pixels in one array) lives in `cube-chaos-scenario-scripting/scripts/render_terrain_screenshot.py`'s `apply_lighting()` — reuse it rather than re-deriving if this comes up again (e.g. for a non-terrain "what does this actually look like in battle" render).
+
 ## CUBE icon guide grid — draw it by default now, same idea as the PERK magenta ring
 
 Every CUBE icon tile gets a 1px `RGB(255, 0, 110)` ring around all 4 sides of its own 17×17 box (row 0, row 16, col 0, col 16), leaving real content in the inner 15×15 (tile-local indices 1-15) — this is the base game's own real convention (see the CUBE icon tile-size entry above for the two files that confirm it), never previously adopted by this repo's own mod sheets, and now the default going forward for every CUBE sheet, existing or new. Two concrete things this buys:
@@ -72,6 +78,21 @@ live in their own file, **not** the cube's main `<ModPrefix>_Cubes.c.png` sheet:
 <AnimationName>.png`, sliced with the exact same 17px-stride/15px-content/1px-trim convention as a normal CUBE icon,
 one tile per frame in row-major order. Confirmed via `PnGReader.FindCGForCube` (see the cube-animation reference for
 the full decompile writeup).
+
+**A `HP`-type `Animation:` (e.g. `Animation: Crumble HP 0 EQUAL 4`, the base game's own convention for a static/
+destructible TOKEN terrain piece — `Extra_Mechanics/TokenCubes.c.txt`'s `Anchored_Basalt`/`Stable_Plates`) replaces
+the cube's DRAWN sprite with one of that animation's own frames depending on current HP — meaning the tooltip icon
+in the main `_Cubes.c.png` sheet and the cube's actual battlefield appearance are two genuinely different pieces of
+art for any cube with one of these.** Decompiled `HPAnimation.AutoChangedCheck`/base `Animation.LastFrame` (default
+`0`, only advances once `Ratio = 1 - Current/Max` crosses a threshold) confirm **frame 0 (the leftmost tile in the
+animation strip) is what's drawn at full HP** — i.e. a freshly-placed, undamaged instance — not the last frame
+(that "last frame = permanent idle pose" rule is specific to `TRIGGER`-type animations, a different mechanism, see
+`cube-chaos-scripting/references/cube-animation.md`). Confirmed visually: `Anchored_Basalt`'s own tooltip icon
+(`Extra_Mechanics/Sprites/TokenCubes.c.png`) is an unrelated brown/orange dirt-like tile, while frame 0 of
+`Anchored_Basalt_Crumble.png`, tiled, pixel-matches the real in-game wall texture exactly. **When rendering or
+reasoning about how a cube actually looks once placed on a battlefield (not in a hand/tooltip context), check for
+an `Animation: <Name> HP ...` line first and use that animation's frame 0 instead of the main sheet's icon** if a
+matching `Sprites/Animations/<CubeName>_<Name>.png` file exists.
 
 ## Ground unit CUBE icons: draw the silhouette flush to the tile's bottom row, no gap
 
