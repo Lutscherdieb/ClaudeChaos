@@ -8,8 +8,14 @@ flowchart TD
     Root -- no --> AskRoot["Ask for install path"]
     Root -- yes --> SetupQ{"preferences.local.md<br/>exists yet?"}
     SetupQ -- no --> SetupOffer["Offer cube-chaos-repo-setup<br/>(git mode &middot; tool preflight &middot; preferences)"]
-    SetupOffer --> ModQ
-    SetupQ -- yes --> ModQ{"New or existing mod?"}
+    SetupOffer --> ConcurQ
+    SetupQ -- yes --> ConcurQ{"session_git_workflow:<br/>worktree-gated?"}
+    ConcurQ -- no / unset --> ModQ
+    ConcurQ -- yes --> WorktreeCheck{"Another session/*<br/>worktree active, or<br/>one about to run?"}
+    WorktreeCheck -- no --> ModQ
+    WorktreeCheck -- yes --> Worktree["Set up this session's own<br/>isolated worktree + branch"]
+    Worktree --> ModQ
+    ModQ{"New or existing mod?"}
     ModQ -- new --> NewMod["new-mod.md"]
     ModQ -- existing --> AuditQ{"Add/edit content,<br/>or audit what's there?"}
     AuditQ -- audit --> AuthorQ{"Ours, or a<br/>foreign/Workshop mod?"}
@@ -49,7 +55,9 @@ Shapes carry the meaning, so this reads the same whether GitHub renders it light
 
 ## First-time setup, once per machine
 
-The first time a session runs on a machine/checkout that has no `.claude/preferences.local.md` yet, the orchestrator offers `cube-chaos-repo-setup` before anything else: choosing a git/GitHub mode (your own fork, a branch on a shared repo, local-only git, or no git at all — each with its cost stated up front), a preflight for the tools every other skill assumes (`git`, `python3`+Pillow, `bash`, optionally `gh`/`jq`), and a one-time personal-preferences questionnaire (preview-gate strictness, sprite effort, naming/color check-ins, README timing, proactive write-back, test-launch behavior) written to that gitignored file. It's a one-time offer, not a recurring gate — skipping it just means every preference below uses its documented "Recommended" default.
+The first time a session runs on a machine/checkout that has no `.claude/preferences.local.md` yet, the orchestrator offers `cube-chaos-repo-setup` before anything else: choosing a git/GitHub mode (your own fork, a branch on a shared repo, local-only git, or no git at all — each with its cost stated up front), a preflight for the tools every other skill assumes (`git`, `python3`+Pillow, `bash`, optionally `gh`/`jq`), and a one-time personal-preferences questionnaire (preview-gate strictness, sprite effort, naming/color check-ins, README timing, proactive write-back, test-launch behavior, and whether concurrent sessions get worktree-isolated) written to that gitignored file. It's a one-time offer, not a recurring gate — skipping it just means every preference below uses its documented "Recommended" default.
+
+If that preference is set to `worktree-gated`, every session also runs a quick concurrency check (`git worktree list`) before touching any file: normal solo work stays on the main tree untouched, and only a genuinely overlapping session gets its own sibling worktree + `session/<timestamp>` branch (`cube-chaos-repo-setup/references/concurrent-sessions.md`), merged back on request once its own launch-and-log gate has passed.
 
 ## The hard gates
 

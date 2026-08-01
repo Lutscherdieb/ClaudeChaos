@@ -15,15 +15,17 @@ A set of Claude Code skills that build [Cube Chaos](https://store.steampowered.c
 | [`GameData/Great_Wall/`](GameData/Great_Wall/README.md) | A battlefields mod (Terrain perks) — starts with one: a barren field split by a great wall. |
 | [`GameData/Home_Turf_Advantage/`](GameData/Home_Turf_Advantage/README.md) | A standalone Neutral perk: in boss battles, the terrain's fortified advantage — and any structures on it — ends up on your side instead of the boss's. |
 
-### Regenerating preview cards
+### A couple of things worth knowing
 
-If a mod's content or sprites change, regenerate the images under its `Preview/` folder with:
+- **A mod's README isn't hand-assembled — ask for one and its `Preview/` folder gets rendered as real, game-accurate tooltip cards**, not raw sprite sheets: same font, borders, mana coloring, and keyword highlighting as the actual in-game tooltip. Regenerate anytime with:
 
-```
-python3 .claude/skills/cube-chaos-sprite-art/scripts/render_preview_cards.py
-```
+  ```
+  python3 .claude/skills/cube-chaos-sprite-art/scripts/render_preview_cards.py
+  ```
 
-(run from this repo's root — the script renders every mod registered in its own `render_mod(...)` calls at the bottom of the file, one PNG per cube/perk/curse/etc.). See `cube-chaos-sprite-art`'s "Rendering README preview cards..." section for what it does under the hood.
+  (run from this repo's root — renders every mod registered in its own `render_mod(...)` calls, one PNG per cube/perk/curse/etc. See `cube-chaos-sprite-art`'s "Rendering README preview cards..." section for the details.)
+
+- **A Terrain perk's battlefield layout can be rendered as a screenshot straight from its map data — no game launch required.** `cube-chaos-scenario-scripting/scripts/render_terrain_screenshot.py` reproduces the real in-game look (chroma-keyed backgrounds, HP-based sprite swaps, and more) so a wrong tile coordinate shows up in seconds, not after a full test-launch.
 
 ## What you need
 
