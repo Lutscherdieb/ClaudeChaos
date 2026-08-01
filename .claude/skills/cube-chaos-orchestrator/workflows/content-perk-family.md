@@ -50,7 +50,7 @@ Before writing any file, run the orchestrator's **Step C preview-and-approve gat
 1. **`cube-chaos-scripting`** — the `PERK:` block, trigger chain, and its paired `Description:`. If this is an `IsUpgradeFrom:` upgrade, write it directly into `<ModPrefix>_UpgradePerks.c.txt`, not the regular perks file.
 2. **`cube-chaos-rule-text`** — review the `Description:` wording against the chain, including the "only add the stacking-clarification sentence when the re-trigger mechanism is genuinely non-obvious" rule (not for every stacking perk by default).
 3. **`cube-chaos-sprite-art`** — skip entirely for an `IsUpgradeFrom:` upgrade (it has no sprite of its own and its file has no matching sheet at all). For a fresh non-upgrade perk: pick the border style + color from the table above (or the confirmed-precedent table in that skill directly, which is authoritative if this file and it ever disagree), generate it from scratch via the border-pattern-library recipes, then draw the interior art. Figure out the correct grid slot and whether the sheet needs resizing.
-4. **Test-launch** — `cube-chaos-mod-setup`'s loop.
+4. **Test-launch** — `cube-chaos-mod-setup`'s loop. Once it comes back clean, proactively offer a ready-to-paste console command for the perk just built — `ObtainPerk PerkConstant <Name>` — usable once a key is bound to `CONSOLE` in Options → Rebind Keys (one-time setup). See `cube-chaos-mod-setup/references/console-commands.md`. Offer this unprompted, same as `content-cube.md` does for cubes — it's the fastest way to get a perk in play for a manual check.
 
 ## If this is an edit, not a fresh perk
 

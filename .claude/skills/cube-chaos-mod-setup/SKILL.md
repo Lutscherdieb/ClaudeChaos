@@ -96,6 +96,14 @@ The filename collision above is about two `.c.txt` files sharing a basename; thi
 
 There is no hot-reload: the game parses all `GameData` content fresh at startup. After every edit:
 
+**The game has an in-game debug console** (bindable via Options → Rebind Keys, no default key) that executes typed
+text through the exact same DSL parser as `Ability:`/`ObtainAction:` fields — useful for spawning a mod's cubes/
+perks straight into a run (`AddCubeToInventory CubeConstant X`, `AddCubeToDeck CubeConstant X`, `ObtainPerk
+PerkConstant X`, ...) or for opening a live parse-error screen (`ERROR`) without waiting for a clean exit and
+`Log.txt` read. See `references/console-commands.md` for the full command grammar and a caveat about the
+`Campaign.Cheated` flag it sets on the save. This speeds up manual iteration but doesn't replace the `Log.txt` check
+below as the pass/fail signal reported back to the user.
+
 1. Kill any already-running game process first (`Get-Process -Name javaw | Stop-Process -Force` on Windows) — a stale running instance will not reflect new edits, and you'll waste a cycle thinking a fix didn't work.
 2. Launch the game (`Cube Chaos.exe`), wait several seconds for full boot (loading + sprite-cutting takes a couple seconds, but give it ~10-15s margin before checking).
 3. Check `%APPDATA%/CubeChaos/Log.txt` (Windows: `C:\Users\<user>\AppData\Roaming\CubeChaos\Log.txt`) for `WARNING`/`ERROR` lines, and check `CrashLog.txt`'s modification time to confirm no new crash occurred. Also check the launched process's own stdout if you redirected it to a file — some errors print there but not to Log.txt.
