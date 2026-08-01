@@ -19,7 +19,13 @@ WorldAbility: AtTheStartOfTheBattle
   EveryCubeWhich And IsSmaller XOfPosition PositionOfCube Test DoubleConstant 26 And IsEnemy Test Not IsALeader Test
    SetFaction DoubleConstant 1
 AbilityText: Any of the boss's structures that end up on your side answer to you instead End
-Description: In boss battles, the terrain's fortified advantage ends up on your side of the field instead of the boss's, and any of their structures that land on your side answer to you instead End
+WorldAbility: AtTheStartOfTheBattle
+ If CubeExists ARandomCubeWhich And IsEnemy Test CubeHasName Test Boss
+  EveryCubeWhich And IsLarger XOfPosition PositionOfCube Test DoubleConstant 25 And IsAlly Test Not IsALeader Test
+   SetFaction DoubleConstant 2
+AbilityText: But any of your own structures that end up on the boss's side answer to them instead End
+Description: In boss battles, the terrain's fortified advantage swaps to your side of the field instead of the boss's, and any structures that land on the wrong side switch allegiance to answer to whoever's territory they're now on End
 Value: 15
 BalanceCap: 5
+Unique
 End
