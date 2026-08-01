@@ -2,6 +2,7 @@
 
 A Species built around one neutral cube at the center of the board: True Void. It inherits every ability your perks would've granted your leader, your leader takes no damage from it, and any excess mana damage that would hit you or an enemy gets redirected into it as hp instead — feed it enough and it starts randomly re-rolling its own abilities as it outgrows itself.
 
+<!-- PREVIEW:START -->
 ## Preview — Voidling mod content
 
 Each card below is rendered to match the game's own in-game tooltip style. Full-resolution sprite sheet originals are in `Sprites/`.
@@ -17,7 +18,8 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 
 <img src="Preview/Voidling_Perks_Voidling.png" width="700" alt="Voidling species perk card">
 <img src="Preview/Voidling_Perks_Void_Growth.png" width="700" alt="Void Growth perk card">
-<img src="Preview/Voidling_Perks_Boundless_Void.gif" width="700" alt="Boundless Void upgrade perk card">
+<img src="Preview/Voidling_Perks_Boundless_Void.gif" width="700" alt="Boundless Void perk card (upgrade of Void Growth)">
+<!-- PREVIEW:END -->
 
 ## Installing this mod (to play it)
 

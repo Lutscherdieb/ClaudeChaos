@@ -34,6 +34,13 @@
             "command": "bash .claude/hooks/regen-terrain-screenshots.sh",
             "timeout": 30,
             "statusMessage": "Regenerating terrain battlefield screenshots..."
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash .claude/hooks/regen-readme-previews.sh",
+            "timeout": 30,
+            "statusMessage": "Syncing README preview sections..."
           }
         ]
       }

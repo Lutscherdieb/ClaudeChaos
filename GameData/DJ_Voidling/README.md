@@ -4,13 +4,15 @@ A small bridge mod that adds the `DJ-Voidling` synergy perk. Pick both the DJ cl
 
 **Requires both the `DJ` and `Voidling` mods to also be installed and enabled** — this mod adds nothing on its own, it only wires the two together. Neither `DJ` nor `Voidling` needs this mod.
 
+<!-- PREVIEW:START -->
 ## Preview — DJ_Voidling mod content
 
 Each card below is rendered to match the game's own in-game tooltip style. Full-resolution sprite sheet original is in `Sprites/`.
 
-### Perks
+### Class+Species synergies
 
-<img src="Preview/DJ_Voidling_Synergies_DJ-Voidling.png" width="700" alt="DJ + Voidling synergy perk card">
+<img src="Preview/DJ_Voidling_Synergies_DJ-Voidling.png" width="700" alt="DJ + Voidling synergy card">
+<!-- PREVIEW:END -->
 
 ## Installing this mod (to play it)
 

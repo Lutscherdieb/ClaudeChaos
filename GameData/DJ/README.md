@@ -2,6 +2,7 @@
 
 A full Class built with the skills in this repo's `.claude/` folder: a cube family, a stacking perk line, curses, a consumable, and a synergy portrait for every base-game species.
 
+<!-- PREVIEW:START -->
 ## Preview — DJ mod content
 
 Each card below is rendered to match the game's own in-game tooltip style. Full-resolution sprite sheet originals are in `Sprites/`.
@@ -10,14 +11,7 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 
 <img src="Preview/DJ_Cubes_Microphone.png" width="700" alt="Microphone cube card">
 <img src="Preview/DJ_Cubes_Speaker.png" width="700" alt="Speaker cube card">
-
-<table>
-<tr>
-<td valign="middle">On Cube Creation</td>
-<td valign="middle"><img src="Preview/DJ_Cubes_Speaker_Beat.gif" width="70" alt="Speaker recoil animation"></td>
-</tr>
-</table>
-
+<img src="Preview/DJ_Cubes_Speaker_Beat.gif" width="120" alt="Speaker Beat animation">
 <img src="Preview/DJ_Cubes_Record.png" width="700" alt="Record cube card">
 <img src="Preview/DJ_Cubes_Note.png" width="700" alt="Note cube card">
 <img src="Preview/DJ_Cubes_Keyboard.png" width="700" alt="Keyboard cube card">
@@ -27,7 +21,7 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 
 ### Perks
 
-<img src="Preview/DJ_Perks_DJ.png" width="700" alt="DJ perk card">
+<img src="Preview/DJ_Perks_DJ.png" width="700" alt="DJ class perk card">
 <img src="Preview/DJ_Perks_Echo.png" width="700" alt="Echo perk card">
 <img src="Preview/DJ_Perks_Symphony.png" width="700" alt="Symphony perk card">
 <img src="Preview/DJ_Perks_Inspiration.png" width="700" alt="Inspiration perk card">
@@ -47,7 +41,7 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 <img src="Preview/DJ_Curses_Curse_Of_Atrophy.png" width="700" alt="Curse Of Atrophy curse card">
 <img src="Preview/DJ_Curses_Wobbly_Knee.png" width="700" alt="Wobbly Knee curse card">
 
-### Consumable
+### Consumables
 
 <img src="Preview/DJ_Consumables_Mixtape.png" width="700" alt="Mixtape consumable card">
 
@@ -65,6 +59,7 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 <img src="Preview/DJ_Synergies_DJ-Fungus.png" width="700" alt="DJ + Fungus synergy card">
 <img src="Preview/DJ_Synergies_DJ-Elemental.png" width="700" alt="DJ + Elemental synergy card">
 <img src="Preview/DJ_Synergies_DJ-No_Species.png" width="700" alt="DJ + No Species synergy card">
+<!-- PREVIEW:END -->
 
 ## Installing this mod (to play it)
 

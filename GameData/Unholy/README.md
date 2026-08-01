@@ -2,6 +2,7 @@
 
 A winged-demon Species: any allied cube that would be created with 0 hp is instead rescued into a teleporting bomb, delivered straight into the enemy backline where it explodes.
 
+<!-- PREVIEW:START -->
 ## Preview — Unholy mod content
 
 Each card below is rendered to match the game's own in-game tooltip style. Full-resolution sprite sheet originals are in `Sprites/`.
@@ -11,7 +12,7 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 <img src="Preview/Unholy_Cubes_Ritual.png" width="700" alt="Ritual cube card">
 <img src="Preview/Unholy_Cubes_Imp.png" width="700" alt="Imp cube card">
 <img src="Preview/Unholy_Cubes_Cultist.png" width="700" alt="Cultist cube card">
-<img src="Preview/Unholy_Cubes_Two_Headed_Demon.png" width="700" alt="Two-Headed Demon cube card">
+<img src="Preview/Unholy_Cubes_Two_Headed_Demon.png" width="700" alt="Two Headed Demon cube card">
 <img src="Preview/Unholy_Cubes_Plague_Imp.png" width="700" alt="Plague Imp cube card">
 <img src="Preview/Unholy_Cubes_Damned_Soul.png" width="700" alt="Damned Soul cube card">
 <img src="Preview/Unholy_Cubes_Martyr.png" width="700" alt="Martyr cube card">
@@ -52,6 +53,7 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 <img src="Preview/Unholy_Synergies_Rogue-Unholy.png" width="700" alt="Rogue + Unholy synergy card">
 <img src="Preview/Unholy_Synergies_Wizard-Unholy.png" width="700" alt="Wizard + Unholy synergy card">
 <img src="Preview/Unholy_Synergies_No_Class-Unholy.png" width="700" alt="No Class + Unholy synergy card">
+<!-- PREVIEW:END -->
 
 ## Installing this mod (to play it)
 

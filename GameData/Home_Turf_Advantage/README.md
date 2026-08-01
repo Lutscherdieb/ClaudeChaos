@@ -4,6 +4,7 @@ A small standalone mod that adds one Neutral reward perk, `Home Turf Advantage`.
 
 This works with any Boss Terrain — it isn't tied to any specific terrain mod. **Doesn't require any other mod to be installed** — it's fully self-contained.
 
+<!-- PREVIEW:START -->
 ## Preview — Home_Turf_Advantage mod content
 
 Each card below is rendered to match the game's own in-game tooltip style. Full-resolution sprite sheet original is in `Sprites/`.
@@ -11,6 +12,7 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 ### Perks
 
 <img src="Preview/Home_Turf_Advantage_Neutral_Home_Turf_Advantage.png" width="700" alt="Home Turf Advantage perk card">
+<!-- PREVIEW:END -->
 
 ## Installing this mod (to play it)
 

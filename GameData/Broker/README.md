@@ -2,6 +2,7 @@
 
 A gold-and-gambling Class: cube upgrades you buy never run out of uses, every map opens with a free Forge offering only Cube Upgrades, and gold income doubles as mana income.
 
+<!-- PREVIEW:START -->
 ## Preview — Broker mod content
 
 Each card below is rendered to match the game's own in-game tooltip style. Full-resolution sprite sheet originals are in `Sprites/`.
@@ -15,6 +16,7 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 ### Perks
 
 <img src="Preview/Broker_Perks_Broker.png" width="700" alt="Broker class perk card">
+<!-- PREVIEW:END -->
 
 ## Installing this mod (to play it)
 

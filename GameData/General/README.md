@@ -2,9 +2,32 @@
 
 A military-themed Class: Strength grows from the sacrifices and reinforcements of the front line. Bomb the enemy from above, shell them from a distance, and drop paratroopers behind their lines.
 
+<!-- PREVIEW:START -->
 ## Preview — General mod content
 
 Each card below is rendered to match the game's own in-game tooltip style. Full-resolution sprite sheet originals are in `Sprites/`.
+
+### Cubes
+
+<img src="Preview/General_Cubes_Bomber.png" width="700" alt="Bomber cube card">
+<img src="Preview/General_Cubes_Bomb.png" width="700" alt="Bomb cube card">
+<img src="Preview/General_Cubes_Artillery.png" width="700" alt="Artillery cube card">
+<img src="Preview/General_Cubes_Recruit.png" width="700" alt="Recruit cube card">
+<img src="Preview/General_Cubes_Parachute.png" width="700" alt="Parachute cube card">
+<img src="Preview/General_Cubes_Drop_Helicopter.png" width="700" alt="Drop Helicopter cube card">
+<img src="Preview/General_Cubes_Shot.png" width="700" alt="Shot cube card">
+<img src="Preview/General_Cubes_Shell.png" width="700" alt="Shell cube card">
+<img src="Preview/General_Cubes_Rocket.png" width="700" alt="Rocket cube card">
+<img src="Preview/General_Cubes_Bunker.png" width="700" alt="Bunker cube card">
+<img src="Preview/General_Cubes_Airport.png" width="700" alt="Airport cube card">
+<img src="Preview/General_Cubes_Rocket_Silo.png" width="700" alt="Rocket Silo cube card">
+<img src="Preview/General_Cubes_Medic.png" width="700" alt="Medic cube card">
+<img src="Preview/General_Cubes_Bombardement.png" width="700" alt="Bombardement cube card">
+<img src="Preview/General_Cubes_War_Dragon_Egg.png" width="700" alt="War Dragon Egg cube card">
+<img src="Preview/General_Cubes_Baby_War_Dragon.png" width="700" alt="Baby War Dragon cube card">
+<img src="Preview/General_Cubes_War_Dragon.png" width="700" alt="War Dragon cube card">
+<img src="Preview/General_Cubes_Annex.png" width="700" alt="Annex cube card">
+<img src="Preview/General_Cubes_Retreat.png" width="700" alt="Retreat cube card">
 
 ### Perks
 
@@ -30,28 +53,6 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 <img src="Preview/General_Perks_War_Dragon_Egg.png" width="700" alt="War Dragon Egg perk card">
 <img src="Preview/General_Perks_Baby_War_Dragon.gif" width="700" alt="Baby War Dragon perk card (upgrade of War Dragon Egg)">
 
-### Cubes
-
-<img src="Preview/General_Cubes_Bomber.png" width="700" alt="Bomber cube card">
-<img src="Preview/General_Cubes_Artillery.png" width="700" alt="Artillery cube card">
-<img src="Preview/General_Cubes_Recruit.png" width="700" alt="Recruit cube card">
-<img src="Preview/General_Cubes_Parachute.png" width="700" alt="Parachute cube card">
-<img src="Preview/General_Cubes_Drop_Helicopter.png" width="700" alt="Drop Helicopter cube card">
-<img src="Preview/General_Cubes_Shot.png" width="700" alt="Shot cube card">
-<img src="Preview/General_Cubes_Shell.png" width="700" alt="Shell cube card">
-<img src="Preview/General_Cubes_Bomb.png" width="700" alt="Bomb cube card">
-<img src="Preview/General_Cubes_Rocket.png" width="700" alt="Rocket cube card">
-<img src="Preview/General_Cubes_Bunker.png" width="700" alt="Bunker cube card">
-<img src="Preview/General_Cubes_Airport.png" width="700" alt="Airport cube card">
-<img src="Preview/General_Cubes_Rocket_Silo.png" width="700" alt="Rocket Silo cube card">
-<img src="Preview/General_Cubes_Medic.png" width="700" alt="Medic cube card">
-<img src="Preview/General_Cubes_Bombardement.png" width="700" alt="Bombardement cube card">
-<img src="Preview/General_Cubes_War_Dragon_Egg.png" width="700" alt="War Dragon Egg cube card">
-<img src="Preview/General_Cubes_Baby_War_Dragon.png" width="700" alt="Baby War Dragon cube card">
-<img src="Preview/General_Cubes_War_Dragon.png" width="700" alt="War Dragon cube card">
-<img src="Preview/General_Cubes_Annex.png" width="700" alt="Annex cube card">
-<img src="Preview/General_Cubes_Retreat.png" width="700" alt="Retreat cube card">
-
 ### Curses
 
 <img src="Preview/General_Curses_Intimidated.png" width="700" alt="Intimidated curse card">
@@ -75,7 +76,8 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 <img src="Preview/General_Synergies_General-Remnant.png" width="700" alt="General + Remnant synergy card">
 <img src="Preview/General_Synergies_General-Dwarf.png" width="700" alt="General + Dwarf synergy card">
 <img src="Preview/General_Synergies_General-Plant.png" width="700" alt="General + Plant synergy card">
-<img src="Preview/General_Synergies_General-No_Species.png" width="700" alt="General + No_Species synergy card">
+<img src="Preview/General_Synergies_General-No_Species.png" width="700" alt="General + No Species synergy card">
+<!-- PREVIEW:END -->
 
 ## Installing this mod (to play it)
 
