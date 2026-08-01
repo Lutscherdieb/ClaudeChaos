@@ -132,6 +132,39 @@ sliced PNG, indices 0..Amount-1 in file/sheet order.
   it was almost certainly a `TIME` animation on that specific cube, not anything to do with a perk border. Real
   examples: `Animation: Fly TIME 0 3 20 20 20`, `Animation: Rotate TIME 0 3 20 20 20`.
 
+## Which type to pick, knowing how each one previews in a README (added 2026-08-01)
+
+`cube-chaos-sprite-art/scripts/render_preview_cards.py` generates a companion `.gif` for a new animated cube's own
+README preview card (see that skill's "Rendering README preview cards" section) — and how faithfully it can do that
+depends entirely on which `Animation:` TYPE gets picked, not just on drawing good frames. Worth knowing **before**
+authoring a new animated cube, not discovering after:
+
+- **`TRIGGER` previews accurately.** Its frame is a self-contained countdown (ticks since `lastAbility` last fired) —
+  fully computable with zero knowledge of the rest of the game, so the README gif is a real, correctly-timed playback
+  of the actual flourish, captioned with the real trigger condition (e.g. DJ's `Speaker` → `Speaker_Beat.gif`,
+  captioned `On Cube Creation`).
+- **`DOUBLE` previews honestly, but not accurately — there is no deterministic playback to compute**, because its
+  frame comes from evaluating a live production (current hp, an ability's stacking count, a custom per-cube variable
+  built up over a whole `EveryTick` chain...) that has no value outside an actual running battle. The default preview
+  is every frame in raw sheet order, at a flat pace, with **no claim about when each one appears** — correct as far
+  as it goes ("here are the poses this animation has"), but it can't show a `DOUBLE` cube's real behavior the way a
+  `TRIGGER` cube's gif can. A hand-picked multi-state override IS possible when a sheet's frames clearly split into
+  a few recognizable, real conditions (real case: the Steam Workshop "Dinosaurs!" mod's `Red_Eye` — blink cycle
+  visibly changes between above/below 50% hp, so its preview got two separate captioned gifs instead of one raw
+  cycle; see `ThirdParty/Dinosaurs/render_dinosaurs_preview.py`'s `DOUBLE_ANIMATION_STATES` for the worked pattern),
+  but that override has to be hand-derived by tracing the cube's own state-computing ability chain — there's no way
+  to detect it mechanically from the `Animation:` line alone.
+- **`CLOCK`/`HP`/`BOOLEAN`/`TIME` have no preview support at all yet** (`render_preview_cards.py`'s own documented
+  gap) — a cube using one of these will render its static card with no animation gif until someone adds that
+  playback logic.
+
+**Practical takeaway when designing a new cube for this repo's own mods:** if a flourish's trigger condition is the
+interesting thing to show off in the README (an attack, a special proc, a creation effect), prefer `TRIGGER` — it's
+both the correct engine semantics for "plays once after X, then rests" AND the one type that previews itself
+faithfully with zero extra authoring effort. Reach for `DOUBLE` when the animation is genuinely about reflecting
+live state (an idle pose that changes with stacking count, hp, etc) and accept that its README preview will be a
+generic pose gallery unless you're willing to hand-write a state-override afterward.
+
 ## `EffectType` — how a picked frame actually gets applied
 
 From `Animation.AffectType(CG, Frame)`:

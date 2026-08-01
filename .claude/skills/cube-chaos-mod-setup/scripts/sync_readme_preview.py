@@ -45,12 +45,12 @@ cosmetic, never functional -- alt text has no in-game effect):
   the exact hand-picked wording an older README used (e.g. "Boss Battle" for
   a screenshot literally named `..._Boss.png`).
 
-A CUBE's own companion trigger-animation gif is NOT simplified, unlike the
-two points above -- it keeps the bespoke captioned <table> a human
-originally hand-authored (DJ's "On Cube Creation" label for Speaker's Beat
-animation), per cube-chaos-sprite-art/SKILL.md's own documented convention
-(width="70" -- matches how big the icon actually renders inside the static
-card, not the gif's native pixel size; plain unstyled <table>/<tr>/<td
+A CUBE's own companion animation gif(s) are NOT simplified, unlike the two
+points above -- they keep the bespoke captioned <table> a human originally
+hand-authored (DJ's "On Cube Creation" label for Speaker's Beat animation),
+per cube-chaos-sprite-art/SKILL.md's own documented convention (width="70"
+-- matches how big the icon actually renders inside the static card, not
+the gif's native pixel size; plain unstyled <table>/<tr>/<td
 valign="middle">, no inline style= -- GitHub's sanitizer strips it). A
 2026-08-01 version of this script DID replace it with a plain wide <img
 width="120">, reasoning the caption couldn't be mechanically derived from
@@ -62,6 +62,20 @@ for Speaker. Update that dict whenever a new TRIGGER-animated cube is added;
 a missing entry falls back to a generic caption plus a printed warning
 (never a hard error -- this runs inside a non-blocking PostToolUse hook, so
 a missing caption should be visible, not fatal to every other edit).
+
+A DOUBLE-type animation (added 2026-08-01, see cube-chaos-sprite-art/
+SKILL.md's own DOUBLE bullet and cube-chaos-scripting/references/
+cube-animation.md) gets the same <table> treatment but a DIFFERENT default
+caption -- its own animation name (e.g. "Shoot"), not an
+ANIMATION_TRIGGER_CAPTIONS lookup -- since a DOUBLE's frame is picked from
+live game state with no single trigger event to name; falling back to "On
+Trigger" for one (the TRIGGER-only code path's original fallback) would be
+actively wrong, not just generic. cube_animation_types() reads each cube's
+real Animation: TYPE straight from its own .c.txt to tell the two apart --
+no own-mod cube needs a hand-picked multi-state caption override yet (see
+ThirdParty/Dinosaurs/render_dinosaurs_preview.py's DOUBLE_ANIMATION_STATES
+for that pattern, third-party-only for now), so this script has no override
+dict of its own; add one the same way if/when an own-mod cube needs it.
 """
 import glob
 import importlib.util
@@ -293,6 +307,28 @@ def cube_animation_gifs(mod_dir, prefix, cube_name):
     return out
 
 
+def cube_animation_types(mod_dir, prefix):
+    """cube_name -> {anim_name: atype}, read directly from <Prefix>_Cubes.c.txt --
+    lets the caption-selection logic below tell a TRIGGER animation (needs a
+    real ANIMATION_TRIGGER_CAPTIONS entry, since its caption names a specific
+    in-game event) apart from a DOUBLE one (whose correct default caption is
+    just its own animation name, not a "missing caption" warning -- a DOUBLE's
+    frame is picked from live game state with no single trigger event to name,
+    see cube-chaos-scripting/references/cube-animation.md's "which type to
+    pick" section). Without this check, a future own-mod DOUBLE-animated cube
+    would silently get the wrong "On Trigger" fallback caption, which doesn't
+    even make sense for a DOUBLE (there is no trigger)."""
+    path = os.path.join(mod_dir, f"{prefix}_Cubes.c.txt")
+    if not os.path.exists(path):
+        return {}
+    out = {}
+    for b in RPC.parse_blocks(path, RPC.CUBE_HEADER):
+        cube_name = b["header"].group(1)
+        for anim_name, atype, effect, rest in RPC.parse_animation_lines(b["lines"]):
+            out.setdefault(cube_name, {})[anim_name] = atype
+    return out
+
+
 CAMEL_RE = re.compile(r'(?<!^)(?=[A-Z])')
 
 
@@ -328,6 +364,7 @@ def build_section(mod_dir, prefix):
              f"Full-resolution sprite sheet {original_word} {'is' if sheet_count == 1 else 'are'} in `Sprites/`.",
              ""]
 
+    anim_types = cube_animation_types(mod_dir, prefix)
     any_category = False
     for category, heading in CATEGORY_ORDER:
         if category == "Perks":
@@ -380,11 +417,20 @@ def build_section(mod_dir, prefix):
                 if anims:
                     entries = []
                     for fname, anim_name in anims:
-                        caption = ANIMATION_TRIGGER_CAPTIONS.get((prefix, name, anim_name))
-                        if caption is None:
-                            print(f"WARNING: no trigger caption for {prefix}/{name}/{anim_name} -- "
-                                  f"add one to ANIMATION_TRIGGER_CAPTIONS in sync_readme_preview.py")
-                            caption = "On Trigger"
+                        atype = anim_types.get(name, {}).get(anim_name)
+                        if atype == "DOUBLE":
+                            # No "missing caption" warning here -- a DOUBLE's
+                            # correct default IS just its own animation name
+                            # (see cube_animation_types' docstring), not a
+                            # gap that needs a hand-authored entry the way a
+                            # TRIGGER's real trigger-condition caption does.
+                            caption = pretty(anim_name)
+                        else:
+                            caption = ANIMATION_TRIGGER_CAPTIONS.get((prefix, name, anim_name))
+                            if caption is None:
+                                print(f"WARNING: no trigger caption for {prefix}/{name}/{anim_name} -- "
+                                      f"add one to ANIMATION_TRIGGER_CAPTIONS in sync_readme_preview.py")
+                                caption = "On Trigger"
                         alt = f"{title} {pretty(anim_name)} animation"
                         entries.append((caption, f"Preview/{fname}", alt))
                     lines.extend(animation_table_lines(entries))

@@ -465,6 +465,41 @@ def build_trigger_gif(mod_dir, cube_name, anim_name, rest_tokens, out_path):
                  duration=[int(d) for d in durations], loop=0, disposal=2)
 
 
+def animation_amount(rest_tokens):
+    """Frame count for either threshold-spec form shared by every Animation: type
+    (cube-chaos-scripting/references/cube-animation.md's Grammar section):
+    `EQUAL <Amount> [<Total>]` or the explicit `<Amount> <t0>...<t(n-1)>` form."""
+    return int(rest_tokens[1]) if rest_tokens[0] == "EQUAL" else int(rest_tokens[0])
+
+
+DOUBLE_FRAME_MS = 500  # flat per-frame dwell for a generic DOUBLE preview -- NOT derived
+# from the Animation: line's own threshold list, unlike TRIGGER's. A DOUBLE animation's
+# thresholds bucket a live game-state VALUE (hp, ability-stack count, a custom variable...)
+# into a frame index -- they are magnitudes, not tick counts, so reusing them as gif frame
+# timing (the way TRIGGER's genuinely-tick-based thresholds are) would be meaningless.
+
+
+def build_double_gif(mod_dir, cube_name, anim_name, frame_indices, out_path):
+    """A DOUBLE-type Animation: line picks its frame from a LIVE, arbitrary DSL
+    "production" (cube-chaos-scripting/references/cube-animation.md) -- unlike TRIGGER
+    (a self-contained countdown since an ability last fired), that production can depend on
+    genuine in-battle state (current hp, ability-stacking count, whether a specific ability
+    is currently held, elapsed real battle time...) that has no value at all outside an
+    actual running game. There is no single correct deterministic playback to compute, so
+    this doesn't attempt one -- it just plays `frame_indices` (any order/subset of the
+    sheet's own frames) as a flat-paced loop: "here are the poses this animation can show",
+    not "here is when/why it shows them" (that's the README's own caption text instead,
+    same table convention TRIGGER animations use -- see build_cube_animation_gifs' default
+    call below for the "show every frame in raw sheet order" case, and
+    ThirdParty/Dinosaurs/render_dinosaurs_preview.py's DOUBLE_ANIMATION_STATES for a
+    hand-derived override when raw sheet order doesn't read as one coherent loop)."""
+    frames = load_animation_frames(mod_dir, cube_name, anim_name)
+    imgs = [frames[i].resize((CUBE_ANIM_GIF_PX, CUBE_ANIM_GIF_PX), Image.NEAREST)
+            for i in frame_indices]
+    imgs[0].save(out_path, save_all=True, append_images=imgs[1:],
+                 duration=DOUBLE_FRAME_MS, loop=0, disposal=2)
+
+
 def build_cube_animation_gifs(mod_dir, mod_prefix, out_dir):
     txt_path = os.path.join(mod_dir, f"{mod_prefix}_Cubes.c.txt")
     if not os.path.exists(txt_path):
@@ -474,11 +509,21 @@ def build_cube_animation_gifs(mod_dir, mod_prefix, out_dir):
     for b in blocks:
         cube_name = b["header"].group(1)
         for anim_name, atype, effect, rest in parse_animation_lines(b["lines"]):
-            if atype != "TRIGGER":
-                continue  # only TRIGGER's playback shape is implemented so far
             out_name = f"{mod_prefix}_Cubes_{cube_name}_{anim_name}.gif"
-            build_trigger_gif(mod_dir, cube_name, anim_name, rest,
-                               os.path.join(out_dir, out_name))
+            if atype == "TRIGGER":
+                build_trigger_gif(mod_dir, cube_name, anim_name, rest,
+                                   os.path.join(out_dir, out_name))
+            elif atype == "DOUBLE":
+                # Default: every frame, raw sheet order -- no own-mod cube uses DOUBLE yet,
+                # so there's no override list here (unlike the third-party Dinosaurs script,
+                # which has hand-derived state groupings for cubes where this default
+                # wouldn't read as one coherent loop). Add one here the same way if/when an
+                # own-mod cube's raw order turns out not to read cleanly either.
+                build_double_gif(mod_dir, cube_name, anim_name,
+                                  list(range(animation_amount(rest))),
+                                  os.path.join(out_dir, out_name))
+            else:
+                continue  # CLOCK/HP/BOOLEAN/TIME playback isn't implemented yet
             written.append(out_name)
     return written
 
