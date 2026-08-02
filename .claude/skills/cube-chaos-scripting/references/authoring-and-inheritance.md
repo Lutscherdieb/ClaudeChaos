@@ -5,7 +5,29 @@ an effect propagate to created cubes, or building a battle-start/movement/creatu
 
 ## `Visual:` — placement-preview markers (undocumented in ModdingInfo.txt/ModdingExplanation.txt)
 
-Every base-game cube with a positional effect (deals damage in front, heals below, etc.) has one or more `Visual:` lines in its `CUBE:` block, placed near the end (after the relevant `Text:`, before `AiPlacementRule:`). These draw colored highlight icons at fixed tile offsets when the player is holding/placing the cube, showing which tiles it will affect. Purely cosmetic — omitting them doesn't break the ability, it just makes the cube's effect radius invisible at placement time (confirmed as the root cause when a user noticed custom DJ cubes weren't showing their affected tiles like base-game cubes do). Reverse-engineered from ~500 real usages, since neither grammar doc mentions it:
+### The rule: a fixed-offset positional effect ALWAYS gets a `Visual:` line — decide it mechanically, then verify
+
+**Do this for every `CUBE:` you write or edit, before calling it done:**
+
+1. **Run `grep -nE 'PositionInDirectionFromPosition|CubeInDirectionFromCube|TopPositionAboveCube' <file>`** over the block. Every hit is a candidate — do not eyeball the ability chain for "does this feel positional."
+2. **Apply the table below to each hit** to get the required marker (or a decision to omit).
+3. **Verify: the block's `Visual:` line count equals the number of distinct tile offsets the table produced.** A cube that affects 4 touching tiles needs 4 `Visual:` lines, not 1. This step is the point — "I checked and it looked fine" is exactly how `Hell_Portal` shipped without one.
+
+| What the ability targets | Marker? | Write |
+|---|---|---|
+| Fixed offset from the cube — `PositionInDirectionFromPosition <Dir> PositionOfThis` / `... PositionOfCube Caster`, or `CubeInDirectionFromCube <Dir> Caster` | **Required** | `Visual: <Shape> X Y R G B`, one line per tile |
+| Anywhere up/down a column — `TopPositionAboveCube`, "first empty space above" | **Required** | `Visual: Target 0 -1 96 96 96` then a bare `Visual: Infinite` |
+| The cube's own tile — a **bare** `PositionOfThis`/`PositionOfCube Caster` used directly as the destination with no `PositionInDirectionFromPosition` wrapper around it, or `OriginalPosition` | **Omit** | Nothing. **Offset `0 0` appears in 0 of ~530 base-game `Visual:` lines** — there is no self-marker. (Don't confuse this with row 1: the wrapper is what makes it a *neighbouring* tile) |
+| A dynamic/unpredictable tile — `ARandomPositionWhich`, above `ARandomEnemy`, a `Victim`'s position | **Omit** | Nothing. Base game omits here too (`Weed`, `Fungus_Heart`, `Growing_Worm`, `Green_Worm`) |
+| An effect granted onto *another* cube via `Enchantment`/`GainAbilityText` | **Omit** | The marker would belong to the host cube, not this one (`Ring_Of_Shields`) |
+
+**This is a house-wide default, not a per-cube judgement call.** Measured base-game ground truth, 2026-08-02: of the 23 base-game cubes that create a cube at a fixed offset, **18 carry a `Visual:`** — and the 5 that don't (`Piston_Leg`, `Ring_Of_Shields`, `Sky_Vine_Bulb`, `Boomerang`, `Container`) are base-game oversights of exactly the kind this rule exists to prevent, not a competing convention.
+
+`TOKEN` cubes are included, not exempt — **65 base-game `TOKEN` cubes carry `Visual:` lines** (`Void`, `Mana_Node`, `Gift`, `Area_Heal`, …), because a `TOKEN` can still reach a hand via `AddCubeToHandOfFaction` or be placed by the AI under its `AiPlacementRule:`.
+
+**Incident that forced this into a table (2026-08-02):** the user noticed `Hell_Portal` showed no spawn preview. A sweep then found **12** cubes across Broker/DJ/General/Unholy missing markers they should have had — `Hell_Portal`, `Baby_Bass_Dragon`, `Bass_Dragon`, `Baby_War_Dragon`, `War_Dragon`, `Plague_Ritual`, `Construction_Site`, `Brimstone`, `Blood_Totem`, `Bombardement`, `All_In`, `Skyscraper`. The rule already existed, as `content-cube.md`'s soft *"Check whether it needs `Visual:` placement-preview lines (any cube with a positional effect…)"* — a prompt to reflect, with no mechanical trigger and no verification step, so it was satisfiable by simply not thinking about it. `.claude/hooks/check-visual-coverage.sh` is the non-blocking backstop; the periodic one is `cube-chaos-audit`'s placement-preview row in its "DSL & mechanical safety" checklist, with the matching **"Placement-preview coverage"** recipe in that skill's `references/detection-recipes.md`.
+
+### Syntax
 
 ```
 Visual: <Shape> X Y R G B [N]
@@ -13,7 +35,7 @@ Visual: <Shape> X Y R G B [N]
 
 - `X Y` are tile offsets **relative to the cube**, in its default placed orientation: `+X` = Forwards/East, `-X` = Backwards/West, `+Y` = South (down), `-Y` = North (up). Confirmed by cross-referencing cubes whose actual `Ability:` targets `North`/`South`/`Forwards` against their own `Visual:` offsets (e.g. a "heal the cube below" cube uses `Visual: Plus 0 1 ...`).
 - `R G B` is the marker color — reuse the game's existing color language rather than inventing one: gray `96 96 96` for "a cube will be created here", red `255 0 0` for damage/threat, green `0 254 33` for healing, ice-blue `109 209 228` or `155 238 255` for buff/utility/"related cube" markers.
-- **Shape** picks the icon and argument count: `Square`/`Target`/`Plus`/`Mist` take exactly `X Y R G B` (5 args); `Sword`/`Arrow` take a 6th trailing number (reach/size, not fully decoded — copy an existing value like `1` or `2`). `Area N Mist R G B` is a different overload for radius-based AoE (N = radius, centered on the cube itself, no X/Y). A bare `Visual: Infinite` line directly after a `Target`/`Arrow` line extends that marker's ray to unlimited range (used for "any distance" abilities) instead of one fixed tile.
+- **Shape** picks the icon and argument count: `Square`/`Target`/`Plus`/`Mist` take exactly `X Y R G B` (5 args); `Sword`/`Arrow` take a 6th trailing number (reach/size, not fully decoded — copy an existing value like `1` or `2`). `Area N Mist R G B` is a different overload for radius-based AoE (N = radius, centered on the cube itself, no X/Y). A bare `Visual: Infinite` line directly after a `Target`/`Arrow` line extends that marker's ray to unlimited range (used for "any distance" abilities) instead of one fixed tile — 12 base-game usages, all on abilities whose own `Text:` says "any distance" or "in the row infront" (`Subtractor`, `Sky_Hungerer`, `Wood_Field_Projector`). That's why it's the correct rendering for a "top of this column" spawn.
 - **"Touching" means the 4 orthogonal neighbors, not diagonals** — confirmed by a cube whose own tooltip says "all 4 touching positions" while its `Ability:` explicitly checks North/South/East/West only. For an ability using `EveryCubeTouchingPosition`, that's 4 markers: `1 0` / `-1 0` / `0 1` / `0 -1`.
 
 ## `CubeColourShift:` — tinting a cube's sprite via a granted ability (undocumented)

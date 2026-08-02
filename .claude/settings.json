@@ -65,6 +65,13 @@
           {
             "type": "command",
             "shell": "bash",
+            "command": "bash .claude/hooks/check-visual-coverage.sh",
+            "timeout": 15,
+            "statusMessage": "Checking Visual: placement-preview coverage for positional cubes..."
+          },
+          {
+            "type": "command",
+            "shell": "bash",
             "command": "bash .claude/hooks/check-workflow-overview.sh",
             "timeout": 15,
             "statusMessage": "Checking WORKFLOW_OVERVIEW.md freshness against the orchestrator..."

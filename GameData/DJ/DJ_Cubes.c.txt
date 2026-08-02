@@ -91,6 +91,7 @@ Text: Every 10 seconds create a Note above this End
 Ability: GrowthX 5
 Ability: RegenerationX 2
 Ability: WorthXMore 25
+Visual: Target 0 -1 96 96 96
 AiPlacementRule: And AiStacking AiBackline
 End
 
@@ -103,5 +104,9 @@ Text: Every 15 seconds teleport to the top of the column above a random enemy En
 Ability: Flying
 Ability: GrowthX 2
 Ability: EveryXMeleeY 120 4
+Visual: Target 0 -1 96 96 96
+Visual: Target 0 1 96 96 96
+Visual: Target 1 0 96 96 96
+Visual: Target -1 0 96 96 96
 AiPlacementRule: And AiStacking AiBackline
 End

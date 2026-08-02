@@ -17,6 +17,7 @@ Ability: AfterThisIsCreated SetStorage CubeInDirectionFromCube South Caster
     TargetCube Storage GainAbilityStacking Gamble 0 ManaCostOfCube Storage
     ChangeCurrency Minus ManaCostOfCube Storage
 Text: After this is created, if the cube below isn't a leader, lose gold equal to its mana cost and give it Gamble equal to its mana cost End
+Visual: Target 0 1 155 238 255
 AiPlacementRule: AiStacking
 End
 
@@ -30,6 +31,7 @@ Ability: EveryXMinutes DoubleConstant 2 ChangeCurrency
 Text: Every 2 minutes, gain 1 gold for each other Skyscraper below this one in the same column End
 Ability: AfterThisDies TargetCube CubeInDirectionFromCube South Caster TakeXDamage DoubleConstant 1
 Text: After this dies, deal 1 damage to the cube below End
+Visual: Target 0 1 255 0 0
 AiPlacementRule: AiStacking
 End
 
@@ -43,5 +45,7 @@ Ability: EveryXMinutes DoubleConstant 2 SetStorage
    CreateCubeOnPosition CubeConstant Skyscraper PositionInDirectionFromPosition North PositionOfCube Storage
    CreateCubeOnPosition CubeConstant Skyscraper PositionInDirectionFromPosition North PositionOfThis
 Text: Every 2 minutes, create a Skyscraper directly above the top of this stack End
+Visual: Target 0 -1 96 96 96
+Visual: Infinite
 AiPlacementRule: AiStacking
 End
