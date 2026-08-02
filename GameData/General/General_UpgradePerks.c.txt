@@ -71,11 +71,32 @@ Description: After an ally kills an enemy, it gains \A StrengthX 2 End
 IsUpgradeFrom: Experienced_Fighter 60
 End
 
-PERK: Splendid_Logistics
-Ability: AtTheStartOfTheBattle EveryCubeInHandOfFactionWhich FactionOfThis True
- ChangeManaCost Division Multiplication ManaCostOfCube Target DoubleConstant -15 DoubleConstant 100
-Description: At the start of each battle, your cubes cost 15% less mana End
-IsUpgradeFrom: Wartime_Logistics 60
+PERK: Iron_Dome
+Ability: AfterACubeMoves If IsEnemyToCaster Victim
+ If And IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+  Not IsEqual PlacabilityOfPosition OriginalPosition FactionOfCube Caster
+   Cooldown 60
+   Both
+    IfElse IsEqual PlacabilityOfPosition PositionFromXAndY DoubleConstant 0 DoubleConstant 0 FactionOfCube Caster
+     TargetCube Caster SetVariable IDOMEEDGEX DoubleConstant 0
+     TargetCube Caster SetVariable IDOMEEDGEX MaxWorldX
+    IfElse IsPositionEmpty PositionFromXAndY GetVariableOnCube IDOMEEDGEX Caster YOfPosition PositionOfCube Victim
+     CreateCubeOnPosition CubeConstant Bomb PositionFromXAndY GetVariableOnCube IDOMEEDGEX Caster YOfPosition PositionOfCube Victim
+     CreateCubeOnPosition CubeConstant Bomb PositionInDirectionFromPosition Forwards PositionOfCube TheFirstCubeInDirectionFromPositionWhich Forwards
+      PositionFromXAndY GetVariableOnCube IDOMEEDGEX Caster YOfPosition PositionOfCube Victim Not CubeExists CubeInDirectionFromCube Forwards Test
+ExtraTrigger: AfterACubeIsCreated If IsEnemyToCaster Victim
+ If IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+  Cooldown 60
+  Both
+   IfElse IsEqual PlacabilityOfPosition PositionFromXAndY DoubleConstant 0 DoubleConstant 0 FactionOfCube Caster
+    TargetCube Caster SetVariable IDOMEEDGEX DoubleConstant 0
+    TargetCube Caster SetVariable IDOMEEDGEX MaxWorldX
+   IfElse IsPositionEmpty PositionFromXAndY GetVariableOnCube IDOMEEDGEX Caster YOfPosition PositionOfCube Victim
+    CreateCubeOnPosition CubeConstant Bomb PositionFromXAndY GetVariableOnCube IDOMEEDGEX Caster YOfPosition PositionOfCube Victim
+    CreateCubeOnPosition CubeConstant Bomb PositionInDirectionFromPosition Forwards PositionOfCube TheFirstCubeInDirectionFromPositionWhich Forwards
+     PositionFromXAndY GetVariableOnCube IDOMEEDGEX Caster YOfPosition PositionOfCube Victim Not CubeExists CubeInDirectionFromCube Forwards Test
+Description: After an enemy enters your territory or is created within it, create a Bomb at your edge of the battlefield in that same row, cooldown 1 second End
+IsUpgradeFrom: Territory_Defence 60
 End
 
 PERK: Blinding_Faith

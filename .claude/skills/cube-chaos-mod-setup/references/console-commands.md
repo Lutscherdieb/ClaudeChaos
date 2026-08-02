@@ -50,11 +50,14 @@ Both AddCubeToInventory CubeConstant Your_New_Cube AddCubeToDeck CubeConstant Yo
 
 `CubeConstant`/`PerkConstant` resolve by the same name-lookup as everywhere else in the DSL — a cube/perk defined in
 the mod currently being worked on (once it's loaded and parses cleanly) is addressable exactly the same as a
-base-game one. **This is a lighter-weight alternative to the existing "grant a new cube as a starter cube to make it
-findable" test convention** ([[feedback-test-new-cubes-as-starters-first]]) — instead of temporarily editing a
-class's `ObtainAction:` to include the new cube, bind the console once and `AddCubeToInventory`/`AddCubeToDeck` it
-straight into the current run. Both are valid; console is faster for one-off checks mid-session, the starter-grant
-is still right for "does this show up through the normal acquisition flow" testing.
+base-game one. **This has fully REPLACED the old "temporarily grant a new cube as a starter to make it findable"
+test convention (retired 2026-08-02 by the user: "we do not need this rule anymore as the console adding is a
+better approach").** Never edit a class/species perk's `ObtainAction:` just to make new content testable — bind the
+console once and `AddCubeToInventory`/`AddCubeToDeck` it straight into the *current* run instead. The console wins
+on every axis: zero files touched, nothing to revert, and it works mid-run and mid-battle whereas a starter grant
+only takes effect in a brand-new run. `TYPE Starter` + a class-perk `ObtainAction:` now exclusively mean "a
+deliberate, permanent starting cube," never test scaffolding — see `cube-chaos-orchestrator`'s `content-cube.md`
+for the full comparison and the rule that replaced it.
 
 Full `Action:`/`BOOLEAN:` grammar (all argument types, every built-in) is in `ModdingInfo.txt` from the `Action:`
 header (~line 253) onward.

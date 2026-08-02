@@ -43,6 +43,48 @@ Not IsEqual PlacabilityOfPosition <POSITION> FactionOfCube <reference-cube>
 ```
 `PlacabilityOfPosition POSITION` (a `DOUBLE`) returns which faction is allowed to *place* a cube at that position — i.e. whose home half of the board it is, independent of who currently occupies it. Compare that against the *reference* cube's own faction (usually `Caster`/`Victim`, whichever cube's perspective "enemy territory" is relative to): if they differ, the position belongs to the other side. Real precedent uses the *observer's* faction (`FactionOfCube Caster`) as the reference even when checking an enemy `Victim`, since `Caster` reliably represents "the player who owns this perk" regardless of which side `Victim` is on. For a `CUBE:`'s own self-check (not perk-level), use `FactionOfThis` in place of `FactionOfCube Caster`.
 
+### Finding *my own* edge column (x=0 vs. x=MaxWorldX) without hardcoding a side
+
+A cube that fires from, spawns at, or measures against "my own edge of the battlefield" must not assume
+which absolute column that is — `0` is the player's edge in a normal battle and the *enemy's* edge for an
+AI-owned copy of the same cube. Derive it by testing which of the two extremes is placable by the acting
+cube's own faction, then reuse the result:
+```
+IfElse IsEqual PlacabilityOfPosition PositionFromXAndY DoubleConstant 0 DoubleConstant 0 FactionOfThis
+ TargetCube Caster SetVariable <EDGEVAR> DoubleConstant 0
+ TargetCube Caster SetVariable <EDGEVAR> MaxWorldX
+```
+Then build positions with `PositionFromXAndY GetVariableOnCube <EDGEVAR> Caster <someY>`. Note the write is
+wrapped in `TargetCube Caster` to match the read's `GetVariableOnCube ... Caster` — every real counter/
+accumulator in this repo does this (`Annex`/`Retreat` in the same file, the General class perk in
+`General_Perks.c.txt:17-53`), and a bare `SetVariable` paired with a `Caster`-scoped read is a
+write-here-read-there silent failure. Iron_Dome shipped with exactly that mismatch for one revision before
+a doc-audit caught it (2026-08-02) — see `references/gotchas-grepped.md`'s stable-anchor-cube note.
+
+**Row `0` is a probe row, and that is a real assumption worth stating, not a free choice.** Placability is
+genuinely per-*tile*, not per-column: the base game writes single tiles in several places
+(`Characters/2TokenCubes.c.txt:254` `Incursion` claims the one tile in front; `:286` `Invasive_Dragon`
+claims the tile it lands on; `Characters/Synergies.c.txt:33-36` `Rogue-Dwarf` claims its Stone's 4
+orthogonal neighbours). Column-uniform placability is just the *usual* state in a normal battle, not an
+invariant. So the `y=0` probe can be wrong if something has flipped tile `(0,0)` specifically — an enemy
+`Incursion` or a `Rogue-Dwarf` Stone at the board's corner would make the probe pick the wrong edge. Rare
+enough to accept for a cube like `Iron_Dome`, but reach for a multi-row probe (or a real column scan, see
+"Scanning/acting on your WHOLE territory" below) if the effect must not misfire in those cases.
+
+Real usage: the General mod's `Iron_Dome` (`GameData/General/General_Cubes.c.txt`, 2026-08-02) — spawns a
+`Shell` at its owner's own edge in the row of whichever enemy just crossed into its territory, so a
+player-owned and an AI-owned Iron Dome each defend their own half with the identical ability and no
+special-casing. **PARSE-confirmed + clean-log launch; the actual in-battle behavior is UNVERIFIED** (no
+playtest of a real crossing yet as of 2026-08-02). Pair it with the territory-crossing detection idiom it
+introduces: `AfterACubeMoves` + `PlacabilityOfPosition (PositionOfCube Victim)` is mine **and**
+`PlacabilityOfPosition OriginalPosition` is not — comparing the destination against `OriginalPosition`
+(`ModdingInfo.txt:710`) is what makes it fire once on the crossing rather than every tick the enemy spends
+inside. This crossing idiom has no prior precedent in this repo; `Iron_Dome` is the first instance.
+
+This is the whole-board-orientation case of the same rule as the `East`/`West` section below — see
+`CLAUDE.md`'s faction-symmetry rule, which makes both the non-negotiable default rather than a
+per-cube decision, and `cube-chaos-audit`'s checklist, which tests for both.
+
 For "is there an enemy *anywhere* in this direction, not just adjacent" (as opposed to `CubeInDirectionFromCube`, which only reads the immediately-touching tile), use the skip-searching `TheFirstCubeInDirectionFromPositionWhich DIRECTION POSITION BOOLEAN` — it scans outward past non-matching cubes and returns the nearest one that satisfies the predicate (`Test` inside the `BOOLEAN`, same binding convention as other `...Which` searches), e.g. `TheFirstCubeInDirectionFromPositionWhich South PositionOfThis IsEnemyToCaster Test`. Guard the result with `CubeExists` before using it, same as any other cube search that can come up empty.
 
 **The `FactionOfCube Caster` territory idiom above is confirmed reliable inside a `CUBE:`'s own trigger and a `PERK:`'s event-reactive `Ability:` — but do NOT assume it "just works" the same way inside a `WorldAbility:` block without a specific reason to.** See `references/gotchas-grepped.md`'s `WorldAbility:`-vs-`Ability:` entry for the full incident: a `WorldAbility: AtTheStartOfTheBattle` computing territory boundaries via `FactionOfCube Caster` parsed clean but silently did nothing in real play, while the identical token sequence under plain `Ability: AtTheStartOfTheBattle` worked immediately. For a class/species perk's own self-directed per-battle territory logic, reach for `Ability:`, not `WorldAbility:`.
@@ -107,6 +149,8 @@ Ability: BeforeThisDies Both EveryCubeInRadiusXAroundTarget DoubleConstant 2 Tak
 This is not a rare mistake — a real audit of both mods in this repo (grep `\bEast\b|\bWest\b` across every `.c.txt`, excluding cube-name identifiers like `Bomber_West`) turned up 4 real instances, caught only when a user actually placed the affected cube as the opponent and watched it fire the wrong way: General's `Bunker` and `Artillery` (both hardcoded `East` for where they spawn/fire), and DJ's `Speaker` cube and `DJ-Dwarf` synergy perk (both hardcoded `East` for where they spawn a Note). All four were simple find-and-replace fixes to `Forwards`, confirmed safe via real base-game precedent for `Forwards` used inside a `PERK:`'s own `Ability:` chain too, not just a `CUBE:`'s self-trigger (`Main/Perks.c.txt`'s `Lashing_Out`: `TargetCube CubeInDirectionFromCube Forwards Caster TakeXDamage DoubleConstant 1`, and `Protectors_Shield`: `CubeInDirectionFromCube Forwards Victim`) — `Forwards` resolves relative to `Caster` (the perk-owning player) regardless of which cube in the chain (`Victim`/`Test`/etc.) it's being measured from.
 
 **Whenever writing a new cube/perk that creates or targets something to one side, default to `Forwards`/`Backwards` and only reach for a literal `East`/`West` if there's a genuine reason the effect must be map-absolute** (rare — no real example of this need was found anywhere in either mod). When reviewing/debugging an existing sideways effect that seems to misbehave only for one player, grep for `East`/`West` in that ability chain before looking anywhere else.
+
+**This is one of two halves of the same faction-symmetry rule — the one-step-sideways half.** The whole-board half (which absolute column is *my* edge, which side of the board is *my* territory) is "Finding my own edge column" and "Enemy/allied territory" above. A cube can be perfectly `Forwards`-correct and still fire at the wrong end of the map, so check both. `CLAUDE.md`'s faction-symmetry rule makes both the non-negotiable default rather than a per-cube judgment call, and `cube-chaos-audit`'s checklist has a Universal-scope row for each.
 
 ## Simple forward-patrol with no directional sprite: use the built-in `RoamingX`, don't reach for the Charge/Flee-swap pattern below
 

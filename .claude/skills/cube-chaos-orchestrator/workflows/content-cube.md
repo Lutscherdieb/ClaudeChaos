@@ -18,18 +18,31 @@ Before writing any file, run the orchestrator's **Step C preview-and-approve gat
 3. **`cube-chaos-sprite-art`** — CUBE icons are 17×17, no border convention (that's a PERK-only thing). Figure out the correct grid slot (icons crop in `CUBE:` block order, top-to-bottom, row-major) and whether the sheet needs resizing to fit a new slot — if so, follow the "editing a single tile" scoping discipline: relocate existing tiles' exact pixels, don't redraw them, when the grid dimension changes.
 4. **Test-launch** — `cube-chaos-mod-setup`'s loop. Check for `ABILITY WITHOUT TEXT`, `CANT READ`, `excess End` specifically — these are the errors a miscounted `Ability:` argument produces, and per `cube-chaos-scripting`'s debugging checklist the real mistake is often upstream of where the error is reported.
 
-## After test-launch passes clean: proactively offer the console-command shortcut
+## After every test-launch you leave running: print the console command (mandatory, not optional)
 
-**Immediately after step 4's `Log.txt` check comes back clean, print a ready-to-paste console command for the cube just built** — e.g. `AddCubeToInventory CubeConstant <Name>` (or `Both AddCubeToInventory CubeConstant <Name> AddCubeToDeck CubeConstant <Name>` to get it into both inventory and the bonus deck at once) — and mention it's usable once a key is bound to `CONSOLE` in Options → Rebind Keys (one-time setup, if not already done). See `cube-chaos-mod-setup/references/console-commands.md` for the full grammar. This is unprompted — offer it every time, don't wait for the user to ask — since it's the fastest way to get a brand-new `IDENT` cube in hand for a manual playtest without any additional file edit.
+**Every time you leave the game running for the user to test, print a ready-to-paste console command for each cube added or changed in this session** — including on a *re-launch* after a fix, not just the first launch of the session:
 
-## Default: make a new obtainable cube testable-first (grant it as a starter during development)
+```
+Both AddCubeToInventory CubeConstant <Name> AddCubeToDeck CubeConstant <Name>
+```
 
-**For a new `IDENT` cube in a mod that has its own class/species, default to temporarily granting it as a starting cube of that class/species while it's being built and tuned**, then narrow it to obtainable-only once the user is satisfied. A freshly-added `IDENT` cube is effectively unfindable in play — it competes against the entire global drop pool, so the user can iterate for a long time without ever seeing it. Granting it as a starter guarantees it's in hand every run, immediately. **This is still the right call for testing the real acquisition/drop flow** (does it show up at the right rarity, does `AiPlacementRule:` behave under real AI play) — the console command above is for a quick one-off look at the cube itself, this is for testing it in context.
+(or just `AddCubeToInventory CubeConstant <Name>` for inventory only). It works mid-run and mid-battle — it only needs an active campaign — so the user never has to start a fresh run to see new content. Mention the one-time `CONSOLE` key binding (Options → Rebind Keys) if it may not be set up yet. Full grammar: `cube-chaos-mod-setup/references/console-commands.md`.
 
-- **How:** add `ObtainAction: AddCubeToInventory CubeConstant <Name>` to the mod's class/species base perk (the `BelongsTo: CLASS`/`BelongsTo: SPECIES` perk), and give the cube a `TYPE Starter` line (inventory-sorting only, matches the base-game starter convention). The cube keeps its `IDENT` — it's *both* a starter and obtainable during this phase.
-- **The revert is trivial and that's the whole point:** converting to obtainable-only later is just deleting those `ObtainAction:` lines (and the `TYPE Starter`). So bias toward starter-first every time — the cost of "too accessible while testing" is one throwaway line per cube, whereas the cost of "can't find it to test" is unbounded iteration time.
-- **When the user is satisfied, ask** whether to (a) keep it as a permanent starter, or (b) narrow to obtainable-only — don't silently strip it. Note the base-game convention is exactly **2** starters per class/species (see `cube-chaos-scripting`'s starting-cube baseline); a mod that keeps many starters sits above that power/variety baseline, which is a legitimate choice but worth surfacing.
-- **Doesn't apply** if the mod has no class/species of its own to hang starters on (a pure cube-pool mod) — there's nothing to attach an `ObtainAction:` to. Fall back to the user testing via drops, or temporarily bumping rarity, in that case.
+**Repeat it on every re-launch.** Real failure, 2026-08-02: the command was printed once, then two more launches followed (after a sprite-slot fix and a `SetVariable` fix) without repeating it, and the user had to ask. Printing it once per session is not the rule; printing it once per left-running launch is.
+
+## Do NOT grant a new cube as a temporary starter for testing — use the console command instead
+
+**Retired 2026-08-02 on the user's explicit call** ("we do not need this rule anymore as the console adding is a better approach"). An earlier version of this workflow told you to temporarily add `ObtainAction: AddCubeToInventory ...` to the mod's class/species perk plus a `TYPE Starter` line, then strip them later. **Don't do that anymore.** The console command above achieves the same thing strictly better:
+
+| | Temporary starter grant | Console command |
+|---|---|---|
+| Files touched | 2 (perk + cube), both needing a later revert | 0 |
+| Works mid-run | No — a starter only appears in a **new** run | Yes, mid-battle too |
+| Risk if the revert is forgotten | Ships a cube as a permanent starter by accident | None |
+
+So: a new `IDENT` cube gets its real `IDENT`/rarity from the start and stays obtainable-only. **`TYPE Starter` and a class-perk `ObtainAction:` now mean only one thing — "this is a deliberate, permanent starting cube of this class/species"** — never test scaffolding. If a cube genuinely should be a permanent starter, that's a design decision to raise with the user (note the base-game baseline is exactly **2** per class/species, see `cube-chaos-scripting`'s starting-cube baseline), not a testing convenience.
+
+Testing the *real* acquisition flow (does it drop at the right rarity, does `AiPlacementRule:` behave under AI play) still needs real runs — but that was never something a starter grant tested either, since a granted starter bypasses the drop pool entirely.
 
 ## If this is an edit, not a fresh cube
 

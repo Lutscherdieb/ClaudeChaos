@@ -46,8 +46,8 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 <img src="Preview/General_Perks_Thirst_for_Blood.png" width="700" alt="Thirst for Blood perk card">
 <img src="Preview/General_Perks_Experienced_Fighter.png" width="700" alt="Experienced Fighter perk card">
 <img src="Preview/General_Perks_Heroic_Warrior.gif" width="700" alt="Heroic Warrior perk card (upgrade of Experienced Fighter)">
-<img src="Preview/General_Perks_Wartime_Logistics.png" width="700" alt="Wartime Logistics perk card">
-<img src="Preview/General_Perks_Splendid_Logistics.gif" width="700" alt="Splendid Logistics perk card (upgrade of Wartime Logistics)">
+<img src="Preview/General_Perks_Territory_Defence.png" width="700" alt="Territory Defence perk card">
+<img src="Preview/General_Perks_Iron_Dome.gif" width="700" alt="Iron Dome perk card (upgrade of Territory Defence)">
 <img src="Preview/General_Perks_Believer.png" width="700" alt="Believer perk card">
 <img src="Preview/General_Perks_Blinding_Faith.gif" width="700" alt="Blinding Faith perk card (upgrade of Believer)">
 <img src="Preview/General_Perks_War_Dragon_Egg.png" width="700" alt="War Dragon Egg perk card">

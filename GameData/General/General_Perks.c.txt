@@ -119,14 +119,21 @@ Ability: AfterACubeDies If IsAllyToCaster Culprit If Not IsALeader Culprit If Is
 Description: After a non leader ally kills an enemy, it gains \A StrengthX 1 End
 End
 
-PERK: Wartime_Logistics
+PERK: Territory_Defence
 BelongsTo: General
-Ability: AtTheStartOfTheBattle EveryCubeInHandOfFactionWhich FactionOfThis True
- If IsLarger ManaCostOfCube Target DoubleConstant 10
-  IfElse IsLarger ManaCostOfCube Target DoubleConstant 11
-   ChangeManaCost Division ManaCostOfCube Target DoubleConstant -10
-   ChangeManaCost Subtraction DoubleConstant 10 ManaCostOfCube Target
-Description: At the start of each battle, your cubes cost 10% less mana, down to a minimum of 10 End
+Ability: AfterACubeMoves If IsEnemyToCaster Victim
+ If And IsEqual PlacabilityOfPosition PositionOfCube Victim FactionOfCube Caster
+  Not IsEqual PlacabilityOfPosition OriginalPosition FactionOfCube Caster
+   Cooldown 300
+   Both
+    IfElse IsEqual PlacabilityOfPosition PositionFromXAndY DoubleConstant 0 DoubleConstant 0 FactionOfCube Caster
+     TargetCube Caster SetVariable TDEFEDGEX DoubleConstant 0
+     TargetCube Caster SetVariable TDEFEDGEX MaxWorldX
+    IfElse IsPositionEmpty PositionFromXAndY GetVariableOnCube TDEFEDGEX Caster YOfPosition PositionOfCube Victim
+     CreateCubeOnPosition CubeConstant Shell PositionFromXAndY GetVariableOnCube TDEFEDGEX Caster YOfPosition PositionOfCube Victim
+     CreateCubeOnPosition CubeConstant Shell PositionInDirectionFromPosition Forwards PositionOfCube TheFirstCubeInDirectionFromPositionWhich Forwards
+      PositionFromXAndY GetVariableOnCube TDEFEDGEX Caster YOfPosition PositionOfCube Victim Not CubeExists CubeInDirectionFromCube Forwards Test
+Description: After an enemy enters your territory, create a Shell at your edge of the battlefield in that same row, cooldown 5 seconds End
 End
 
 PERK: Believer

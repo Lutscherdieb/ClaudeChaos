@@ -336,12 +336,39 @@ def collect_ability_texts(lines, ability_docs):
         i += 1
     return entries
 
-# Grid columns are derived from the actual tile count (ceil(sqrt(n)), matching
-# the game's own square-sheet convention -- see SKILL.md) rather than
-# hardcoded per category, so this script works unmodified for any mod's own
-# tile counts, not just DJ's.
+# ceil(sqrt(n)) -- ONLY a fallback for when no real sheet is loaded yet
+# (e.g. scaffolding a brand-new mod file before its .c.png exists). Do NOT
+# use this as the primary column source for an existing sheet -- see
+# real_cols() below, which is what every real call site should use.
 def grid_cols(n):
     return max(1, math.ceil(math.sqrt(n)))
+
+
+def real_cols(sheet, tile, n):
+    """The actual column count of a loaded sheet, read from its real pixel
+    width -- NOT grid_cols(n). This script generates new mod sheets as a
+    square ceil(sqrt(n)) grid, but that's only true at the moment of
+    generation: the instant a mod's block count crosses a perfect-square
+    boundary (25 -> 26, 16 -> 17, ...) without the .c.png being resized to
+    match, grid_cols(n) silently disagrees with the real, unresized sheet
+    and crops every icon from the wrong offset -- not just the new one,
+    since a wrong column count misaligns row/col math for the WHOLE sheet.
+    Real incident: General's Iron_Dome (the 26th CUBE: block, added without
+    resizing General_Cubes.c.png past its real 5-wide/25-slot sheet) made
+    grid_cols(26)=6 while the sheet was still really 5 columns wide,
+    shifting nearly every General cube's preview card (2026-08-02). This
+    mirrors the exact reasoning base_game_cube_icon_index() already uses
+    for base-game sheets (see its own comment) -- mod-generated sheets get
+    no special exemption from the same failure mode once they're hand-
+    edited instead of freshly regenerated. Falls back to grid_cols(n) only
+    if the sheet is missing or its width isn't a clean multiple of tile.
+
+    (Sheet *generation* as a square ceil(sqrt(n)) grid is a repo convention
+    carried out by ad-hoc scratchpad scripts -- this script only ever reads
+    sheets, never writes one, so grid_cols() is a pure fallback here.)"""
+    if sheet is not None and tile > 0 and sheet.width % tile == 0 and sheet.width // tile > 0:
+        return sheet.width // tile
+    return grid_cols(n)
 
 BG = (0, 0, 0)
 WHITE = (255, 255, 255)
@@ -1017,7 +1044,7 @@ def pretty(name):
 def build_curses():
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Curses.c.txt"), PERK_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Curses.c.png")
-    cols = grid_cols(len(blocks))
+    cols = real_cols(sheet, TILE_PERK, len(blocks))
     cards = []
     for i, b in enumerate(blocks):
         name = b["header"].group(1)
@@ -1033,7 +1060,7 @@ def build_curses():
 def build_consumables():
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Consumables.c.txt"), PERK_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Consumables.c.png")
-    cols = grid_cols(len(blocks))
+    cols = real_cols(sheet, TILE_PERK, len(blocks))
     cards = []
     for i, b in enumerate(blocks):
         name = b["header"].group(1)
@@ -1053,7 +1080,7 @@ def build_neutral():
     cube-chaos-sprite-art's border pattern library)."""
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Neutral.c.txt"), PERK_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Neutral.c.png")
-    cols = grid_cols(len(blocks))
+    cols = real_cols(sheet, TILE_PERK, len(blocks))
     cards = []
     for i, b in enumerate(blocks):
         name = b["header"].group(1)
@@ -1081,7 +1108,7 @@ def build_cubeupgrades():
     rendering the literal token text."""
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_CubeUpgrades.c.txt"), PERK_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_CubeUpgrades.c.png")
-    cols = grid_cols(len(blocks))
+    cols = real_cols(sheet, TILE_PERK, len(blocks))
     cards = []
     for i, b in enumerate(blocks):
         name = b["header"].group(1)
@@ -1109,7 +1136,7 @@ def build_terrain_perks():
     Cubes row means -- showing them read as misleading in this category."""
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_TerrainPerks.c.txt"), PERK_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_TerrainPerks.c.png")
-    cols = grid_cols(len(blocks))
+    cols = real_cols(sheet, TILE_PERK, len(blocks))
     cards = []
     for i, b in enumerate(blocks):
         name = b["header"].group(1)
@@ -1123,7 +1150,7 @@ def build_terrain_perks():
 def build_synergies():
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Synergies.c.txt"), PERK_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Synergies.c.png")
-    cols = grid_cols(len(blocks))
+    cols = real_cols(sheet, TILE_PERK, len(blocks))
     cards = []
     for i, b in enumerate(blocks):
         name = b["header"].group(1)
@@ -1169,7 +1196,7 @@ def build_perks():
     for basename in basenames:
         blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_{basename}.c.txt"), PERK_HEADER)
         sheet = load_sheet(f"{MOD_PREFIX}_{basename}.c.png")
-        cols = grid_cols(len(blocks))
+        cols = real_cols(sheet, TILE_PERK, len(blocks))
         sources[basename] = {"blocks": blocks, "sheet": sheet, "cols": cols}
         for i, b in enumerate(blocks):
             name_to_slot[b["header"].group(1)] = (basename, i)
@@ -1335,7 +1362,7 @@ def find_class_species(mod_dir, mod_prefix):
             continue
         name = b["header"].group(1)
         sheet = load_sheet(f"{mod_prefix}_{basename}.c.png")
-        cols = grid_cols(len(blocks))
+        cols = real_cols(sheet, TILE_PERK, len(blocks))
         tile = crop_icon(sheet, 0, TILE_PERK, cols, strip_guide=True)
         color = sample_dominant_color(tile)
         return {"name": name, "color": color, "icon": upscale(tile, 2)}
@@ -1356,7 +1383,7 @@ def build_cube_icon_index(mod_dir, mod_prefix):
         return {}
     blocks = parse_blocks(path, CUBE_HEADER)
     sheet = load_sheet(f"{mod_prefix}_Cubes.c.png")
-    cols = grid_cols(len(blocks))
+    cols = real_cols(sheet, TILE_CUBE, len(blocks))
     return {b["header"].group(1): upscale(crop_icon(sheet, i, TILE_CUBE, cols, strip_guide=True), 4)
             for i, b in enumerate(blocks)}
 
@@ -1400,17 +1427,18 @@ def base_game_cube_icon_index():
             continue
         blocks = parse_blocks(txt_path, CUBE_HEADER)
         sheet = Image.open(png_path).convert("RGB")
-        # cols MUST come from the sheet's own real width, not
-        # grid_cols(len(blocks)) -- unlike every mod file in this repo (which
-        # this script itself generated as a square ceil(sqrt(n)) grid), the
-        # base game's own sheets are NOT reliably square (see this skill's
-        # own "sheet does NOT need to be square" correction). Confirmed by
-        # measuring all 7 files here: 6 of 7 have real_cols != ceil(sqrt(n))
-        # (e.g. Extra_Mechanics/TokenCubes.c.png is a real 10-wide sheet for
-        # 78 cubes, not the 9-wide square grid_cols() assumed) -- using the
-        # wrong column count silently landed on a neighboring cube's tile
-        # instead (caught: Zombie showed a different cube's art entirely).
-        cols = sheet.width // TILE_CUBE
+        # cols MUST come from the sheet's own real width, not grid_cols(len
+        # (blocks)) -- the base game's own sheets are NOT reliably square
+        # (see this skill's own "sheet does NOT need to be square"
+        # correction). Confirmed by measuring all 7 files here: 6 of 7 have
+        # real_cols != ceil(sqrt(n)) (e.g. Extra_Mechanics/TokenCubes.c.png
+        # is a real 10-wide sheet for 78 cubes, not the 9-wide square
+        # grid_cols() assumed) -- using the wrong column count silently
+        # landed on a neighboring cube's tile instead (caught: Zombie showed
+        # a different cube's art entirely). This is not a base-game-only
+        # concern -- every other call site in this script now goes through
+        # real_cols() too, for the identical reason (see its own docstring).
+        cols = real_cols(sheet, TILE_CUBE, len(blocks))
         for i, b in enumerate(blocks):
             name = b["header"].group(1)
             if name not in index:  # first package wins on a same-name collision
@@ -1487,7 +1515,7 @@ def referenced_cubes_for(lines, self_name):
 def build_cubes():
     blocks = parse_blocks(os.path.join(MOD_DIR, f"{MOD_PREFIX}_Cubes.c.txt"), CUBE_HEADER)
     sheet = load_sheet(f"{MOD_PREFIX}_Cubes.c.png")
-    cols = grid_cols(len(blocks))
+    cols = real_cols(sheet, TILE_CUBE, len(blocks))
     # A bare top-level `Ability: SomeCompound args` line can grant this mod's
     # own COMPOUND: ABILITY keyword directly (its own Text: acts as the
     # tooltip, same convention as a bare built-in grant -- see e.g.

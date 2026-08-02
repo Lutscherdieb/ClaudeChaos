@@ -24,7 +24,50 @@ Sheet dimensions = `tile_size * columns` wide by `tile_size * rows` tall. Icons 
 
 **The sheet does NOT need to be square — a `ceil(sqrt(count))` square grid is one valid layout, not a requirement.** Corrected 2026-07-29 (`cube-chaos-audit` pass over the Steam Workshop "Dinosaurs!" mod, a well-regarded third-party mod): several of its real, apparently-functional sheets are single-row strips, not square grids — `PerkUpgrades.c.png` (297×27 = 11 columns × 1 row, exactly matching its 11 `IsUpgradeFrom:` perks with zero headroom) and `TokenCubes.c.png` (255×17 = 15×1 for 10 real `TOKEN` cubes). The user independently confirmed seeing single-row strips used this way elsewhere (e.g. one mod's worth of animation frames for a single cube). Row-major slicing only needs a *consistent column count*, which a single row trivially satisfies — square is just the shape you get if you compute `grid_dim = ceil(sqrt(n))` and use it for both axes, not something the engine checks for. Pick whatever rectangle is convenient to author (a square grid, a single row matching file order 1:1, or anything between) — just get the column count right and keep block file-order matching slot order (see the mid-file-insertion warning below, which is unaffected by this correction).
 
-**Adding a new `CUBE:`/`PERK:` block anywhere except the end of the file shifts every later block's slot — even when the grid doesn't need to resize.** Slot assignment is pure file order, so inserting a new block between two existing ones (e.g. "put the new cube right after its thematic sibling" — a reasonable-looking place to put it in the `.txt`) pushes every subsequent block's slot index up by one, while their actual pixel tiles stay exactly where they were. The result isn't a load error — it's every displaced cube/perk silently showing the *previous* one's old art, one slot down the chain, with the last real slot now empty and whatever was drawn into the (assumed-last) new slot showing up on the wrong entry instead. Real incident, this mod (2026-07-25): a new `Hellstorm` `CUBE:` was inserted right after its thematic sibling `Brimstone` (not at the file's end) in `Unholy_Cubes.c.txt`, while its icon was drawn assuming it would be the *last* block (i.e. the last free grid cell) — caught by the user in actual play ("Plague Ritual has the dragon egg image"), confirmed via the preview cards showing `Hellstorm`'s card with `Plague_Ritual`'s real green pentagram and `Blood_Totem`'s card with the freshly-drawn meteor icon. **Recurred a second time, 2026-07-27** — General's `Claim`/`Retreat` `CUBE:` blocks were inserted right before their thematic neighbor `Bomber` in `General_Cubes.c.txt` (done via the `cube-chaos-scripting` skill alone, sprite-art never consulted since the task was framed as pure DSL work), shifting every cube after them by 2 and making `Retreat` display `Bomb`'s art — same failure shape, different session. This is exactly why the "append at the end, always" rule now also lives in `cube-chaos-scripting`'s own "Block formats" section, not just here — the mistake happens at CUBE:/PERK: authoring time, which doesn't always route through this skill. **Fix used: relocate the new block's *text* to the end of the file** (matching the slot its art was already drawn into) rather than relocating five tiles' worth of pixels — cheaper and lower-risk whenever the new content was drawn assuming an append-at-the-end slot. The general rule: **a new `CUBE:`/`PERK:` block's file position must match the grid slot its art is drawn into, always** — either append the block at the end (simplest, matches "next free slot" every time) or, if it must go elsewhere for readability, work out its real resulting slot index first and draw/relocate pixels for every block that shares or comes after that slot.
+**Corollary for any tool that reads a sheet: derive the column count from the sheet's real pixel width (`sheet.width // tile_size`), never from `ceil(sqrt(block_count))`.** Because the sheet doesn't have to be square, and because a hand-edited sheet can lag behind its `.c.txt`'s block count, those two numbers silently disagree the moment a mod's block count crosses a perfect-square boundary without the `.c.png` being resized to match — and a wrong column count misaligns row/col math for the **whole** sheet, not just the newly added slot. Real incident, 2026-08-02: General's 26th cube (`Iron_Dome`) made `ceil(sqrt(26))=6` while `General_Cubes.c.png` was still a real 5-wide/25-slot sheet, shifting nearly every General cube's preview card at once (caught by the user on sight — "a lot if not all general preview cube images got shifted"). `render_preview_cards.py` now routes every `cols` assignment through a `real_cols(sheet, tile, n)` helper that reads the real width, falling back to `ceil(sqrt(n))` only when no sheet is loaded **or** the sheet's width isn't a clean multiple of the tile size (that second guard is why the helper exists rather than an inline `sheet.width // tile` — a malformed sheet otherwise yields a nonsense column count instead of a safe fallback). One deliberate non-`real_cols` site remains: `load_animation_frames()` reads `sheet.width // tile` inline, correct because an animation strip's frame count *is* its width and there's no block-count to compare against. `ceil(sqrt(n))` remains correct **only** for sizing a brand-new sheet being generated from scratch (which this script never does — sheet generation is done by ad-hoc scratchpad scripts, this one only ever reads), never for reading an existing one.
+
+### Adding a new `CUBE:`/`PERK:` — the append procedure (follow this exactly, every time)
+
+1. **Run `grep -n "^CUBE:\|^PERK:" <file>`** and read the LAST line of the output. That, not what the
+   editor viewport suggests, is the file's real end.
+2. **Append the new block after that last block.** Never next to a thematic sibling, never "where it
+   reads best" — file order *is* sprite-slot order, and readability grouping is not worth a silent
+   icon corruption.
+3. **Compute the new block's slot index** = its 0-based position in that same grep output (the block
+   count before it). Draw its tile in exactly that slot.
+4. **If the sheet has no free slot, extend it by one whole row and keep the existing column count** —
+   `new_height = old_height + tile_size`, width untouched. This guarantees no existing tile moves.
+   Draw the guide ring on every newly created cell, not just the one being filled.
+5. **Verify before calling it done**: regenerate the preview cards and actually look at the new item's
+   card *and* at the card of whatever block precedes it. Two adjacent correct cards prove the slot
+   math; the new card alone doesn't.
+
+**If a block genuinely must go elsewhere in the file**, that is a pixel-relocation job, not a text
+edit: work out the resulting slot index for the inserted block *and every block after it*, and move
+each of their tiles in the same edit. In practice, prefer relocating the new block's *text* to the end
+over relocating N tiles' worth of pixels — cheaper and lower-risk in every real occurrence so far.
+
+**Why this is a numbered procedure rather than a warning:** slot assignment is pure file order, so a
+mid-file insert pushes every subsequent block's slot index up by one while their pixel tiles stay put.
+There is no load error — every displaced cube/perk silently renders the neighbouring entry's art, and
+the last real slot goes empty. It is invisible until someone looks at the actual icons in play.
+
+**Incident history (three occurrences, each one evidence the rule needed to be more prescriptive, not
+better known):**
+- **2026-07-25, Unholy `Hellstorm`** — inserted after its thematic sibling `Brimstone` in
+  `Unholy_Cubes.c.txt` while its icon was drawn into the assumed-last cell. Caught by the user in play
+  ("Plague Ritual has the dragon egg image").
+- **2026-07-27, General `Claim`/`Retreat`** (`Claim` has since been renamed `Annex` — grep that name in
+  current content) — inserted before their neighbour `Bomber`, shifting every later cube by 2 and
+  making `Retreat` display `Bomb`'s art. Authored via `cube-chaos-scripting` alone, sprite-art never
+  consulted, which is why the rule also lives in that skill's "Block formats" section.
+- **2026-08-02, General `Iron_Dome`** — appended after what *looked* like the last block
+  (`Baby_War_Dragon_West`) when `Annex`/`Retreat` actually followed it. **This one happened despite the
+  rule already being documented in two skills** — the failure was not knowing-vs-not-knowing, it was
+  the absence of step 1's verification. That is why this section is now a procedure. It was also
+  confounded by the `real_cols` column-count bug above being live simultaneously: a shifted-icon
+  symptom alone does not tell you which of the two causes you have, so check block order **and** sheet
+  width before concluding.
 
 **An `IsUpgradeFrom:` upgrade perk doesn't *need* a unique sprite — if its dedicated file has no matching `Sprites/*.c.png`, it falls back to visually reusing its base perk's icon in-game.** That fallback is where the base game's own upgrade files land: `Characters/Classes/ZUpgradeClassPerks.c.txt`, `Characters/Species/UpgradeSpeciesPerks.c.txt`, and `Main/UpgradePerks.c.txt` all have zero matching sprite sheets. But **the fallback is not a hard limit — the engine also happily renders a real, unique sprite for an upgrade perk if one is given.** Corrected 2026-07-29 (`cube-chaos-audit` pass over the Steam Workshop "Dinosaurs!" mod): its `PerkUpgrades.c.png` gives all 11 of its `IsUpgradeFrom:` perks real, unique, multi-color (4–9 distinct colors) 27×27 art — not placeholders, and an exact 1:1 tile-to-perk match with zero spare slots. **Adopt this going forward: give a mod's `<ModPrefix>_UpgradePerks.c.txt` its own matching `<ModPrefix>_UpgradePerks.c.png` with real art**, the same as any other perk file, rather than leaving it sprite-less by default. (This is a going-forward preference, not a retrofit — existing upgrade perks in this repo's own mods that currently rely on the reused-base-icon fallback don't need art added retroactively just for this.)
 
