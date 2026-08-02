@@ -179,7 +179,7 @@ The `HasAbilityWithName Caster ChargeEveryX`/`FleeEveryX` checks make the two br
 BeforeThisMoves If CubeExists CubeInDirectionFromCube EventDirection Caster
  <effect>
 ```
-`EventDirection` is the direction of the attempted move, bound within `BeforeThisMoves`/`AfterThisMoves`; `CubeInDirectionFromCube DIRECTION CUBE` reads whatever's immediately touching in that direction (only the adjacent tile — for "anywhere further out," see `TheFirstCubeInDirectionFromPositionWhich` above). `Caster` refers to the cube itself inside a `CUBE:`'s own self-trigger, same as `This`. This check fires **before** the move resolves, whether or not the destination is actually occupied.
+`EventDirection` is the direction of the attempted move, bound within `BeforeThisMoves`/`AfterThisMoves`; `CubeInDirectionFromCube DIRECTION CUBE` reads whatever's immediately touching in that direction (only the adjacent tile — for "anywhere further out," see `TheFirstCubeInDirectionFromPositionWhich` above). `Caster` refers to the cube itself inside a `CUBE:`'s own self-trigger, same as `This`. This check fires **before** the move resolves, whether or not the destination is actually occupied — which is exactly what this blocked-detection idiom wants, but is a hazard for any `Before*` chain that also acts on a *different* cube. See "A `Before*` trigger fires on the ATTEMPT, not the outcome" below before writing one.
 
 **By itself, this check misses being blocked by the edge of the map** — no cube exists off-board either, same as an empty movable tile, so `CubeInDirectionFromCube` alone can't distinguish "empty tile, will move fine" from "off the board, can't move at all." Caught the hard way: a first version of `Bomber`'s reversal used only this check and reversed correctly when blocked by another cube while charging forward, but never reversed back from fleeing, since fleeing heads toward the player's own board edge where nothing was there to trigger it — the cube just silently got stuck trying to flee forever. The fix is `PositionExists POSITION` (confirmed real, used by the base game's own `Star_Gift`/`Sky_Vine` cubes for exactly "is this the edge of the map" checks, e.g. `Main/2TokenCubes.c.txt`'s `Star_Gift`: `If Not PositionExists PositionInDirectionFromPosition North PositionOfThis Both Die ...`) — `Or` it alongside the `CubeInDirectionFromCube` check to catch both kinds of blocking.
 
@@ -197,6 +197,38 @@ Ability: BeforeThisMoves IfElse HasAbilityWithName Caster ChargeEveryX
    <effect when fleeing is about to be blocked>
 ```
 Combining both patterns, a full "patrol until blocked, then reverse" cube needs only ONE reversal `Ability:` instead of two (real before/after comparison: General mod's `Bomber` cube originally used the two-`AfterThisMoves`-blocks shape above keyed on enemy-leader detection, then the `EventDirection`-based single-trigger shape, then this ability-state-keyed shape once the `EventDirection`/`Backwards` gap surfaced in actual play — see `GameData/General/General_Cubes.c.txt`).
+
+## A `Before*` trigger fires on the ATTEMPT, not the outcome — so any side effect it applies to ANOTHER cube persists even when the triggering action then fails
+
+**Rule: if a `Before*` chain moves/damages/heals/creates on a cube other than the trigger owner, either (a) use the matching `After*` trigger instead, or (b) guard the triggering action's own precondition yourself in the same `If`.** Never assume "this fired, therefore the thing it fired about happened."
+
+The engine gives you three distinct triggers per event, and the base game's own usage shows which is the default:
+
+| Trigger | Fires | Real base-game usage |
+|---|---|---|
+| `Before<X>` | on the attempt, **regardless of whether it succeeds** | `BeforeThisMoves` 8, `BeforeACubeMoves` 11 |
+| `Before<X>Negation` | on the attempt, to **veto** it (`NegateX`) | `BeforeThisMovesNegation` 20, `BeforeACubeMovesNegation` 20 |
+| `After<X>` | **only on success** | `AfterThisMoves` 22, `AfterACubeMoves` **65** |
+
+`After*` outnumbering `Before*` roughly 5:1 for movement is the tell: **reach for `After*` by default**, and treat `Before*` as the specialist choice for the two things it's actually for — reading the attempt's intent before it resolves (`EventDirection`, the `Climbing`/blocked-detection idiom above), or vetoing it via the `Negation` variant.
+
+**`After*` doesn't lose access to the pre-move tile — that's what `OriginalPosition` is for.** Real base-game usage: `Hat` (`Extra_Mechanics/1Compounds.c.txt:537`) implements "follow the cube below me" entirely from the *follower's* side with `AfterACubeMoves If IsSameCube Caster CubeOfPosition PositionInDirectionFromPosition North OriginalPosition MoveInDirection EventDirection`; `Growing_Worm`/`Green_Worm` (`Main/3GeneralCubes.c.txt:2072`, `:5930`) both do `AfterThisMoves ... CreateCubeOnPosition ... OriginalPosition` to leave a trail segment behind. So "act on where I *was*" needs no `Before*` at all.
+
+**If you genuinely need `Before*`, the guard is the destination check, and it needs `PositionExists` as well as `IsPositionEmpty`:**
+```
+Ability: BeforeThisMoves If And PositionExists PositionInDirectionFromPosition EventDirection PositionOfThis
+   IsPositionEmpty PositionInDirectionFromPosition EventDirection PositionOfThis
+ <effect on the other cube>
+```
+An off-board tile is not a tile the cube can move into, and whether `IsPositionEmpty` reports true or false for a nonexistent position is unverified — so test existence separately (same reason the `Bomber` reversal above needs `PositionExists`; base-game precedent in `Take_Off`, `General/General_Cubes.c.txt`).
+
+**Verification: for every `Before*` ability, ask "does this touch a cube other than `Caster`?" If yes, the block must contain either a destination/precondition guard or a good reason it's outcome-independent.** A missing guard produces no warning and no log line — only a wrong board state.
+
+**Two legitimate exceptions — don't flag these:**
+- **The effect exists precisely to CREATE the precondition.** `Cardinal`'s second ability pushes the ally in front of it upward so that its own move can then succeed; adding "destination must be empty" would guard against the very state it's there to fix. Safe by construction here because the side effect is itself a move that simply fails harmlessly if it can't happen (the ally stays, the mover stays, nothing is left inconsistent). Check that property rather than the guard.
+- **The engine's own idiom already works this way.** `ExplodesX` is a `BeforeThisDies` that damages surrounding cubes, and every real bomb-style cube copies it — a death cancelled afterwards by `Stable`/`ExtraLife` still explodes. That's base-game behaviour, not a mod bug.
+
+Real incident (`Crusader`'s `Cardinal`, 2026-08-02): `BeforeThisMoves ... TargetCube CubeInDirectionFromCube North Caster MoveInDirection EventDirection` was meant as "carry the cube above me along." When Cardinal's own move was blocked, the trigger still fired and the passenger was shoved forward on its own, landing on top of the blocking cube — Cardinal effectively threw its cargo over the obstacle and stayed put. User-reported from play; fixed with the destination guard above. Note this cube could equally have been written the `Hat` way (`AfterThisMoves` + `OriginalPosition`), which is outcome-safe by construction and needs no guard — prefer that shape for any new "drag the cube above/below along with me" effect.
 
 ## Gravity is a real, literal per-tick falling mechanic — not just flavor text, and there's no separate stacking/z-axis
 
