@@ -21,6 +21,12 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 <img src="Preview/General_Cubes_Bunker.png" width="700" alt="Bunker cube card">
 <img src="Preview/General_Cubes_Airport.png" width="700" alt="Airport cube card">
 <img src="Preview/General_Cubes_Rocket_Silo.png" width="700" alt="Rocket Silo cube card">
+<table>
+<tr>
+<td valign="middle">Rocket Launch (every 45s)</td>
+<td valign="middle"><img src="Preview/General_Cubes_Rocket_Silo_Launch.gif" width="70" alt="Rocket Silo Launch animation"></td>
+</tr>
+</table>
 <img src="Preview/General_Cubes_Medic.png" width="700" alt="Medic cube card">
 <img src="Preview/General_Cubes_Bombardement.png" width="700" alt="Bombardement cube card">
 <img src="Preview/General_Cubes_War_Dragon_Egg.png" width="700" alt="War Dragon Egg cube card">

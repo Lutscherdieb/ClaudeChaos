@@ -62,6 +62,20 @@ for the full comparison and the rule that replaced it.
 Full `Action:`/`BOOLEAN:` grammar (all argument types, every built-in) is in `ModdingInfo.txt` from the `Action:`
 header (~line 253) onward.
 
+### The `Campaign.Cheated` flag — real, but not a reason to avoid the console
+
+Using the console sets a `Campaign.Cheated` flag on the save. **Its entire effect is one Steam achievement and
+in-game meta-experience: a run with `Cheated = true` grants no profile XP.** It does not affect parsing, mod
+loading, ability behaviour, or anything else a test session cares about — so **treat it as a non-issue for
+development testing and don't warn the user about it unprompted.** Confirmed directly by the repo owner
+(2026-08-02: "it is not of concern as it is just for a steam achievement and for meta-experience gain ingame — i
+don't gain experience when cheated = true"); like the in-game Mods-screen toggle documented in this skill's
+`SKILL.md`, this is compiled-in behaviour with no `GameData` representation, so a user statement is the ground
+truth here rather than anything greppable.
+
+The one case where it matters: **if a run is one the user actually wants progression from, test on a throwaway run
+instead.** That's a preference question about *their* save, not a technical limitation of the console.
+
 ### Execution context
 
 The console builds `Event E = new Event(Game)`; if a battle is currently running (`Game.World != null`), `E.Target`

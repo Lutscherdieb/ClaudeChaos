@@ -436,7 +436,9 @@ def upscale(im, scale):
 # taken: the idle pause between triggers is fixed at GIF_IDLE_REST_MS rather
 # than the cube's real (often many-second) trigger cadence, so the preview
 # loop stays watchable -- the flourish itself plays at true speed.
-# Only TRIGGER is implemented: it's the only type any mod here uses yet.
+# TRIGGER, CLOCK and DOUBLE each have their own playback function below (they
+# are three genuinely different problems, not three cases of one); HP/BOOLEAN/
+# TIME would each still need their own.
 TICK_MS = 16
 GIF_IDLE_REST_MS = 1500
 ANIMATION_RE = re.compile(r'^Animation:\s*(\S+)\s+(\S+)\s+(-?\d+)\s+(.*)$')
@@ -499,6 +501,60 @@ def animation_amount(rest_tokens):
     return int(rest_tokens[1]) if rest_tokens[0] == "EQUAL" else int(rest_tokens[0])
 
 
+# A CLOCK animation's frame tracks how full the bound ability's own cooldown bar is
+# (Ratio = Clock.Timer / DetermineClockThreshold(), 0..1), so unlike TRIGGER its
+# thresholds are FRACTIONS OF A CYCLE, not tick counts -- and the cycle's real wall-clock
+# length lives in the bound Ability: chain (45 seconds for Rocket_Silo, 0.7 for one of
+# Two_Headed_Demon's bites), which isn't reliably derivable from an arbitrary DSL chain.
+# So a CLOCK gif reproduces the cycle's SHAPE (relative dwell per frame, correct order)
+# compressed to a fixed watchable length -- it does NOT claim real-time fidelity the way
+# TRIGGER's tick-derived durations do.
+CLOCK_CYCLE_MS = 2400      # target wall-clock for one full playback
+CLOCK_MIN_FRAME_MS = 160   # so a 4%-of-cycle flourish frame doesn't flicker past
+CLOCK_REST_MAX_MS = 1500   # cap the long frame-0 dwell a back-loaded threshold list gives
+
+
+def clock_frame_shares(thresholds, amount):
+    """Fraction of one cooldown cycle each frame is on screen.
+
+    Straight from ClockAnimation.AutoChangedCheck's cumulative walk (decompiled, quoted in
+    cube-chaos-scripting/references/cube-animation.md): frame `i` is displayed while
+    `sum(t[0..i]) <= Ratio < sum(t[0..i+1])`, so its share is `t[i+1]`. Two edge cases the
+    naive "share == t[i]" reading gets wrong:
+      * While `Ratio < t[0]` the walk leaves `index == 0`, so `LastFrame` is never written
+        and the cube keeps showing whatever it settled on last -- frame `amount-1`, carried
+        over from the end of the previous cycle. That `t[0]` slice belongs to the LAST
+        frame, not the first, which is why every base-game back-loaded list starts with a
+        literal `0` (e.g. `Thump CLOCK 0 4 0 0.85 0.05 0.05`) to opt out of it.
+      * The last frame also holds everything past the thresholds' sum (they need not sum
+        to 1.0 -- that same real example sums to 0.95).
+    Both together: `share[amount-1] = (1 - sum(t)) + t[0]`. This makes `EQUAL <Amount>`
+    (all thresholds `1/Amount`) come out as `Amount` genuinely equal slices, as intended.
+    """
+    shares = [thresholds[i + 1] for i in range(amount - 1)]
+    shares.append(max(0.0, 1.0 - sum(thresholds)) + thresholds[0])
+    return shares
+
+
+def build_clock_gif(mod_dir, cube_name, anim_name, rest_tokens, out_path):
+    if rest_tokens[0] == "EQUAL":
+        amount = int(rest_tokens[1])
+        thresholds = [1.0 / amount] * amount
+    else:
+        amount = int(rest_tokens[0])
+        thresholds = [float(t) for t in rest_tokens[1:1 + amount]]
+    frames = load_animation_frames(mod_dir, cube_name, anim_name)
+    assert len(frames) == amount, (
+        f"{cube_name}_{anim_name}.png has {len(frames)} frames, Animation: declares {amount}")
+    shares = clock_frame_shares(thresholds, amount)
+    total = sum(shares) or 1.0
+    durations = [max(CLOCK_MIN_FRAME_MS, min(CLOCK_REST_MAX_MS, s / total * CLOCK_CYCLE_MS))
+                 for s in shares]
+    imgs = [f.resize((CUBE_ANIM_GIF_PX, CUBE_ANIM_GIF_PX), Image.NEAREST) for f in frames]
+    imgs[0].save(out_path, save_all=True, append_images=imgs[1:],
+                 duration=[int(d) for d in durations], loop=0, disposal=2)
+
+
 DOUBLE_FRAME_MS = 500  # flat per-frame dwell for a generic DOUBLE preview -- NOT derived
 # from the Animation: line's own threshold list, unlike TRIGGER's. A DOUBLE animation's
 # thresholds bucket a live game-state VALUE (hp, ability-stack count, a custom variable...)
@@ -540,6 +596,9 @@ def build_cube_animation_gifs(mod_dir, mod_prefix, out_dir):
             if atype == "TRIGGER":
                 build_trigger_gif(mod_dir, cube_name, anim_name, rest,
                                    os.path.join(out_dir, out_name))
+            elif atype == "CLOCK":
+                build_clock_gif(mod_dir, cube_name, anim_name, rest,
+                                 os.path.join(out_dir, out_name))
             elif atype == "DOUBLE":
                 # Default: every frame, raw sheet order -- no own-mod cube uses DOUBLE yet,
                 # so there's no override list here (unlike the third-party Dinosaurs script,
@@ -550,7 +609,7 @@ def build_cube_animation_gifs(mod_dir, mod_prefix, out_dir):
                                   list(range(animation_amount(rest))),
                                   os.path.join(out_dir, out_name))
             else:
-                continue  # CLOCK/HP/BOOLEAN/TIME playback isn't implemented yet
+                continue  # HP/BOOLEAN/TIME playback isn't implemented yet
             written.append(out_name)
     return written
 

@@ -11,12 +11,38 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 
 <img src="Preview/Unholy_Cubes_Ritual.png" width="700" alt="Ritual cube card">
 <img src="Preview/Unholy_Cubes_Imp.png" width="700" alt="Imp cube card">
+<table>
+<tr>
+<td valign="middle">Acidic Damage (every 2s)</td>
+<td valign="middle"><img src="Preview/Unholy_Cubes_Imp_Acid.gif" width="70" alt="Imp Acid animation"></td>
+</tr>
+</table>
 <img src="Preview/Unholy_Cubes_Cultist.png" width="700" alt="Cultist cube card">
 <img src="Preview/Unholy_Cubes_Two_Headed_Demon.png" width="700" alt="Two Headed Demon cube card">
+<table>
+<tr>
+<td valign="middle">Left Head Bite (every 0.7s)</td>
+<td valign="middle"><img src="Preview/Unholy_Cubes_Two_Headed_Demon_BiteLeft.gif" width="70" alt="Two Headed Demon BiteLeft animation"></td>
+<td valign="middle">Right Head Bite (every 2s)</td>
+<td valign="middle"><img src="Preview/Unholy_Cubes_Two_Headed_Demon_BiteRight.gif" width="70" alt="Two Headed Demon BiteRight animation"></td>
+</tr>
+</table>
 <img src="Preview/Unholy_Cubes_Plague_Imp.png" width="700" alt="Plague Imp cube card">
+<table>
+<tr>
+<td valign="middle">Acidic Damage (every 2s)</td>
+<td valign="middle"><img src="Preview/Unholy_Cubes_Plague_Imp_Acid.gif" width="70" alt="Plague Imp Acid animation"></td>
+</tr>
+</table>
 <img src="Preview/Unholy_Cubes_Damned_Soul.png" width="700" alt="Damned Soul cube card">
 <img src="Preview/Unholy_Cubes_Martyr.png" width="700" alt="Martyr cube card">
 <img src="Preview/Unholy_Cubes_Molten_Brimstone.png" width="700" alt="Molten Brimstone cube card">
+<table>
+<tr>
+<td valign="middle">Acidic Burn (every 1s)</td>
+<td valign="middle"><img src="Preview/Unholy_Cubes_Molten_Brimstone_Acid.gif" width="70" alt="Molten Brimstone Acid animation"></td>
+</tr>
+</table>
 <img src="Preview/Unholy_Cubes_Brimstone.png" width="700" alt="Brimstone cube card">
 <img src="Preview/Unholy_Cubes_Plague_Ritual.png" width="700" alt="Plague Ritual cube card">
 <img src="Preview/Unholy_Cubes_Hell_Dragon_Egg.png" width="700" alt="Hell Dragon Egg cube card">
@@ -25,6 +51,12 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 <img src="Preview/Unholy_Cubes_Blood_Totem.png" width="700" alt="Blood Totem cube card">
 <img src="Preview/Unholy_Cubes_Hellstorm.png" width="700" alt="Hellstorm cube card">
 <img src="Preview/Unholy_Cubes_Hell_Portal.png" width="700" alt="Hell Portal cube card">
+<table>
+<tr>
+<td valign="middle">Cube Spawn (every 60s)</td>
+<td valign="middle"><img src="Preview/Unholy_Cubes_Hell_Portal_Open.gif" width="70" alt="Hell Portal Open animation"></td>
+</tr>
+</table>
 
 ### Perks
 

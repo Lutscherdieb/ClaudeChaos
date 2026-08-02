@@ -29,7 +29,9 @@ file: ...` printed to the log, non-fatal (the cube just never animates).
 
 That PNG is sliced **exactly like a normal CUBE sprite sheet** — `SplitSpriteGrid(15, 15, i, 1)`, i.e. 17px-stride
 tiles (15×15 usable content after the same 1px trim every CUBE icon gets), one tile per frame, **row-major, index 0
-first**.
+first**. For what goes *inside* each tile (full-frame renditions, the background colour key, the magenta guide
+ring), see `cube-chaos-sprite-art/SKILL.md`'s "Animated CUBE icons" section — this file owns the DSL grammar and
+timing, that one owns the pixels.
 
 **The grid does not need to be square — a flat single-row sheet works and is the simpler choice for a dedicated
 animation file.** Confirmed from `ColourGrid.SplitSpriteGrid` itself (decompiled `dw/game/dd/BasicClasses/
@@ -52,9 +54,15 @@ forward. Note also that `CutoutAt` silently zero-fills any read past the image's
 j2+y < Depth)`, `ColourGrid.java:392`) — an undersized sheet doesn't error, it just yields blank/garbage frames, so
 still get the width arithmetic right rather than relying on this to fail loudly.
 
-**Put the cube's own idle/resting art in the LAST frame slot, not index 0 — `TRIGGER`/`CLOCK` settle onto the last
-array index, never back onto index 0.** This was wrong in an earlier version of this doc (fixed 2026-07-30 after a
-live playtest showed a `TRIGGER`-animated cube sitting permanently 1px off its resting pose) and is now confirmed
+**For a `TRIGGER` animation, put the cube's own idle/resting art in the LAST frame slot, not index 0 — a `TRIGGER`
+settles onto the last array index and stays there, never back onto index 0.** (**Scope matters: this is a `TRIGGER`
+rule, not a universal one.** A `CLOCK` never settles anywhere — its frame tracks a cooldown bar that resets every
+cycle — so a back-loaded `CLOCK` puts the resting art in **frame 0**, the slot it holds for most of the cycle, and
+the *flourish* in the last frames. Getting this backwards inverts the whole animation. See "Picking the TYPE"
+below for which frame is on screen when, and `cube-chaos-sprite-art/SKILL.md` for the same scoping note from the
+pixel side. `HP` is a third case again: frame 0 is what shows at full HP.) This was wrong in an earlier version of
+this doc (fixed 2026-07-30 after a live playtest showed a `TRIGGER`-animated cube sitting permanently 1px off its
+resting pose) and is now confirmed
 straight from `TriggerAnimation.AutoChangedCheck`/`ClockAnimation.AutoChangedCheck` (both identical in shape,
 decompiled `dw/game/dd/BasicClasses/Animation/{Trigger,Clock}Animation.class`):
 ```java
@@ -88,9 +96,38 @@ Inside the `CUBE:` block, same as `Ability:`/`Text:`. `CLOCK` and `TRIGGER` type
 recently parsed `Ability:` in that same cube block** — so those two types must come *after* the `Ability:` they're
 meant to key off. `HP`/`DOUBLE`/`BOOLEAN`/`TIME` don't bind to an ability and can go anywhere in the block.
 
+**Put the `Animation:` line after the bound ability's own `Text:`, not squeezed between the `Ability:` and its
+`Text:` — a `Text:` line does NOT reset `lastAbility`.** Real base-game precedent: `Main/3GeneralCubes.c.txt`'s
+`CUBE: Mana_Leech` reads `Ability: AfterThisDealsDamage GenerateXMana DoubleConstant 1` / `Text: After this deals
+damage generate 1 \CMANA mana \CN End` / `Animation: Drain TRIGGER 0 EQUAL 4 60`, and the flourish demonstrably
+fires off that ability. Keeping ability+text adjacent also keeps the block readable as `cube-chaos-rule-text`
+expects (its "rule text is never edited independently" principle).
+
+**Bind straight to a stock COMPOUND attack ability — `EveryXMeleeY`/`EveryXAcidicY` expose a usable `Clock`, no
+wrapper ability needed.** Confirmed by real base-game usage at `Main/3GeneralCubes.c.txt:4801-4806`:
+```
+CUBE: Acidic 40 10 10
+Ability: Addon
+Ability: EveryXAcidicY 60 1
+Animation: Acid CLOCK 0 EQUAL 2
+```
+and re-confirmed 2026-08-02 by six new own-mod animations (Unholy `Imp`/`Plague_Imp`/`Molten_Brimstone`/
+`Two_Headed_Demon`, General `Rocket_Silo`, Unholy `Hell_Portal`) all parsing and counting clean. Tick conversion for
+picking thresholds: **60 ticks = 1 second** (base game's own `Grinding_Gun`, `EveryXTimes TimeConstant 60`, is
+described in its own `Text:` as "Every second").
+
 A cube can have **multiple** `Animation:` lines; they apply in sequence, each one further modifying the previous
 one's result (`AnimatedCG.Recalculate`: `Result = A1.Affect(A2.Affect(Result))`-style fold) — e.g. one `HP`-driven
 damage-crumble animation plus one `TIME`-driven idle shimmer can coexist on the same cube.
+
+**When one cube carries two animations, draw them over strictly disjoint pixel regions, and state the column/row
+split in a comment in whatever script generates the frames.** With the universal `EffectType 0`
+(`OverrideWithBIfEqualC(Frame, OwnerCG.Base)`, see below), a pixel is only rewritten while it still matches the
+cube's original art — so whichever animation the fold reaches first wins any contested pixel, and the other one's
+write is **silently skipped** (its own frame still equals base there, so nothing signals the conflict). Disjoint
+regions make the fold order irrelevant. Real case, 2026-08-02: Unholy's `Two_Headed_Demon` has one `CLOCK` bite per
+head, tied to its two separate `EveryXMeleeY` abilities (`42 2` and `120 3`), with the left head confined to
+columns x1–x5 and the right to x9–x13 — columns x6–x8 are left untouched by both.
 
 ## Grammar, per type
 
@@ -132,6 +169,57 @@ sliced PNG, indices 0..Amount-1 in file/sheet order.
   it was almost certainly a `TIME` animation on that specific cube, not anything to do with a perk border. Real
   examples: `Animation: Fly TIME 0 3 20 20 20`, `Animation: Rotate TIME 0 3 20 20 20`.
 
+## Picking the TYPE: `CLOCK` for a periodic ability, `TRIGGER` only for a reactive one
+
+**Default to `CLOCK` whenever the animation is tied to an `EveryX...`/`EverySecond`/`EveryMinute`-style ability, and
+reach for `TRIGGER` only when it's tied to an `After*` reactive trigger.** Two independent reasons:
+
+1. **Timing.** `CLOCK`'s frame tracks how full the bound ability's cooldown bar is, so **the last frame lands
+   exactly on the moment the ability fires** — that is the only way to get "the hatch is already open as the rocket
+   launches" or "the portal is already open as the cube spawns". `TRIGGER` plays its flourish *after* the fact, so
+   anything that must be in position *at* the firing instant is wrong with it.
+2. **The base game's own split**, counted 2026-08-02 across `Main/`+`Characters/`+`Base_Core/`: 166 `CLOCK`, 53
+   `TRIGGER`, 46 `HP`, 31 `DOUBLE`, 19 `TIME`, 9 `BOOLEAN`. Every `TRIGGER` binds to a reactive trigger
+   (`Mana_Leech`'s `AfterThisDealsDamage`, `Cooling_Aggregate`'s `AfterACubeTakesDamage`); every periodic ability's
+   animation is `CLOCK`.
+
+**Write the threshold list back-loaded and starting with a literal `0`** — e.g. `Animation: Launch CLOCK 0 4 0 0.88
+0.04 0.04`, matching the base game's own `Thump CLOCK 0 4 0 0.85 0.05 0.05`. That gives a long rest on frame 0 and
+a short flourish that culminates as the ability fires, instead of `EQUAL <Amount>`'s uniform crawl (fine for a fast
+1-second attack, unwatchable on a 45-second cooldown).
+
+### Why the leading `0`, and which frame is on screen when
+
+`ClockAnimation.AutoChangedCheck` walks `Ratio = Clock.Timer / DetermineClockThreshold()` (0..1) through the
+threshold list cumulatively, exactly like `TriggerAnimation` does with elapsed ticks (loop quoted in the
+frame-ordering section above). Reading off that loop, frame `i` is on screen while
+`sum(t[0..i]) <= Ratio < sum(t[0..i+1])`, so:
+
+- **frame `i`'s share of the cycle is `t[i+1]`**, not `t[i]` — the list is offset by one;
+- while `Ratio < t[0]` the loop leaves `index == 0`, so `LastFrame` is never written and the cube keeps showing
+  **frame `Amount-1`, carried over from the end of the previous cycle**. That leading `t[0]` slice belongs to the
+  *last* frame, which is exactly why every real back-loaded list opens with `0` — to opt out of it;
+- the thresholds need not sum to `1.0` (that real `Thump` example sums to `0.95`); the last frame absorbs the
+  remainder. Net: **`share[Amount-1] = (1 - sum(t)) + t[0]`**.
+
+This also explains `EQUAL <Amount>` (all thresholds `1/Amount`) coming out as `Amount` genuinely equal slices with
+the sequence phase-shifted by one — `Amount-1, 0, 1, ... Amount-2` — rather than the last frame never showing.
+`render_preview_cards.py`'s `clock_frame_shares()` is this formula, and is the executable copy of it.
+
+### Verify it actually took: `Log.txt` counts CUBES, not `Animation:` lines
+
+After a test launch, `Log.txt` prints `-N Animated Cubes`. **`N` is the number of cubes carrying at least one
+animation, not the number of `Animation:` lines** — so check it against distinct cubes, not a raw `grep -c`:
+
+```bash
+grep -rh "^Animation:" GameData/<each package in Loading_Order.txt>/ | wc -l    # declared lines
+grep -rl "^Animation:" ...                                                     # (minus any cube with 2+ lines)
+```
+Worked example, 2026-08-02: 371 declared lines across the loaded packages, of which `Two_Headed_Demon` accounts for
+two on one cube → 370 distinct cubes, and the log read exactly `-370 Animated Cubes`. That match is what proves
+every new line was accepted — a typo'd type or a mis-slotted line drops the count without printing any error.
+A missing frame **file** does log (`Failed to find animation file: ...`), but is likewise non-fatal.
+
 ## Which type to pick, knowing how each one previews in a README (added 2026-08-01)
 
 `cube-chaos-sprite-art/scripts/render_preview_cards.py` generates a companion `.gif` for a new animated cube's own
@@ -154,16 +242,23 @@ authoring a new animated cube, not discovering after:
   cycle; see `ThirdParty/Dinosaurs/render_dinosaurs_preview.py`'s `DOUBLE_ANIMATION_STATES` for the worked pattern),
   but that override has to be hand-derived by tracing the cube's own state-computing ability chain — there's no way
   to detect it mechanically from the `Animation:` line alone.
-- **`CLOCK`/`HP`/`BOOLEAN`/`TIME` have no preview support at all yet** (`render_preview_cards.py`'s own documented
-  gap) — a cube using one of these will render its static card with no animation gif until someone adds that
-  playback logic.
+- **`CLOCK` previews in the right SHAPE but not at real speed** (`build_clock_gif()`, added 2026-08-02). Frame
+  order and each frame's *relative* dwell come straight from the real threshold list via `clock_frame_shares()`
+  above, so the flourish reads correctly — but a `CLOCK`'s thresholds are fractions of a cycle, and the cycle's
+  real wall-clock length lives in the bound `Ability:` chain (45 seconds for `Rocket_Silo`, 0.7 for one of
+  `Two_Headed_Demon`'s bites), which isn't reliably derivable from arbitrary DSL. So the whole cycle is compressed
+  to a fixed `CLOCK_CYCLE_MS`, with a floor per frame so a 4%-share flourish frame doesn't flicker past and a cap on
+  the long rest frame. **The cadence therefore belongs in the README caption, not the gif** — hence
+  `sync_readme_preview.py`'s `ANIMATION_CAPTIONS` entries naming it outright ("Rocket Launch (every 45s)").
+- **`HP`/`BOOLEAN`/`TIME` have no preview support at all yet** (`render_preview_cards.py`'s own documented gap) — a
+  cube using one of these will render its static card with no animation gif until someone adds that playback logic.
 
-**Practical takeaway when designing a new cube for this repo's own mods:** if a flourish's trigger condition is the
-interesting thing to show off in the README (an attack, a special proc, a creation effect), prefer `TRIGGER` — it's
-both the correct engine semantics for "plays once after X, then rests" AND the one type that previews itself
-faithfully with zero extra authoring effort. Reach for `DOUBLE` when the animation is genuinely about reflecting
-live state (an idle pose that changes with stacking count, hp, etc) and accept that its README preview will be a
-generic pose gallery unless you're willing to hand-write a state-override afterward.
+**Practical takeaway when designing a new cube for this repo's own mods:** pick the type by engine semantics first
+(the section above — `CLOCK` for a periodic ability, `TRIGGER` for a reactive one); preview fidelity is a
+tiebreaker, not a reason to pick the wrong type. `TRIGGER` previews at true speed for free. `CLOCK` previews in the
+correct shape and just needs its cadence stated in the caption. Reach for `DOUBLE` when the animation is genuinely
+about reflecting live state (an idle pose that changes with stacking count, hp, etc) and accept that its README
+preview will be a generic pose gallery unless you're willing to hand-write a state-override afterward.
 
 ## `EffectType` — how a picked frame actually gets applied
 

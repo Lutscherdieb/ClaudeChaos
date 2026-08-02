@@ -56,22 +56,32 @@ valign="middle">, no inline style= -- GitHub's sanitizer strips it). A
 width="120">, reasoning the caption couldn't be mechanically derived from
 the .c.txt -- reverted the same day once the width math turned out wrong too
 (120 is nearly double the icon's actual ~70px on-card size) and the caption
-turned out to just need a small hand-maintained lookup (ANIMATION_TRIGGER_
-CAPTIONS below), the same one-time judgment call a human already made once
-for Speaker. Update that dict whenever a new TRIGGER-animated cube is added;
-a missing entry falls back to a generic caption plus a printed warning
+turned out to just need a small hand-maintained lookup (ANIMATION_CAPTIONS
+below), the same one-time judgment call a human already made once for
+Speaker. Update that dict whenever a new TRIGGER- or CLOCK-animated cube is
+added; a missing entry falls back to a generic caption plus a printed warning
 (never a hard error -- this runs inside a non-blocking PostToolUse hook, so
 a missing caption should be visible, not fatal to every other edit).
+
+A CLOCK-type animation (added 2026-08-02) uses the same ANIMATION_CAPTIONS
+lookup as TRIGGER -- both name a real firing condition -- but its caption
+must ALSO state the cadence ("Rocket Launch (every 45s)"), because a CLOCK
+gif is deliberately speed-compressed: its thresholds are fractions of the
+bound ability's cooldown cycle, whose real length isn't derivable from
+arbitrary DSL (see render_preview_cards.py's build_clock_gif). Its fallback
+when an entry is missing is its own animation name, NOT "On Trigger" -- a
+CLOCK tracks a cooldown bar filling, so naming it as a one-shot event would
+be actively wrong.
 
 A DOUBLE-type animation (added 2026-08-01, see cube-chaos-sprite-art/
 SKILL.md's own DOUBLE bullet and cube-chaos-scripting/references/
 cube-animation.md) gets the same <table> treatment but a DIFFERENT default
-caption -- its own animation name (e.g. "Shoot"), not an
-ANIMATION_TRIGGER_CAPTIONS lookup -- since a DOUBLE's frame is picked from
-live game state with no single trigger event to name; falling back to "On
-Trigger" for one (the TRIGGER-only code path's original fallback) would be
-actively wrong, not just generic. cube_animation_types() reads each cube's
-real Animation: TYPE straight from its own .c.txt to tell the two apart --
+caption -- its own animation name (e.g. "Shoot"), not an ANIMATION_CAPTIONS
+lookup -- since a DOUBLE's frame is picked from live game state with no
+single trigger event to name; falling back to "On Trigger" for one (the
+TRIGGER-only code path's original fallback) would be actively wrong, not
+just generic. cube_animation_types() reads each cube's real Animation: TYPE
+straight from its own .c.txt to tell these apart --
 no own-mod cube needs a hand-picked multi-state caption override yet (see
 ThirdParty/Dinosaurs/render_dinosaurs_preview.py's DOUBLE_ANIMATION_STATES
 for that pattern, third-party-only for now), so this script has no override
@@ -115,13 +125,26 @@ def pretty(name):
 
 
 # Hand-authored per-(mod_prefix, cube_name, anim_name) caption describing
-# WHEN a cube's own TRIGGER animation fires -- not mechanically derivable
-# from the .c.txt (it's a judgment call about which ability the flourish is
-# tied to, same call a human already made once for DJ's Speaker: "On Cube
-# Creation", tied to the ability that creates its Note). See module
+# WHEN a cube's own TRIGGER or CLOCK animation fires -- not mechanically
+# derivable from the .c.txt (it's a judgment call about which ability the
+# flourish is tied to, same call a human already made once for DJ's Speaker:
+# "On Cube Creation", tied to the ability that creates its Note). See module
 # docstring for why this exists instead of a plain <img>.
-ANIMATION_TRIGGER_CAPTIONS = {
+#
+# CLOCK entries also name the cadence, because a CLOCK animation IS the bound
+# ability's cooldown bar -- "how often" is half of what the reader is looking
+# at. Tick counts convert at 60 ticks = 1 second (confirmed against the base
+# game's own wording: Grinding_Gun's `EveryXTimes TimeConstant 60` is
+# documented in its own Text: as "Every second").
+ANIMATION_CAPTIONS = {
     ("DJ", "Speaker", "Beat"): "On Cube Creation",
+    ("General", "Rocket_Silo", "Launch"): "Rocket Launch (every 45s)",
+    ("Unholy", "Imp", "Acid"): "Acidic Damage (every 2s)",
+    ("Unholy", "Plague_Imp", "Acid"): "Acidic Damage (every 2s)",
+    ("Unholy", "Molten_Brimstone", "Acid"): "Acidic Burn (every 1s)",
+    ("Unholy", "Two_Headed_Demon", "BiteLeft"): "Left Head Bite (every 0.7s)",
+    ("Unholy", "Two_Headed_Demon", "BiteRight"): "Right Head Bite (every 2s)",
+    ("Unholy", "Hell_Portal", "Open"): "Cube Spawn (every 60s)",
 }
 
 
@@ -291,33 +314,46 @@ def img_tag(rel_path, width, alt):
     return f'<img src="{rel_path}" width="{width}" alt="{alt}">'
 
 
-def cube_animation_gifs(mod_dir, prefix, cube_name):
-    """This cube's own companion trigger-animation gif(s), if any (see
+def cube_animation_gifs(mod_dir, prefix, cube_name, anim_types):
+    """This cube's own companion animation gif(s), if any (see
     render_preview_cards.py's build_cube_animation_gifs) -- a real, separate
     file next to the cube's own static card, not the card itself animated
     (unlike an IsUpgradeFrom: perk's shine-sweep gif, which replaces its own
-    card in place)."""
-    pattern = os.path.join(mod_dir, "Preview", f"{prefix}_Cubes_{cube_name}_*.gif")
+    card in place).
+
+    Names come from the cube's OWN parsed `Animation:` lines (`anim_types`),
+    never from globbing `<prefix>_Cubes_<cube_name>_*.gif`. The glob form is
+    unsound whenever one cube's name is a prefix of another's: General has both
+    `Rocket` and `Rocket_Silo`, so `General_Cubes_Rocket_*.gif` swallowed
+    `General_Cubes_Rocket_Silo_Launch.gif` and handed `Rocket` a bogus
+    animation named `Silo_Launch` -- caught 2026-08-02, the first time an
+    animated cube happened to sit behind such a name pair. Reading the real
+    declaration removes the ambiguity outright rather than trying to
+    disambiguate filenames after the fact."""
     out = []
-    for path in sorted(glob.glob(pattern)):
-        fname = os.path.basename(path)
-        stem = fname[:-len(".gif")]
-        anim_name = stem[len(f"{prefix}_Cubes_{cube_name}_"):]
-        out.append((fname, anim_name))
-    return out
+    for anim_name in anim_types.get(cube_name, {}):
+        fname = f"{prefix}_Cubes_{cube_name}_{anim_name}.gif"
+        if os.path.exists(os.path.join(mod_dir, "Preview", fname)):
+            out.append((fname, anim_name))
+    return sorted(out)
 
 
 def cube_animation_types(mod_dir, prefix):
-    """cube_name -> {anim_name: atype}, read directly from <Prefix>_Cubes.c.txt --
-    lets the caption-selection logic below tell a TRIGGER animation (needs a
-    real ANIMATION_TRIGGER_CAPTIONS entry, since its caption names a specific
-    in-game event) apart from a DOUBLE one (whose correct default caption is
-    just its own animation name, not a "missing caption" warning -- a DOUBLE's
-    frame is picked from live game state with no single trigger event to name,
-    see cube-chaos-scripting/references/cube-animation.md's "which type to
-    pick" section). Without this check, a future own-mod DOUBLE-animated cube
-    would silently get the wrong "On Trigger" fallback caption, which doesn't
-    even make sense for a DOUBLE (there is no trigger)."""
+    """cube_name -> {anim_name: atype}, read directly from <Prefix>_Cubes.c.txt.
+
+    Two jobs. (1) It tells a TRIGGER or CLOCK animation (both need a real
+    ANIMATION_CAPTIONS entry, since both captions name a specific in-game
+    firing condition) apart from a DOUBLE one, whose correct default caption is
+    just its own animation name rather than a "missing caption" warning -- a
+    DOUBLE's frame is picked from live game state with no single trigger event
+    to name (see cube-chaos-scripting/references/cube-animation.md's "which
+    type to pick" section). Without it, a future own-mod DOUBLE-animated cube
+    would silently get the wrong "On Trigger" fallback, which doesn't even make
+    sense for a DOUBLE (there is no trigger); the same fallback would be wrong
+    for a CLOCK, which tracks a cooldown bar rather than a one-shot event.
+    (2) It is also the authoritative list of a cube's animation NAMES for
+    cube_animation_gifs() above -- see that function for why globbing the
+    Preview/ folder for them instead is unsound."""
     path = os.path.join(mod_dir, f"{prefix}_Cubes.c.txt")
     if not os.path.exists(path):
         return {}
@@ -413,7 +449,7 @@ def build_section(mod_dir, prefix):
             lines.append(img_tag(rel, 700, alt))
 
             if category == "Cubes":
-                anims = cube_animation_gifs(mod_dir, prefix, name)
+                anims = cube_animation_gifs(mod_dir, prefix, name, anim_types)
                 if anims:
                     entries = []
                     for fname, anim_name in anims:
@@ -426,11 +462,15 @@ def build_section(mod_dir, prefix):
                             # TRIGGER's real trigger-condition caption does.
                             caption = pretty(anim_name)
                         else:
-                            caption = ANIMATION_TRIGGER_CAPTIONS.get((prefix, name, anim_name))
+                            caption = ANIMATION_CAPTIONS.get((prefix, name, anim_name))
                             if caption is None:
-                                print(f"WARNING: no trigger caption for {prefix}/{name}/{anim_name} -- "
-                                      f"add one to ANIMATION_TRIGGER_CAPTIONS in sync_readme_preview.py")
-                                caption = "On Trigger"
+                                print(f"WARNING: no caption for {prefix}/{name}/{anim_name} ({atype}) -- "
+                                      f"add one to ANIMATION_CAPTIONS in sync_readme_preview.py")
+                                # "On Trigger" is only right for a TRIGGER. A CLOCK tracks a
+                                # cooldown bar filling, so naming it as a one-shot event would
+                                # be actively wrong -- fall back to its own name instead, same
+                                # as DOUBLE above.
+                                caption = "On Trigger" if atype == "TRIGGER" else pretty(anim_name)
                         alt = f"{title} {pretty(anim_name)} animation"
                         entries.append((caption, f"Preview/{fname}", alt))
                     lines.extend(animation_table_lines(entries))
