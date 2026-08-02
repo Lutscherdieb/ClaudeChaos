@@ -59,9 +59,9 @@ End
 PERK: Feedback
 BelongsTo: DJ
 Ability: BeforeACubeGainsAnAbility If And IsAllyToCaster Victim IsAllyToCaster Culprit
- If Not IsSameCube Culprit Victim If X%Chance DoubleConstant 20
- TargetCube Victim Silent GainAffectedAbility
-Description: Before an ally gains an ability from another ally, 20% chance it silently gains another copy End
+ If Not IsSameCube Culprit Victim If IsLarger EventAmount DoubleConstant 0
+ If X%Chance DoubleConstant 20 NegateX DoubleConstant -1
+Description: Before an ally gains an ability from another ally, 20% chance it gains that ability an additional time End
 End
 
 PERK: Final_Countdown
