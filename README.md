@@ -13,7 +13,7 @@ A set of Claude Code skills that build [Cube Chaos](https://store.steampowered.c
 | [`GameData/Broker/`](GameData/Broker/README.md) | A gold-and-gambling Class: cube upgrades never run out of uses, and gold income doubles as mana income. |
 | [`GameData/DJ_Voidling/`](GameData/DJ_Voidling/README.md) | A small crossover mod bridging DJ + Voidling — requires both to be installed. |
 | [`GameData/Great_Wall/`](GameData/Great_Wall/README.md) | A battlefields mod (Terrain perks) — starts with one: a barren field split by a great wall. |
-| [`GameData/Home_Turf_Advantage/`](GameData/Home_Turf_Advantage/README.md) | A standalone Neutral perk: in boss battles, the terrain's fortified advantage — and any structures on it — ends up on your side instead of the boss's. |
+| [`GameData/Crusader/`](GameData/Crusader/README.md) | A holy-war Class: half the battles on every map become boss battles, and every boss you beat leaves your whole inventory a little harder to kill. |
 
 ### A couple of things worth knowing
 

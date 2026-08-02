@@ -8,7 +8,7 @@
 #   - GameData/Voidling/ the Voidling species mod (same deal)
 #   - GameData/DJ_Voidling/ the DJ+Voidling crossover synergy mod (same deal)
 #   - GameData/Great_Wall/ the battlefields (Terrain perk) mod (same deal)
-#   - GameData/Home_Turf_Advantage/ the standalone Neutral-perk mod (same deal)
+#   - GameData/Crusader/ the Crusader class mod (same deal)
 #   - README.md        repo-level docs
 #   - WORKFLOW_OVERVIEW.md  repo-level docs (diagram of the modding workflow)
 # Everything else (game binaries, base-game GameData folders, and any other
@@ -34,7 +34,7 @@
 !/GameData/Voidling/
 !/GameData/DJ_Voidling/
 !/GameData/Great_Wall/
-!/GameData/Home_Turf_Advantage/
+!/GameData/Crusader/
 
 # Personal/machine-local Claude Code settings - contains local permission rules
 # with absolute paths tied to whoever's machine set them up (usernames, drive

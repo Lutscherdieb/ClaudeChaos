@@ -63,7 +63,7 @@ End
 ```
 - `Nothing` as the trigger body is valid syntax and means "no functional effect, this ability just exists as a flag/marker."
 - The `Text:` follows this repo's standard keyword shape — colored name, `\B :`, `\N`, then a dim `96 96 96` parenthesised explanation opening with "Cosmetic only," so a player isn't left hunting for an effect that doesn't exist. See `cube-chaos-rule-text` for the full convention and the color vocabulary.
-- `NO_DUPLICATES` stops the tag from stacking if granted more than once.
+- `NO_DUPLICATES` controls what a *second* grant of the same-named ability does — see "Duplicate-grant model" below; for a pure marker tag it means the second grant is silently discarded, which is what you want.
 - `NORANDOM` excludes the ability from random-ability-grant pools. Confirmed by grepping every real `NORANDOM` usage in the base game: applied uniformly to internal AI-only scaffolding abilities (`AiPlacementAdd`, `AiWarrior` in `Base_Core/2AiCompounds.c.txt`) and to abilities explicitly marked deprecated ("no longer used... kept in case some mod uses it"). Reads as a general "never eligible to be handed out by any random-ability mechanic" flag rather than something narrower — apply it to your own tag abilities so a "steal a random ability from a hand/board cube" mechanic (`GainRandomAbilityOfCube`, see `references/creation-and-copying.md`'s Speaker-style pattern) doesn't spread your cosmetic marker onto unrelated cubes. (Caveat: not verified by decompiling the engine, just by convention — the base game's own `Golden` tag deliberately does NOT set `NORANDOM`, presumably because being copied is thematically fine for a "golden" bonus; decide per-case whether propagation is desirable for your tag.)
 - **There is no known way to fully hide an ability's line from a cube's rules/tooltip panel.** Searched for a `HIDDEN`/`NOTEXT`-style flag across the complete undocumented all-caps flag vocabulary in every `GameData/**/*.c.txt` file and found only `NO_DUPLICATES`, `NORANDOM`, `LOCAL`, `TOKEN`, `IDENT` — nothing that suppresses tooltip rendering. Every granted ability shows at least its `Text:` line, even a minimal one like `Golden`'s (`Text: \C255 238 0 Golden End`). If you want a tag unobtrusive rather than fully gone, the only lever is giving its own `Text:` a low-contrast color against the tooltip's dark background — a deliberate visual trick, not a real hide.
 - **The tooltip/rules-panel lists an ability's abilities in grant order, first-granted first.** When a chain grants 2+ abilities to the same cube via `Both (GainAbility A) (GainAbility B)` (or `GainAllAbilitiesOfPerk`/similar), whichever is granted first in the token sequence renders first in-game. Confirmed empirically on `DJ/DJ_Synergies.c.txt`'s `DJ-Moil` perk: swapping `Both (GainAllAbilitiesOfPerk ...) (GainAbility Moil_Blessed)` to `Both (GainAbility Moil_Blessed) (GainAllAbilitiesOfPerk ...)` moved `Moil_Blessed` from the bottom to the top of the rendered ability list, with no other change.
@@ -114,6 +114,50 @@ End
 **Consequence for "remember which cube type X was, act on it later" mod mechanics: there is no working dynamic-parameter path for this.** Zero real usage of `GenericCube` exists anywhere in the base game or any mod in this repo (confirmed by grep before this incident) — that absence is now explained, not just unexplored. Reach for one of these instead:
 - **A finite, known set of possible cube types**: define one non-parameterized helper compound per specific type (`AfterThisDies CreateCubeOnPosition CubeConstant <ThatOneType> ... PositionOfCube Caster`, no generic needed), then branch on `CubeHasName` at the grant site to pick which one to `GainAbility`. Scales linearly with roster size, zero risk, but only covers types you explicitly enumerated — needs a sensible fallback (e.g. a generic default) for anything outside that set. Real usage: Unholy's `Phylactery` perk (`Unholy_Species.c.txt`) — one `Soul_Memory_<CubeName>` compound per starter cube in its own species roster, defaulting to `Soul_Memory_Imp` for anything unrecognized.
 - **If the recreation can happen immediately instead of after a delay** (same trigger, no need to survive to a *later*, independent death event), skip the whole generic-parameter problem: act on the live cube reference directly in the same chain (`CopyWithAction <live-cube-ref> Action`, per `references/creation-and-copying.md`'s "duplicating a specific live cube" section) rather than trying to bake its identity into a granted ability for later.
+
+## Duplicate-grant model: pick it from the ability's SHAPE, not by habit
+
+**Decide this deliberately for every ability that can be granted more than once to the same cube — the engine has three distinct behaviours and picking the wrong one fails silently.** Decompiled from `Cube.AddAbility` (2026-08-02):
+
+```java
+if (!A.Duplicates) {                                   // NO_DUPLICATES is set
+    for (Ability ATest : this.AbilityL) {
+        if (!A.Name.equals(ATest.Name)) continue;
+        if (... A.StackingCodeL != null && ATest.StackingCodeL != null
+              && A.StackingCodeL.size() == ATest.StackingCodeL.size()) {
+            ATest.StackingCodeL.get(i).Value += A.StackingCodeL.get(i).Value;   // MERGE into the existing instance
+            return Result;
+        }
+        NoDuplicatesFound = false;
+    }
+    if (NoDuplicatesFound) { /* clone + HookInTriggers + add */ }
+} else               { /* clone + HookInTriggers + add -- a NEW independent instance */ }
+return null;                                           // silently discarded
+```
+
+`StackingCodeL` is declared with **no initializer**, so it is `null` for any ability with no `STACKING` parameter.
+
+| Ability shape | Correct model | Why |
+|---|---|---|
+| Persistent passive with a `STACKING` parameter (`ArmorX`, `RegenerationX`, `StrengthX`) | `NO_DUPLICATES` **+** a `GenericStacking` parameter | Values merge into one instance: `ArmorX 1` twice becomes `Armor 2`. One instance, one tooltip line, no duplicate triggers. |
+| Pure marker/cosmetic tag, no parameter (`Golden`-style) | `NO_DUPLICATES`, no parameter | Second grant hits `return null` and is discarded — exactly right for a flag. |
+| **One-shot that removes itself after firing** (`XDelay`/`EveryXSeconds` … `RemoveThisAbility`) | **No `NO_DUPLICATES`, no `STACKING`** — independent instances, **plus a concurrency cap** | Each instance needs its OWN countdown and its own removal. |
+
+**The one-shot row is the trap.** Reaching for `NO_DUPLICATES` + `STACKING` on a self-removing timed ability *looks* like "make it stack" and is wrong twice over: a stack gained partway through the countdown inherits the **existing** instance's already-running timer (so it fires early — a stack added at t=3 of a 5s timer fires 2s later, not 5), and the single `RemoveThisAbility` then deletes **every** accumulated stack at once. Independent instances are the correct model because `RemoveThisAbility` is `ActionRemoveAbility` bound to the `ThisAbility` production, and its `DO` calls `AP.Remove(E)` on the resolved `Ability` **object** — removal is by instance identity, never by name, so parallel copies coexist safely.
+
+**But dropping `NO_DUPLICATES` on a self-propagating ability removes the thing that was silently keeping the spread bounded — always add an explicit concurrency cap in the same edit:**
+```
+If IsSmaller AmountOfAbilitiesOfCubeWithName Target <AbilityName> DoubleConstant <cap> GainThisAbility
+```
+Without it, one instance granting a copy to each of `k` eligible neighbours multiplies the instance population by `k` per generation — the same supercritical branching process `references/death-fusion-reactive.md` documents for `Both Die (create)` chains, just via ability grants instead of cube creation.
+
+**`AmountOfAbilitiesOfCubeWithName CUBE WORD` takes a bare WORD, so a compound CAN reference its own name here — unlike `GainAbility`.** A compound's name is not registered until its block closes, so `GainAbility <OwnName>` inside its own body fails with `ERROR: CANT READ ABILITY(Source) <OwnName>` and desyncs the rest of the chain (real incident, `Crusader`'s `Consecration`, 2026-08-02). Word-typed arguments resolve late and are fine — the base game's own `CheaperX` relies on this (`GetStackingOfAbilityOnCube CheaperX Caster` and `RemoveAbilityWithName CheaperX`, both inside `CheaperX`). **Consequence: a self-propagating one-shot must spread via `GainThisAbility`, which hands over the running instance — including its current stack if it has one, which is why the stacking model also compounds without bound.**
+
+**Verification: for every self-removing granted ability, confirm (a) no `NO_DUPLICATES` on the block, and (b) a `AmountOfAbilitiesOfCubeWithName` cap guards its own re-grant call.** Both are one-line greps and both failures are invisible at load — no warning, no error, just a wrong pulse rate or a runaway.
+
+Real precedent, all three models tried on one ability in one session (`Crusader`'s `Consecration`, 2026-08-02): parameterless + `NO_DUPLICATES` silently discarded every re-grant (looked "too weak" in play, no visual either — see below); `NO_DUPLICATES` + `STACKING` merged into one shared timer that killed all stacks together; independent instances + a cap is the shipped version.
+
+**Bonus consequence worth knowing: a discarded grant also suppresses its own visuals and triggers.** `ActionGainAbility.DO` draws `Cube.AddEffects(Colour.Convert(0, 200, 100), Caster, Target, false)` (a green granter→receiver trail, unless the action is `Secret`), and `Cube.GainAbilityAction` runs the ability's `WhenYouGainThis` action list — but both are gated on `GainAbility` returning true, which is `AddAbility(A) != null`. The `return null` discard path therefore produces **no effect, no trigger, and no log line**. Conversely, both DO fire on a `STACKING` merge (that branch returns non-null), so `WhenYouGainThis` is a valid place to hang a per-stack particle/sound.
 
 ## Making an ability propagate to created cubes: the base-game `Inheritable` modifier
 

@@ -49,7 +49,7 @@ A "bridge" mod that only makes sense with two other mods both installed (e.g. `D
 
 ## This repo's current publish-readiness (last updated 2026-08-02, all 8 mods)
 
-`ID:` is still an untouched local placeholder for every mod below (none published yet). Only 3 of 8 have satisfied every *file-level* requirement (an `Image.png`, specifically) — this table previously only tracked those 3 plus `DJ_Voidling` and went stale as `Voidling`/`Broker`/`Great_Wall`/`Home_Turf_Advantage` were added; re-audited against real `GameData/<Mod>/Image.png`/`Description` state on 2026-08-02, not assumed:
+`ID:` is still an untouched local placeholder for every mod below (none published yet). Only 4 of 8 have satisfied every *file-level* requirement (an `Image.png`, specifically) — this table previously only tracked 3 plus `DJ_Voidling` and went stale as `Voidling`/`Broker`/`Great_Wall`/`Home_Turf_Advantage` were added; re-audited against real `GameData/<Mod>/Image.png`/`Description` state on 2026-08-02, not assumed. (`Home_Turf_Advantage` was absorbed into `Crusader` later the same day and its row replaced — a mod that disappears must be *removed* from this table, not left as a phantom row.)
 
 | Mod | `Image.png` | `Tag:` values | Still needed to actually publish |
 |---|---|---|---|
@@ -59,7 +59,7 @@ A "bridge" mod that only makes sense with two other mods both installed (e.g. `D
 | `Voidling` | not yet generated (single-species mod — the standard recipe applies: crop `PERK: Voidling`'s icon, the first `PERK:` block in `Voidling_Species.c.txt`) | `Classes/Species`, `Perks`, `Cubes` | `Image.png`, then NEW PROJECT |
 | `Broker` | not yet generated (single-class mod — the standard recipe applies: crop `PERK: Broker`'s icon, the first `PERK:` block in `Broker_Perks.c.txt`) | `Classes/Species`, `Perks`, `Cubes`, `Scenarios` | `Image.png`, then NEW PROJECT |
 | `Great_Wall` | not yet generated (a Terrain mod, no class/species base perk to source from — needs a human call, same as `DJ_Voidling`) | `Terrain` | `Image.png` + a human call on source art, then NEW PROJECT |
-| `Home_Turf_Advantage` | not yet generated (a single Neutral perk, no class/species base perk to source from — needs a human call, same as `DJ_Voidling`) | `Perks` | `Image.png` + a human call on source art, then NEW PROJECT |
+| `Crusader` | ✅ gold Latin cross (base class perk) | `Classes/Species`, `Perks`, `Cubes` | MODDING → NEW PROJECT → fill in description on the Community Page it opens |
 | `DJ_Voidling` | not yet generated (single-synergy-perk mod, no obvious single default — see the class/species workflow's Image.png step) | `Classes/Species`, `Perks` | `Image.png` + the required-items TODO above, then NEW PROJECT |
 
 Re-audit the `Tag:` row whenever a mod gains a genuinely new content category (a `_Curses.c.txt`, `_Consumables.c.txt`, a terrain/event/scenario file, etc.) — General and Unholy were checked against every `CorrectTags` category on 2026-07-25 and confirmed to have no curse/consumable/terrain/event/scenario content, so their 3-tag set is deliberately minimal, not an oversight. The 5 newer rows' `Tag:` values above are only transcribed from each mod's real `Description` file, not independently re-audited against `CorrectTags` category-by-category the way DJ/General/Unholy were.

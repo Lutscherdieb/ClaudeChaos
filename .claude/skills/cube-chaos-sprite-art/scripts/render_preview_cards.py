@@ -1408,9 +1408,9 @@ def find_class_species(mod_dir, mod_prefix):
     one: DJ/General/Broker's own class perk and Unholy/Voidling's own
     species perk are each literally the first PERK: block in their file).
     Returns None for a mod with neither file, or whose first block isn't
-    actually a CLASS/SPECIES perk (Great_Wall/Home_Turf_Advantage are
-    Terrain/Neutral-only mods with no class or species of their own) --
-    the cube-card footer is simply omitted in that case, not left blank."""
+    actually a CLASS/SPECIES perk (Great_Wall is a Terrain-only mod with
+    no class or species of its own) -- the cube-card footer is simply
+    omitted in that case, not left blank."""
     for basename in perks_source_basenames():
         path = os.path.join(mod_dir, f"{mod_prefix}_{basename}.c.txt")
         blocks = parse_blocks(path, PERK_HEADER)
@@ -1434,9 +1434,9 @@ def build_cube_icon_index(mod_dir, mod_prefix):
     render_mod()) so every card category's Referenced Cubes row (not just
     build_cubes' own cross-references) can resolve a cube name to its real
     icon without each category builder re-loading the cube sheet itself.
-    Returns {} for a mod with no _Cubes.c.txt at all (e.g. Great_Wall,
-    Home_Turf_Advantage) -- Referenced Cubes then just never finds a match,
-    same as a genuinely cross-mod/base-game reference."""
+    Returns {} for a mod with no _Cubes.c.txt at all (e.g. Great_Wall) --
+    Referenced Cubes then just never finds a match, same as a genuinely
+    cross-mod/base-game reference."""
     path = os.path.join(mod_dir, f"{mod_prefix}_Cubes.c.txt")
     if not os.path.exists(path):
         return {}
@@ -1683,4 +1683,4 @@ if __name__ == "__main__":
     render_mod(os.path.join(ROOT, "GameData", "Broker"), "Broker")
     render_mod(os.path.join(ROOT, "GameData", "DJ_Voidling"), "DJ_Voidling")
     render_mod(os.path.join(ROOT, "GameData", "Great_Wall"), "Great_Wall")
-    render_mod(os.path.join(ROOT, "GameData", "Home_Turf_Advantage"), "Home_Turf_Advantage")
+    render_mod(os.path.join(ROOT, "GameData", "Crusader"), "Crusader")

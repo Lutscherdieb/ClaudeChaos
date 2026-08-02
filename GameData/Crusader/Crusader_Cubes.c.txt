@@ -1,0 +1,139 @@
+COMPOUND: ABILITY
+Consecration
+EveryXSeconds DoubleConstant 5 Both
+ EveryCubeTouchingPosition PositionOfThis If IsAllyToCaster Target
+  Both HealXDamage DoubleConstant 1
+   If And HasAbilityWithName Target ChargeEveryX
+        IsSmaller AmountOfAbilitiesOfCubeWithName Target Consecration DoubleConstant 5
+    GainThisAbility
+ TargetCube Caster RemoveThisAbility
+ExtraTrigger: WhenYouGainThis CreateParticlesWithColourOnPosition DoubleConstant 15119410 PositionOfThis
+Text: \C230 180 50 Consecration \B : \CN \N \C96 96 96 (After 5 seconds heal every touching ally 1 hp and pass this on to every touching \C155 238 255 charging \C96 96 96 ally, max 5 per cube, then lose this ability) \CN End
+NORANDOM
+End
+
+CUBE: Crusade_Knight 45 10 10
+IDENT 1 20 15 0 0
+TYPE Attacker
+TYPE Starter
+Ability: ArmorX 1
+Ability: EveryXMeleeY 120 3
+Ability: ChargeEveryX 180
+AiPlacementRule: And AiFrontline AiStacking
+End
+
+CUBE: Spiritual_Rebirth 15 0 0
+IDENT 3 0 0 0 40
+TYPE Special
+Ability: FreePlacement
+Ability: AfterThisIsCreated Both
+ TargetCube CubeInDirectionFromCube South Caster
+  If And CubeExists Target Not IsALeader Target
+   If Not IsAllyToCaster Target
+    Both FactionXGainsYMana FactionOfThis Minus ManaCostOfCube Target
+     TargetCube Target SetFaction FactionOfThis
+ TargetCube Caster Exile
+Text: After this is placed, if the cube below is not an ally and not a leader, lose \CMANA mana \CN equal to that cube's cost and convert it to your faction, then exile this End
+Visual: Target 0 1 109 209 228
+AiPlacementRule: AiEnemySouth
+End
+
+CUBE: Ballista 45 4 4
+IDENT 2 30 0 5 5
+TYPE Shooter
+Ability: EveryXSeconds DoubleConstant 8 If IsPositionEmpty PositionInDirectionFromPosition Forwards PositionOfThis
+ CreateCubeOnPosition CubeConstant Ballista_Bolt PositionInDirectionFromPosition Forwards PositionOfThis
+Text: Every 8 seconds create a Ballista_Bolt in front End
+Visual: Target 1 0 96 96 96
+AiPlacementRule: And AiStacking AiEmptyInfront
+End
+
+CUBE: Ballista_Bolt 8 1 1
+TOKEN
+Ability: ProjectileX 3
+Ability: Flying
+Ability: ChargeEveryX 10
+Ability: DieAfterX 300
+Ability: AfterThisKills CreateCubeOnPosition CopyWithAction Caster GainAbility StrengthX -1 PositionOfCube Victim
+Text: After this kills a cube, create a copy of this in its place with \C255 38 0 1 less Strength \CN End
+AiPlacementRule: AiMissile
+End
+
+CUBE: Trebuchet 70 5 5
+IDENT 2 40 0 0 10
+TYPE Shooter
+Ability: EveryXSeconds DoubleConstant 30 Both
+ Both CreateCubeOnPosition CubeConstant Trebuchet_Rock PositionInDirectionFromPosition North PositionOfThis
+  If CubeExists CubeOfPosition PositionInDirectionFromPosition North PositionOfThis
+   TargetCube CubeOfPosition PositionInDirectionFromPosition North PositionOfThis
+    If CubeHasName Target Trebuchet_Rock
+     Both GainAbility Arcing DoubleConstant 180
+      SetVariable ARCING DoubleConstant 14
+ Both
+  Both CreateCubeOnPosition CubeConstant Trebuchet_Rock PositionInDirectionFromPosition Forwards PositionInDirectionFromPosition North PositionOfThis
+   If CubeExists CubeOfPosition PositionInDirectionFromPosition Forwards PositionInDirectionFromPosition North PositionOfThis
+    TargetCube CubeOfPosition PositionInDirectionFromPosition Forwards PositionInDirectionFromPosition North PositionOfThis
+     If CubeHasName Target Trebuchet_Rock
+      Both GainAbility Arcing DoubleConstant 180
+       SetVariable ARCING DoubleConstant 20
+  Both CreateCubeOnPosition CubeConstant Trebuchet_Rock PositionInDirectionFromPosition Forwards PositionOfThis
+   If CubeExists CubeOfPosition PositionInDirectionFromPosition Forwards PositionOfThis
+    TargetCube CubeOfPosition PositionInDirectionFromPosition Forwards PositionOfThis
+     If CubeHasName Target Trebuchet_Rock
+      Both GainAbility Arcing DoubleConstant 180
+       SetVariable ARCING DoubleConstant 26
+Text: Every 30 seconds hurl 3 Rocks at once, one above, one above and in front, one in front, each launched on a different \C155 238 255 ARCING \CN trajectory End
+Visual: Target 0 -1 96 96 96
+Visual: Target 1 -1 96 96 96
+Visual: Target 1 0 96 96 96
+AiPlacementRule: And AiStacking AiEmptyNorth
+End
+
+CUBE: Trebuchet_Rock 10 1 1
+TOKEN
+Ability: ProjectileX 4
+Ability: Flying
+Ability: ChargeEveryX 20
+Ability: DieAfterX 600
+AiPlacementRule: AiMissile
+End
+
+CUBE: Holy_Cross 35 5 5
+IDENT 2 0 15 20 5
+TYPE Support
+TYPE Starter
+Ability: ArmorX 1
+Ability: EveryXSeconds DoubleConstant 10 EveryCubeTouchingPosition PositionOfThis
+ If IsAllyToCaster Target If HasAbilityWithName Target ChargeEveryX
+  TargetCube Target GainAbility Consecration
+Text: Every 10 seconds every touching \C155 238 255 charging \CN ally gains \A Consecration End
+Visual: Target 1 0 109 209 228
+Visual: Target -1 0 109 209 228
+Visual: Target 0 1 109 209 228
+Visual: Target 0 -1 109 209 228
+AiPlacementRule: And AiStacking AiDefense
+End
+
+CUBE: Cardinal 40 6 6
+IDENT 3 0 10 25 20
+TYPE Support
+TYPE Starter
+Ability: ChargeEveryX 120
+Ability: BeforeThisMoves If And PositionExists PositionInDirectionFromPosition EventDirection PositionOfThis
+   IsPositionEmpty PositionInDirectionFromPosition EventDirection PositionOfThis
+ If CubeExists CubeInDirectionFromCube North Caster
+  TargetCube CubeInDirectionFromCube North Caster MoveInDirection EventDirection
+Text: Before this moves into a free space, the cube above it moves in the same direction End
+Ability: BeforeThisMoves If Or IsSameDirection EventDirection Forwards IsSameDirection EventDirection Backwards
+ If Not CubeExists CubeInDirectionFromCube North Caster
+  TargetCube CubeOfPosition PositionInDirectionFromPosition EventDirection PositionOfThis
+   If And CubeExists Target Not IsALeader Target
+    If IsAllyToCaster Target MoveInDirection North
+Text: Before this moves sideways into an ally while carrying nothing above, that ally moves upwards first, so this ends up below it End
+Ability: BeforeThisIsHealed If IsLarger Addition HpOfCube Caster EventAmount MaxHpOfCube Caster
+ TargetCube ARandomLeaderOfFaction EnemyFaction TakeXDamage DoubleConstant 1
+Text: When this would be healed above its max hp, a random enemy leader loses 1 hp End
+Visual: Target 0 -1 109 209 228
+Visual: Target 1 0 109 209 228
+AiPlacementRule: And AiFrontline AiStacking
+End

@@ -48,7 +48,7 @@ Three functions cross from the ordinary cube/perk ability layer into this scenar
 | File | Load when you're... |
 |---|---|
 | `references/battle-and-terrain-maps.md` | Authoring a Terrain perk (battlefield layout), a new kind of battle scenario, or anything using `ADDITIONALMAP:`/`DATA:`/`DATARECT:`/`PLACERECT:`/`CAMPAIGNSETUP:` |
-| `references/nodemap-generation.md` | Designing a new campaign/world map screen (`NODEMAP:`, `MAP_NODE:`, `LAYER:`, `CONNECTION:`, branching path generation) |
+| `references/nodemap-generation.md` | Designing a new campaign/world map screen (`NODEMAP:`, `MAP_NODE:`, `LAYER:`, `CONNECTION:`, branching path generation) — **or rewriting an existing map's nodes from a `PERK:`** (`AfterAMapIsGenerated`, `EveryMapNodeWhich`, `MapNodeIsType`, `SetMapNodeScenario`), which is what "change what nodes the map has" almost always means |
 | `references/reward-and-economy-scenarios.md` | Building a new non-combat map-node screen: a chest/shop/forge/curse-trade, or any `PERK_REWARD:`/`CUBE_REWARD:`/`SHOP:`/`PERK_SELECTION:` block |
 | `references/challenge-and-branching-choices.md` | Building a bespoke fixed-hand challenge battle, or any `CHOICE:`/`Choice:`/`Condition:` branching menu |
 
