@@ -68,6 +68,13 @@
             "command": "bash .claude/hooks/check-workflow-overview.sh",
             "timeout": 15,
             "statusMessage": "Checking WORKFLOW_OVERVIEW.md freshness against the orchestrator..."
+          },
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash .claude/hooks/check-skill-cold-test.sh",
+            "timeout": 15,
+            "statusMessage": "Checking whether a new/changed skill needs a cube-chaos-doc-audit cold test..."
           }
         ]
       }

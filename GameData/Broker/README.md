@@ -1,6 +1,6 @@
 # Broker — a Cube Chaos Class mod
 
-A gold-and-gambling Class: cube upgrades you buy never run out of uses, every map opens with a free Forge offering only Cube Upgrades, and gold income doubles as mana income.
+A gold-and-gambling Class: cube upgrades you buy never run out of uses, every map opens with a Forge offering only Cube Upgrades, and gold income doubles as mana income.
 
 <!-- PREVIEW:START -->
 ## Preview — Broker mod content

@@ -77,6 +77,10 @@ If that preference is set to `worktree-gated`, every session also runs a quick c
 | `cube-chaos-mod-setup` | Folder scaffolding, `Loading_Order.txt`, the launch-and-log test loop |
 | `cube-chaos-audit` | Cross-cutting consistency checks over a mod's existing content (guards, wording, balance, sprite borders) — indexes the other skills' own rules rather than duplicating them; scope-gated by a questionnaire when the mod is a foreign/Workshop one |
 
+## Keeping the skill system itself honest
+
+`cube-chaos-doc-audit` is a separate, on-demand skill (not a hook — too expensive to run on every edit) that audits the skill/reference/README tree **itself**, not any mod's game content — that's `cube-chaos-audit`'s job, and the two names are easy to confuse on purpose (see `cube-chaos-orchestrator`'s own disambiguation note). It checks for hardcoded lists that drifted from reality (a mod roster or sample size baked into prose instead of derived), missing or one-directional cross-references between skills, self-contradictions on the same fact, and README prose that's drifted from the mod it describes — reporting findings for approval before fixing anything, the same gate `cube-chaos-audit` uses. Findings relevant across more than one skill get tracked in `cube-chaos-audit/references/cross-skill-index.md`, a lightweight index (not a second copy of any rule) that's also fed live, in the moment, by every domain skill's own write-back protocol. First run: 2026-08-02.
+
 ---
 
 Source of truth: [`.claude/skills/cube-chaos-orchestrator/SKILL.md`](.claude/skills/cube-chaos-orchestrator/SKILL.md) and its [`workflows/`](.claude/skills/cube-chaos-orchestrator/workflows/) — this page is a reading aid, not a replacement for it.

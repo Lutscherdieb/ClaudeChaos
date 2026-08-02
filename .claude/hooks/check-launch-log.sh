@@ -8,7 +8,13 @@
 
 set -uo pipefail
 
-mods="DJ General Unholy"
+# Base-game packages this repo never edits (per CLAUDE.md) -- excluded below
+# since they're not "our" content. Everything else under GameData/ is a real
+# mod folder and gets covered automatically -- a hardcoded mod list here
+# (`mods="DJ General Unholy"`) previously went stale and silently skipped 5
+# of 8 real mods (Broker/DJ_Voidling/Great_Wall/Home_Turf_Advantage/Voidling
+# had no launch-check nudge at all); found and fixed 2026-08-02.
+base_game_dirs="Base_Core|Extra_Mechanics|Characters|Main|Modding_Example"
 
 # Locate Log.txt via $APPDATA (a Windows path in this git-bash environment).
 logpath=""
@@ -26,27 +32,27 @@ if [ -z "$status" ]; then
 fi
 paths="$(printf '%s\n' "$status" | cut -c4-)"
 
+# Any changed *.c.txt under GameData/<mod>/ whose <mod> isn't a base-game
+# package -- derived from the actual changed paths, not a fixed mod list.
+files="$(printf '%s\n' "$paths" | grep -E "^GameData/[^/]+/.*\.c\.txt\$" | grep -vE "^GameData/(${base_game_dirs})/" || true)"
+
 flagged=""
-for mod in $mods; do
-  files="$(printf '%s\n' "$paths" | grep -E "^GameData/${mod}/.*\.c\.txt$" || true)"
-  [ -z "$files" ] && continue
-  while IFS= read -r f; do
-    [ -z "$f" ] && continue
-    [ -f "$f" ] || continue
+while IFS= read -r f; do
+  [ -z "$f" ] && continue
+  [ -f "$f" ] || continue
 
-    touched=0
-    if git diff --unified=0 -- "$f" 2>/dev/null | grep -qE '^[+-](Ability:|WorldAbility:)'; then
-      touched=1
-    elif printf '%s\n' "$status" | grep -qE "^\?\? ${f}\$" && grep -qE '^(Ability:|WorldAbility:)' "$f" 2>/dev/null; then
-      touched=1
-    fi
-    [ "$touched" -eq 1 ] || continue
+  touched=0
+  if git diff --unified=0 -- "$f" 2>/dev/null | grep -qE '^[+-](Ability:|WorldAbility:)'; then
+    touched=1
+  elif printf '%s\n' "$status" | grep -qE "^\?\? ${f}\$" && grep -qE '^(Ability:|WorldAbility:)' "$f" 2>/dev/null; then
+    touched=1
+  fi
+  [ "$touched" -eq 1 ] || continue
 
-    if [ -z "$logpath" ] || [ ! -f "$logpath" ] || [ "$f" -nt "$logpath" ]; then
-      flagged="$flagged $f"
-    fi
-  done <<< "$files"
-done
+  if [ -z "$logpath" ] || [ ! -f "$logpath" ] || [ "$f" -nt "$logpath" ]; then
+    flagged="$flagged $f"
+  fi
+done <<< "$files"
 
 if [ -z "$flagged" ]; then
   exit 0

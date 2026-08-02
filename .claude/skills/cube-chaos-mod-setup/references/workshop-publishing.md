@@ -47,17 +47,21 @@ A "bridge" mod that only makes sense with two other mods both installed (e.g. `D
 
 `setItemContent` is pointed at the mod's own `GameData/<Mod>/` folder (`Path: ` + the folder), so the whole folder — `.c.txt` files, `Sprites/`, `Description`, `README.md`, `Preview/` — goes up as the Workshop item's content, not a hand-picked subset. Nothing in this skill's existing file-layout guidance needs to change for that; it just means anything sitting in the mod folder ships to players, so don't leave scratch/debug files there.
 
-## This repo's current publish-readiness (last updated 2026-07-25)
+## This repo's current publish-readiness (last updated 2026-08-02, all 8 mods)
 
-All three mods have satisfied every *file-level* requirement above — `Image.png` present, `Tag:` values real, `ID:` still an untouched local placeholder (none published yet). What's left for each is purely the manual in-game click-through described above (needs a live Steam session + accepting the legal agreement, so it's never something to do unattended):
+`ID:` is still an untouched local placeholder for every mod below (none published yet). Only 3 of 8 have satisfied every *file-level* requirement (an `Image.png`, specifically) — this table previously only tracked those 3 plus `DJ_Voidling` and went stale as `Voidling`/`Broker`/`Great_Wall`/`Home_Turf_Advantage` were added; re-audited against real `GameData/<Mod>/Image.png`/`Description` state on 2026-08-02, not assumed:
 
 | Mod | `Image.png` | `Tag:` values | Still needed to actually publish |
 |---|---|---|---|
 | `DJ` | ✅ headphones (base class perk) | `Classes/Species`, `Perks`, `Cubes`, `Curses`, `Consumables` | MODDING → NEW PROJECT → fill in description on the Community Page it opens |
 | `General` | ✅ grenade-flask (base class perk) | `Classes/Species`, `Perks`, `Cubes` | same |
 | `Unholy` | ✅ demon head (base species perk) | `Classes/Species`, `Perks`, `Cubes` | same |
+| `Voidling` | not yet generated (single-species mod — the standard recipe applies: crop `PERK: Voidling`'s icon, the first `PERK:` block in `Voidling_Species.c.txt`) | `Classes/Species`, `Perks`, `Cubes` | `Image.png`, then NEW PROJECT |
+| `Broker` | not yet generated (single-class mod — the standard recipe applies: crop `PERK: Broker`'s icon, the first `PERK:` block in `Broker_Perks.c.txt`) | `Classes/Species`, `Perks`, `Cubes`, `Scenarios` | `Image.png`, then NEW PROJECT |
+| `Great_Wall` | not yet generated (a Terrain mod, no class/species base perk to source from — needs a human call, same as `DJ_Voidling`) | `Terrain` | `Image.png` + a human call on source art, then NEW PROJECT |
+| `Home_Turf_Advantage` | not yet generated (a single Neutral perk, no class/species base perk to source from — needs a human call, same as `DJ_Voidling`) | `Perks` | `Image.png` + a human call on source art, then NEW PROJECT |
 | `DJ_Voidling` | not yet generated (single-synergy-perk mod, no obvious single default — see the class/species workflow's Image.png step) | `Classes/Species`, `Perks` | `Image.png` + the required-items TODO above, then NEW PROJECT |
 
-Re-audit the `Tag:` row whenever a mod gains a genuinely new content category (a `_Curses.c.txt`, `_Consumables.c.txt`, a terrain/event/scenario file, etc.) — General and Unholy were checked against every `CorrectTags` category on 2026-07-25 and confirmed to have no curse/consumable/terrain/event/scenario content, so their 3-tag set is deliberately minimal, not an oversight.
+Re-audit the `Tag:` row whenever a mod gains a genuinely new content category (a `_Curses.c.txt`, `_Consumables.c.txt`, a terrain/event/scenario file, etc.) — General and Unholy were checked against every `CorrectTags` category on 2026-07-25 and confirmed to have no curse/consumable/terrain/event/scenario content, so their 3-tag set is deliberately minimal, not an oversight. The 5 newer rows' `Tag:` values above are only transcribed from each mod's real `Description` file, not independently re-audited against `CorrectTags` category-by-category the way DJ/General/Unholy were.
 
 Once any mod actually goes through `NEW PROJECT`, update its row here with the real Workshop item URL/ID and drop it from "still needed."

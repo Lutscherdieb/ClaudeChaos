@@ -1,6 +1,6 @@
 # Home_Turf_Advantage — a Cube Chaos Neutral perk mod
 
-A small standalone mod that adds one Neutral reward perk, `Home Turf Advantage`. In boss battles, the terrain's fortified advantage (walls, moats, catapults — whatever the terrain would normally hand the boss) ends up on your side of the field instead of theirs, and any of the boss's own structures that land on your side answer to you.
+A small standalone mod that adds one Neutral reward perk, `Home Turf Advantage`. In boss battles, the terrain's fortified advantage (walls, moats, catapults — whatever the terrain would normally hand the boss) gets physically swapped onto your side of the field instead of theirs — and it cuts both ways: whichever side of the map a structure ends up on, that's who it answers to, so any of your own structures that land on the boss's side flip to their control too.
 
 This works with any Boss Terrain — it isn't tied to any specific terrain mod. **Doesn't require any other mod to be installed** — it's fully self-contained.
 

@@ -47,10 +47,22 @@ strip_backticks() {
   printf '%s' "$1" | sed -E 's/`[^`]*`//g'
 }
 
+# Strip HTML comment spans (e.g. <!-- PREVIEW:START -->/<!-- PREVIEW:END -->,
+# the sync_readme_preview.py region markers) before pattern-checking a line.
+# Confirmed via a real launch (2026-08-02, Log.txt clean across all 8 mods'
+# READMEs) that these markers do NOT trigger the engine's "excess End" error
+# the way bare prose does -- see cube-chaos-mod-setup/SKILL.md's "How the game
+# discovers content" section for the evidence. Single-line comments only,
+# matching this repo's actual usage.
+strip_html_comments() {
+  printf '%s' "$1" | sed -E 's/<!--.*-->//g'
+}
+
 lineno=0
 while IFS= read -r line || [ -n "$line" ]; do
   lineno=$((lineno + 1))
   stripped="$(strip_backticks "$line")"
+  stripped="$(strip_html_comments "$stripped")"
 
   if printf '%s' "$stripped" | grep -qiE '\bend\b'; then
     violations="${violations}

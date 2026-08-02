@@ -40,6 +40,8 @@ Skip this if the request already makes it obvious (naming a specific new perk/cu
 
 **The mod being audited doesn't have to be one of this repo's own.** `cube-chaos-audit` also handles a third-party/Workshop mod dropped in purely for review — it detects authorship itself and, for a foreign mod, runs its own short scope questionnaire first (since several checklist rows are this repo's own house style, not universal correctness). Step A's own mod-discovery logic (reading `Loading_Order.txt`) is about *this repo's* mods and doesn't need to find a foreign mod there.
 
+**"Audit" is ambiguous — this step and `cube-chaos-audit` only ever mean auditing a mod's game content.** If the request is instead about the skill/reference/README system itself ("audit our skills," "check if our documentation is stale," "are the skill files consistent with each other," "check for duplicate gotchas") — that's `cube-chaos-doc-audit`, a standalone skill that skips Step A's mod-selection entirely (there's no mod involved, just the skill tree). If genuinely unclear which is meant, ask directly rather than guessing.
+
 ## Step B — what does the user want to do?
 
 Skip the menu if the request already names a clear content type ("add a new Curse called X" goes straight to the matching workflow file below — don't force a wizard step the user already skipped past themselves). Otherwise ask via `AskUserQuestion`, broad first (max 4 options per question):
@@ -130,6 +132,9 @@ Each domain skill opens with a `## Research protocol` section, and they all foll
 | `cube-chaos-sprite-art` | Pixels measured from real `GameData/*/Sprites/*.c.png`, confirmed across several files (nothing about sprites is documented) |
 | `cube-chaos-balancing` | The distribution of real values across the right comparison class, not two or three sampled cubes |
 | `cube-chaos-mod-setup` | Real package layouts, then `%APPDATA%/CubeChaos/Log.txt` after an actual launch — the log outranks what the files imply |
+| `cube-chaos-audit` | The owning domain skill for whatever's being checked — this skill holds no rules of its own, only points to them |
+| `cube-chaos-repo-setup` | What's actually on this machine right now (`git remote -v`, `python3 -c "import PIL"`, etc.), never assumed from another session or carried over from another machine |
+| `cube-chaos-doc-audit` | The skill/reference/README tree itself, cross-read for drift/contradiction/asymmetry, plus real `GameData/`/README state and a fresh `Log.txt` — not the base game's own docs |
 
 **Enforce the write-back.** The research step is only worth its cost once, so a session that had to go to the base game for an answer does not end until that answer is a section in the relevant skill, with its evidence (`file:line`, error text, sample size, or occurrence counts as appropriate). Treat an un-written-back finding the same as an unlaunched content change — the work isn't finished. This is what makes step 1 progressively cheaper instead of every session re-deriving the same conventions.
 
@@ -137,7 +142,7 @@ Note the two root reference files are small enough to consult freely — `Moddin
 
 ## Domain skill structure: core + `references/`, one shape for every skill
 
-Every domain skill (`cube-chaos-scripting`, `cube-chaos-scenario-scripting`, `cube-chaos-rule-text`, `cube-chaos-sprite-art`, `cube-chaos-balancing`, `cube-chaos-mod-setup`, `cube-chaos-audit`) follows the same two-tier shape as it grows, regardless of how big it currently is:
+Every domain skill (`cube-chaos-scripting`, `cube-chaos-scenario-scripting`, `cube-chaos-rule-text`, `cube-chaos-sprite-art`, `cube-chaos-balancing`, `cube-chaos-mod-setup`, `cube-chaos-audit`) follows the same two-tier shape as it grows, regardless of how big it currently is. So do this repo's *process* skills — `cube-chaos-repo-setup`, `cube-chaos-doc-audit` — even though they aren't part of Step B/C's content-creation dispatch table; "domain skill" in this section is about the shape every skill file follows, not a claim that only these seven exist:
 
 - **`SKILL.md` (core)** holds only what a *typical* trigger of that skill needs: the primary syntax/format/convention, the Research protocol section, and anything genuinely needed on nearly every use.
 - **`references/<topic>.md`** holds anything situational or deep-dive — a category of gotchas, an undocumented-field deep-dive, a specific mechanic's edge cases — split out as its own file, with a one-line "load this when..." note at the top so it's readable standalone.

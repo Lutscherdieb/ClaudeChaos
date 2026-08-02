@@ -1,6 +1,6 @@
 # Great_Wall — a Cube Chaos battlefields mod
 
-A mod for battlefields (Terrain perks). Right now it holds one: **Great Wall**, a barren field split by a great stone wall, with a spike trap guarding each flank and (on a Boss battle) enemy catapults perched on top.
+A mod for battlefields (Terrain perks). Right now it holds one: **Great Wall**, a barren field split by a great stone wall, with (on a Boss battle) enemy catapults perched on top.
 
 <!-- PREVIEW:START -->
 ## Preview — Great_Wall mod content

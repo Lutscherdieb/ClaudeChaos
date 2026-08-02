@@ -1,6 +1,6 @@
 # Voidling — a Cube Chaos Species mod
 
-A Species built around one neutral cube at the center of the board: True Void. It inherits every ability your perks would've granted your leader, your leader takes no damage from it, and any excess mana damage that would hit you or an enemy gets redirected into it as hp instead — feed it enough and it starts randomly re-rolling its own abilities as it outgrows itself.
+A Species built around one neutral cube, True Void, that's unmovable once you place it. It can't be destroyed and your leader specifically can't be hurt by it, and any excess mana damage — yours or an enemy's — gets negated and banked into your mana pool instead of landing. Feed it enough mana overflow (or more True Voids) and its Void Reach grows, periodically zapping everything around it for area damage.
 
 <!-- PREVIEW:START -->
 ## Preview — Voidling mod content

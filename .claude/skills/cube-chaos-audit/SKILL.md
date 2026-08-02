@@ -47,7 +47,7 @@ This keeps the checklist growing at the same rate the domain skills do, without 
 ## Running an audit
 
 1. **Identify the mod and detect authorship.** Confirm which mod folder (or all of them) is in scope. Then decide: is this one of *our* mods, or someone else's?
-   - It's **ours** if the mod folder is one of this repo's own tracked mods (the custom entries in `GameData/Loading_Order.txt` once the base-game/example packages are dropped, per `cube-chaos-orchestrator` Step A — DJ/General/Unholy as of this writing) or the user is plainly asking to check their own in-progress work.
+   - It's **ours** if the mod folder is one of this repo's own tracked mods (the custom entries in `GameData/Loading_Order.txt` once the base-game/example packages are dropped, per `cube-chaos-orchestrator` Step A) or the user is plainly asking to check their own in-progress work. Check `Loading_Order.txt` itself rather than trusting a remembered count or list here — it grows over time and a stale snapshot in this note would silently under-scope future audits.
    - It's **foreign** if the folder wasn't authored in this repo — a Workshop download, a mod folder copied in purely for review, or the user says as much ("check this mod I found", "review someone else's package"). A foreign mod doesn't need to appear in this repo's own `Loading_Order.txt` at all; it only needs to sit somewhere readable (typically still under `GameData/` since that's where the game loads packages from, but the audit itself just reads files — it doesn't require the mod to be wired into this repo's load order).
    - If genuinely ambiguous, ask directly rather than guessing ("is this a mod you're building here, or one you'd like reviewed as an outside package?").
 2. **Scope it.**
@@ -134,6 +134,7 @@ see "Running an audit" step 2).
 | File | Load when you're... |
 |---|---|
 | `references/detection-recipes.md` | Actually running an audit — has the concrete grep command or script sketch for every row above, in the same order |
+| `references/cross-skill-index.md` | Writing back a finding that might matter outside its own skill's domain (see `CLAUDE.md`'s research protocol), or working in a domain that might silently depend on a fact documented elsewhere. Also the target for `cube-chaos-doc-audit`'s `GAP` findings. |
 
 ## Notes for extending this checklist
 
