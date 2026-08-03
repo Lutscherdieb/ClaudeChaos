@@ -115,6 +115,115 @@ End
 - **A finite, known set of possible cube types**: define one non-parameterized helper compound per specific type (`AfterThisDies CreateCubeOnPosition CubeConstant <ThatOneType> ... PositionOfCube Caster`, no generic needed), then branch on `CubeHasName` at the grant site to pick which one to `GainAbility`. Scales linearly with roster size, zero risk, but only covers types you explicitly enumerated — needs a sensible fallback (e.g. a generic default) for anything outside that set. Real usage: Unholy's `Phylactery` perk (`Unholy_Species.c.txt`) — one `Soul_Memory_<CubeName>` compound per starter cube in its own species roster, defaulting to `Soul_Memory_Imp` for anything unrecognized.
 - **If the recreation can happen immediately instead of after a delay** (same trigger, no need to survive to a *later*, independent death event), skip the whole generic-parameter problem: act on the live cube reference directly in the same chain (`CopyWithAction <live-cube-ref> Action`, per `references/creation-and-copying.md`'s "duplicating a specific live cube" section) rather than trying to bake its identity into a granted ability for later.
 
+## A keyword that MODIFIES another ability: build it as an `ACTION` compound plus a text-only `ABILITY` twin
+
+**When a keyword's meaning is "do something to whatever ability it's attached to" (repeat it, double it,
+delay it) rather than "have this effect," write TWO compounds:**
+
+1. **`COMPOUND: ACTION <Name>Repeat`** — the mechanic, taking the payload via `GenericAction`. This is
+   what you actually wrap around the sub-action inside each ability chain.
+2. **`COMPOUND: ABILITY <Name>`** — body `Nothing`, carrying only the keyword's `Text:` header, plus
+   `NO_DUPLICATES` + `NORANDOM`. **Never granted to any cube.** It exists solely so `\A <Name>` has
+   something to resolve against, so the explanation renders wherever the keyword is referenced.
+
+Reference it in every affected ability's own `Text:` as `\A <Name>` (see `cube-chaos-rule-text`'s `\A`
+section). The player only ever sees `<Name>`; the `...Repeat` name never appears in any rule text.
+
+**Verify it worked by reading the rendered card, not the source:** run
+`cube-chaos-sprite-art/scripts/render_preview_cards.py` and open the affected cube's
+`GameData/<Mod>/Preview/<File>_<Cube>.png`. `\A` against a never-granted compound resolves silently
+either way — if the name were wrong or the compound missing, the card shows a bare word with no
+explanation rather than any error, and `Log.txt` stays clean.
+
+Real, working example — Crusader's `Spiritual` (`GameData/Crusader/Crusader_Cubes.c.txt`, 2026-08-03),
+used by three abilities with three different triggers:
+```
+COMPOUND: ABILITY
+Spiritual
+Nothing
+Text: \C230 180 50 Spiritual \B : \CN \N \C96 96 96 (This ability happens one extra time for every stack of \C0 254 33 Holy \C96 96 96 on this) \CN End
+NO_DUPLICATES
+NORANDOM
+End
+
+COMPOUND: ACTION
+SpiritualRepeat
+XTimes Addition DoubleConstant 1 GetStackingOfAbilityOnCube HolyX Caster GenericAction
+End
+```
+```
+Ability: EveryXSeconds DoubleConstant 30 SpiritualRepeat TargetCube ARandomAlly GainAbility RegenerationX 3
+Text: Every 30 seconds a random ally gains \A RegenerationX 3 \B , \A Spiritual End
+```
+
+**Why the split is forced, not a stylistic choice** — worth knowing so the next session doesn't spend
+the research budget rediscovering it:
+- No ability can reach into a *sibling* ability on the same cube to modify it. There is no
+  `ThisCubesOtherAbility`-style reference in any production list.
+- A `COMPOUND: ABILITY` must bake in its own trigger (there is **no `GenericTrigger`** — the complete
+  `Generic*` vocabulary is `Action`/`Boolean`/`Cube`/`Direction`/`Double`/`Constant`/`Time`/`Stacking`/
+  `Perk`/`Position`/`Ability`/`String`/`Word`/`Name`, `ModdingInfo.txt:295,469,561,601,630-633,705,713,735,750,754-755`).
+  So a single ABILITY compound can only serve keyword users that all share one trigger — which fails
+  the moment two cubes want the keyword on different triggers.
+- A `COMPOUND: ACTION` has no tooltip at all, so it cannot carry the keyword's explanation itself.
+
+Wrap the **narrowest** sub-action that should actually repeat, not the whole chain — the choice is
+load-bearing and silently wrong either way. Same `Spiritual`, three different wrap points:
+- `Lazarett` wraps the whole `TargetCube ARandomAlly ...`, so every repeat re-rolls a *different* ally.
+- `Ballista` puts the wrapper **inside `CreateCubeOnPosition CopyWithAction`'s own trailing `Action`
+  parameter**, so only the strength grant repeats and the create happens once. Do it this way rather than
+  creating the bolt and then re-acquiring it by position — that re-acquire shape is the single most common
+  real bug in this repo, and it would land the whole repeated grant on a pre-existing blocker whenever the
+  tile isn't free (see `references/creation-and-copying.md`, "The fix is `CreateCubeOnPosition
+  CopyWithAction`"). Caught on this very cube during the 2026-08-03 write-back cold-test: the first
+  implementation used the re-acquire shape *while the prose here already cited that trap as the reason not
+  to*, which is exactly how a documented hazard survives being documented.
+- `Holy_Cross` wraps its whole `EveryCubeTouchingPosition` loop, granting each touching ally that many
+  stacks of `Consecration` — which only compounds because `Consecration` has no `NO_DUPLICATES` (see
+  "Duplicate-grant model" below; a flag ability with `NO_DUPLICATES` would silently absorb every repeat).
+
+Nesting `XTimes` inside the wrapper is fine and is the reliable way to multiply two counts:
+`SpiritualRepeat XTimes MaxHpOfCube Caster GainAbility StrengthX 1` grants `maxHp x (1 + Holy)` total
+Strength. **Prefer this over `GainAbilityStacking StrengthX 0 <computed>`** for anything inside a repeat
+wrapper — `GainAbilityStacking`'s set-vs-add semantics on a re-grant are undocumented and unverified,
+so a repeat of it may collapse to a single application, whereas repeated `GainAbility <StackingAbility> 1`
+provably merges additively (see `references/gotchas-grepped.md`).
+
+`Caster` resolves correctly inside the expanded compound even under `TargetCube`/`EveryCubeTouchingPosition`
+rebinding (only `Target` rebinds), so `GetStackingOfAbilityOnCube HolyX Caster` reads the *owning* cube's
+stacks — matching the base game's own `GetStackingOfAbilityOnCube EnergyX Caster`
+(`Extra_Mechanics/1Compounds.c.txt:74`).
+
+## `GetStackingOfAbilityOnCube <Name> <CUBE>` — read a STACKING keyword's live stack count
+
+`ModdingInfo.txt:652`. **Write the ability name bare — not quoted, not wrapped in `DoubleConstant`/
+`StringConstant`** (`GetStackingOfAbilityOnCube HolyX Caster`), despite the production's signature
+listing its first argument as `String`. ~20 real base-game usages all take this form, e.g.
+`Characters/2TokenCubes.c.txt:686` (`GetStackingOfAbilityOnCube FrozenX Target`),
+`Characters/Species/Devourer.c.txt:47`, `Extra_Mechanics/1Compounds.c.txt:74`.
+
+**When you feed this (or any other computed DOUBLE) into a `GainAbility`/`GainAbilityStacking`, the paired
+rule text must NOT use `\A`** — `\A` prints the literal parameter you wrote, not the computed value. Use
+the bare coloured name plus the value in prose; see `cube-chaos-rule-text`'s three mechanical cautions
+under "Why `\A` at all".
+
+Only meaningful for a `GenericStacking`-parameterized ability (`HolyX`, `ArmorX`, `RegenerationX`,
+`StrengthX`, `PoisonX`, …) — those merge repeated grants into one live stack count. A `GenericConstant`
+ability (`ExplodesX`) has no stack count to read; use `AmountOfAbilitiesOfCubeWithName CUBE WORD`
+(`ModdingInfo.txt`, the DOUBLE list) to count separate instances instead. Crusader's own `Consecration`
+uses that second form for its own max-5-per-cube cap.
+
+## `ChangeMaxHp` raises max hp only; `GainXExtraHp` raises max hp AND heals to match
+
+Reach for `ChangeMaxHp DOUBLE` (`ModdingInfo.txt:290`) whenever the intent is "gain max hp *without*
+also gaining that much hp" — a bigger ceiling the cube then has to heal into. `GainXExtraHp` is an
+`ACTION` compound that does both (`Base_Core/1Compounds.c.txt:92-97`:
+`Both SetVariable TEMP <d>` / `Both ChangeMaxHp ...` / `Silent HealXDamage ...`), which is why it's the
+right one for "gains N extra hp" phrasing. The base game states the distinction in its own rule text:
+Priest's `Ancient_Blessing` uses `ChangeMaxHp EventAmount` and reads "it gains that much max hp", while
+`Injured_Veterans` uses `GainXExtraHp DoubleConstant 1` and spells out "+1 extra hp (+1 maxhp and hp)"
+(both `Characters/Classes/Priest.c.txt`). Match that wording split in `Text:`/`Description:` too.
+
 ## Duplicate-grant model: pick it from the ability's SHAPE, not by habit
 
 **Decide this deliberately for every ability that can be granted more than once to the same cube — the engine has three distinct behaviours and picking the wrong one fails silently.** Decompiled from `Cube.AddAbility` (2026-08-02):

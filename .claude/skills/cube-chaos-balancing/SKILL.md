@@ -56,6 +56,38 @@ Consistent with this whole skill set's core discipline (`cube-chaos-scripting`: 
 
 **`EveryXAcidicY TIME DAMAGE` (deals `DAMAGE` to every touching cube with a different name — an AoE poke, not single-target) empirically clusters at `DAMAGE 1`, not 2, across every real analog.** Grepped every `EveryXAcidicY` use in the base game + mods (excluding the deliberately-joke `Magma` `1000/1000/1000` cube): `Lava` (10 mana, `10 1`), `Solid_Shadow` (10 mana, `300 1`), `Fallout` (3 mana, `60 1`), `Acidic`/General class (40 mana `IDENT 2`, `60 1`), `Stomach_Cell` (20 mana `IDENT 1`, `60 1`), `Molten_Brimstone` (0 mana `TOKEN`, `60 1`) — six real cubes at `DAMAGE 1`, versus only a `TOKEN` acid-hazard puddle (`Acid`, `40 2`) at `DAMAGE 2`. So Unholy's `Imp`/`Plague_Imp` at `60 2` were priced above the real norm for this ability. Fixed 2026-07-28 by doubling the interval instead of cutting the damage (user's explicit preference — the user wanted to preserve the "2 damage" bite rather than chip for 1): both now use `EveryXAcidicY 120 2`, which lands their DPS exactly at the same 1-dmg/60-tick rate as the six real analogs above while keeping the bigger per-hit number. `ChargeEveryX` (Imp/Plague_Imp's other 60-tick ability) was deliberately left untouched at 60 — it's an unrelated forward-movement ability (`ModdingInfo.txt:93`, "Charging: every CODE 1 move forwards"), not a warmup tied to the attack timer, and only coincidentally shared the same number.
 
+## Scaling a stat off `Difficulty`: it starts at **0**, so floor it or offset it
+
+`Difficulty` (`ModdingInfo.txt:688`, a bare DOUBLE production usable in any battle ability) is a
+run-progress counter, **not** a difficulty *setting* with a sane minimum. It starts at 0 and is
+incremented by the scenarios themselves: `+1` per normal battle won, `+2` for an elite/boss
+(`Extra_Mechanics/Battle_Scenarios.c.txt:20,62,104`), plus assorted `ChangeDifficulty` riders on
+Blights, Nightmares, Curses and node choices. So it roughly tracks "battles won so far" and reaches
+the mid-to-high teens by late run — `Main/Curses.c.txt:568`'s `Minus Lowest Difficulty 15` implies the
+design expects it to pass 15.
+
+**Therefore: never write a raw `Difficulty` into a stat that must be ≥1.** A literal "hp equal to the
+difficulty" cube is born at 0 hp on the first battle of a run and dies the instant it's placed — no
+error, no warning, just a cube that evaporates. Use one of:
+- `Highest Difficulty DoubleConstant 1` — the value, floored at 1 (Crusader's `Crusade_Knight`,
+  2026-08-03: `AfterThisIsCreated GainXExtraHp Subtraction Highest Difficulty DoubleConstant 1 DoubleConstant 1`
+  on a `1 1` header, giving `hp = max(1, Difficulty)`).
+- `Addition DoubleConstant N Difficulty` — an offset baseline, the base game's own habit
+  (`Main/Specifics/Other_Scenarios.c.txt:455`, `GainXExtraHp Addition DoubleConstant 2 Difficulty`).
+- `RoundedDown Division Difficulty DoubleConstant N` when the intent is a slow drip that's *meant* to
+  be nothing early (`Main/GoldenPerks.c.txt:76` divides by 4 for a mana trickle).
+
+**Verify by reading the resulting number at both ends of the curve, not just one:** compute the stat at
+`Difficulty = 0` and at `Difficulty = 20` before committing. A difficulty-scaled cube is two different
+cubes, and pricing it off the late-run number alone ships something unplayable for the first several
+battles — flag that curve to the user explicitly rather than treating the mana cost as settled
+(`Crusade_Knight` at 60 mana is a 1/1 on battle one; that was accepted deliberately, with the tradeoff
+stated).
+
+Difficulty-scaled stats belong in the `IDENT` **scaling** field, not `aggressive`/`defensive` —
+`Crusade_Knight` went `IDENT 1 20 15 0 0` → `IDENT 1 20 15 20 0` when its flat 10/10 became
+difficulty-driven, and `Ballista` went `scaling 5` → `20` when its bolt damage became max-hp-driven.
+
 ## `TOKEN` cubes need none of this
 
 A `TOKEN` cube (not randomly obtainable — created only as a byproduct of another cube/perk's own ability, e.g. `Bomb`, `Shot`, `Rocket`) has no `IDENT` line at all, hence no rarity/aggressive/defensive/scaling/weirdness numbers to choose.

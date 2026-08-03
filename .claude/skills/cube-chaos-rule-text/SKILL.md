@@ -82,7 +82,19 @@ Grab the exact colour and display name from the ability's own entry in `ModdingI
 
 `\A` also resolves parameters per call site, so one definition serves every caller: `\A Rhythmic 50` and `\A Rhythmic 20` render the same sentence with different numbers.
 
-Two mechanical cautions:
+Three mechanical cautions:
+- **Don't use `\A` when the granted value is COMPUTED rather than a literal.** `\A` substitutes the
+  parameters exactly as written at the call site, so `\A StrengthX 1` renders the hard number "Strength 1"
+  even when the chain actually grants `maxHp`-many stacks — quietly telling the player the wrong number.
+  Use the **bare coloured name with no number, followed by `\B ,` and the value in prose**:
+  `give it \C255 38 0 Strength \CN \B , equal to this cube's max hp`. This is the base game's own idiom
+  for the same situation — `Main/3GeneralCubes.c.txt:2817`: *"After a differently named ally is placed
+  give it `\C255 38 0 Strength \CN \B ,` equal to the energy on this, then this dies"*. Note this is a
+  **third** case alongside the granted-with-a-literal (`\A`) and removed/tested (bare name) cases below,
+  and unlike the removed/tested case it takes **no number at all** — there's no count to put before the
+  name, which is the whole reason prose has to carry it.
+  *Verify by reading the rendered card* (`render_preview_cards.py` → `GameData/<Mod>/Preview/...`), not
+  the source: a wrong-number `\A` renders perfectly happily and `Log.txt` stays clean.
 - **Never leave punctuation glued to the ability name.** `\A Take_Off, cooldown 10 seconds` risks the parser reading `Take_Off,` as the name. Separate it and close the gap visually with `\B`: `\A Take_Off \B , cooldown 10 seconds`.
 - **Don't use `\A` for an ability being *removed* or *tested* rather than granted** (`lose Swarm`, `an ally without Charging`) — the inline text is phrased as an effect the cube currently has, which reads wrong under "loses" or "without". Use the bare coloured name there instead, regardless of who defined the ability — and if a stack count is included, put the **number before the name**: `\C255 38 0 1 Strength \CN`, not `\C255 38 0 Strength 1 \CN`. **Corrected 2026-07-29** (same Dinosaurs! audit): the mod consistently writes inline mid-sentence references number-first ("grants 1 Holy", "gain 1 Strength" — `\C0 254 33 1 Holy \CN`, `\C255 0 0 1 Fervor \CN`), which is the more natural English word order for a quantity ("gain 1 X", same as "gain 1 mana" or "gain 1 hp"); this repo's own prior example (`\C255 38 0 Strength 1 \CN`, name-then-number) copied the *header* word order (real base-game headers like `StrengthX`'s own `ModdingInfo.txt` string are genuinely name-then-number, e.g. `"Strength STACKING 1 :"`) into an inline-sentence context where it doesn't fit — headers and inline mid-sentence mentions call for different word order, and the header-style example was applied to the wrong context. **This does not affect the compound-header pattern below**, which is still name-then-number by design (matching real base-game headers) — this fix is scoped to the bare-name, non-`\A`, mid-sentence case only.
 
@@ -99,6 +111,8 @@ Text: \C<R> <G> <B> <Keyword Name> [CODE 1] \B : \CN \N \C96 96 96 (<full explan
 The colored name plus `\B :` gives the header; `\N` drops the explanation onto its own line; `96 96 96` (the game's own marker gray) dims it so a player who already knows the keyword can skip the whole block, while a player who doesn't can read it. Parenthesised, and the parentheses stay inside the gray.
 
 Pick the header color from the base game's existing vocabulary rather than inventing one — `155 238 255` movement, `255 0 0` / `182 0 0` damage, `0 254 33` healing, `255 255 0` and `255 238 0` yellow for tag/status keywords, `255 0 220` magenta for meta/system abilities (`LEADER`, `TheInheritor`, `ElementalFriend`). For a **parameterized** compound the placeholder in the text matches the body's generic: `CODE 1` for `GenericConstant`/`GenericDouble`/`GenericTime`, `STACKING 1` for `GenericStacking`.
+
+**A keyword that modifies another ability (rather than having its own effect) still uses this exact header shape — but its `COMPOUND: ABILITY` is a never-granted text-only twin of a separate `COMPOUND: ACTION` that holds the mechanic.** `\A <Name>` resolves against the text-only twin, so nothing about the wording changes; see `cube-chaos-scripting/references/authoring-and-inheritance.md`'s "A keyword that MODIFIES another ability" section for why the split is forced and where to wrap the payload. Real example: Crusader's `Spiritual`.
 
 **A purely cosmetic tag ability still gets the treatment**, with the explanation opening "Cosmetic only," so the player knows there's no effect to hunt for — e.g. `(Cosmetic only, marks a Note that gained all abilities of a random perk)`. This is not a contradiction of "never mention purely cosmetic effects" below: that rule is about not cluttering a *mechanical* ability's text with its sound/particle side effects. A tag ability whose entire existence is the marker has nothing else to describe, and its tooltip line renders whether you like it or not (there is no way to hide an ability from the tooltip — see `cube-chaos-scripting`), so the honest move is to say what the marker means.
 

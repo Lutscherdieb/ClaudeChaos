@@ -12,13 +12,28 @@ Text: \C230 180 50 Consecration \B : \CN \N \C96 96 96 (After 5 seconds heal eve
 NORANDOM
 End
 
-CUBE: Crusade_Knight 45 10 10
-IDENT 1 20 15 0 0
+COMPOUND: ABILITY
+Spiritual
+Nothing
+Text: \C230 180 50 Spiritual \B : \CN \N \C96 96 96 (This ability happens one extra time for every stack of \C0 254 33 Holy \C96 96 96 on this) \CN End
+NO_DUPLICATES
+NORANDOM
+End
+
+COMPOUND: ACTION
+SpiritualRepeat
+XTimes Addition DoubleConstant 1 GetStackingOfAbilityOnCube HolyX Caster GenericAction
+End
+
+CUBE: Crusade_Knight 50 1 1
+IDENT 1 20 15 20 0
 TYPE Attacker
 TYPE Starter
 Ability: ArmorX 1
 Ability: EveryXMeleeY 120 3
 Ability: ChargeEveryX 180
+Ability: AfterThisIsCreated GainXExtraHp Subtraction Highest Difficulty DoubleConstant 1 DoubleConstant 1
+Text: After this is placed its hp and max hp become equal to the current difficulty, minimum 1 End
 AiPlacementRule: And AiFrontline AiStacking
 End
 
@@ -38,18 +53,20 @@ Visual: Target 0 1 109 209 228
 AiPlacementRule: AiEnemySouth
 End
 
-CUBE: Ballista 45 4 4
-IDENT 2 30 0 5 5
+CUBE: Ballista 50 3 3
+IDENT 2 30 0 20 5
 TYPE Shooter
-Ability: EveryXSeconds DoubleConstant 8 If IsPositionEmpty PositionInDirectionFromPosition Forwards PositionOfThis
- CreateCubeOnPosition CubeConstant Ballista_Bolt PositionInDirectionFromPosition Forwards PositionOfThis
-Text: Every 8 seconds create a Ballista_Bolt in front End
+Ability: EveryXSeconds DoubleConstant 12 CreateCubeOnPosition CopyWithAction CubeConstant Ballista_Bolt
+ SpiritualRepeat XTimes MaxHpOfCube Caster GainAbility StrengthX 1
+ PositionInDirectionFromPosition Forwards PositionOfThis
+Text: Every 12 seconds create a Ballista_Bolt in front and give it \C255 38 0 Strength \CN \B , equal to this cube's max hp \B , \A Spiritual End
 Visual: Target 1 0 96 96 96
 AiPlacementRule: And AiStacking AiEmptyInfront
 End
 
 CUBE: Ballista_Bolt 8 1 1
-TOKEN
+IDENT 1 8 0 5 10
+TYPE Attacker
 Ability: ProjectileX 3
 Ability: Flying
 Ability: ChargeEveryX 10
@@ -103,10 +120,10 @@ IDENT 2 0 15 20 5
 TYPE Support
 TYPE Starter
 Ability: ArmorX 1
-Ability: EveryXSeconds DoubleConstant 10 EveryCubeTouchingPosition PositionOfThis
+Ability: EveryXSeconds DoubleConstant 10 SpiritualRepeat EveryCubeTouchingPosition PositionOfThis
  If IsAllyToCaster Target If HasAbilityWithName Target ChargeEveryX
   TargetCube Target GainAbility Consecration
-Text: Every 10 seconds every touching \C155 238 255 charging \CN ally gains \A Consecration End
+Text: Every 10 seconds every touching \C155 238 255 charging \CN ally gains \A Consecration \B , \A Spiritual End
 Visual: Target 1 0 109 209 228
 Visual: Target -1 0 109 209 228
 Visual: Target 0 1 109 209 228
@@ -130,10 +147,19 @@ Ability: BeforeThisMoves If Or IsSameDirection EventDirection Forwards IsSameDir
    If And CubeExists Target Not IsALeader Target
     If IsAllyToCaster Target MoveInDirection North
 Text: Before this moves sideways into an ally while carrying nothing above, that ally moves upwards first, so this ends up below it End
+Animation: Lift TRIGGER 0 4 1 10 10 10
 Ability: BeforeThisIsHealed If IsLarger Addition HpOfCube Caster EventAmount MaxHpOfCube Caster
  TargetCube ARandomLeaderOfFaction EnemyFaction TakeXDamage DoubleConstant 1
 Text: When this would be healed above its max hp, a random enemy leader loses 1 hp End
 Visual: Target 0 -1 109 209 228
 Visual: Target 1 0 109 209 228
 AiPlacementRule: And AiFrontline AiStacking
+End
+
+CUBE: Lazarett 50 5 5
+IDENT 3 0 15 25 10
+TYPE Support
+Ability: EveryXSeconds DoubleConstant 30 SpiritualRepeat TargetCube ARandomAlly GainAbility RegenerationX 3
+Text: Every 30 seconds a random ally gains \A RegenerationX 3 \B , \A Spiritual End
+AiPlacementRule: And AiBackline AiStacking
 End

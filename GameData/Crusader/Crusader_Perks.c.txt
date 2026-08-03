@@ -9,12 +9,15 @@ End
 PERK: Crusader
 BelongsTo: CLASS
 LevelRequirement: 1
-Description: Every battle on the map has a 50% chance to become a boss battle instead, keeping its curse if it had one, and after you win a boss battle every cube in your inventory gains \A RegenerationX 1 End
+Description: Every battle on the map has a 50% chance to become a boss battle instead, keeping its curse if it had one. At the start of each battle a random cube in your hand gains 1 max hp per difficulty, and after you win a boss battle a random cube in your inventory gains \A HolyX 1 End
 CampaignAbility: AfterAMapIsGenerated CrusaderBossConversion
 AbilityText: At the start of each map every battle node that is not already a boss battle has a 50% chance to become one End
+Ability: AtTheStartOfTheBattle XTimes Difficulty
+ TargetCube ARandomCubeInHandOfFactionWhich FactionOfThis True ChangeMaxHp DoubleConstant 1
+AbilityText: At the start of the battle, once per difficulty, a random cube in your hand gains 1 max hp without being healed End
 WorldAbility: AfterYouWin If MapNodeIsType CurrentMapNode Boss
- EveryCubeInInventoryWhich True GainAbility RegenerationX 1
-AbilityText: After you win a boss battle every cube in your inventory gains \A RegenerationX 1 End
+ TargetCube ARandomCubeInInventoryWhich True GainAbility HolyX 1
+AbilityText: After you win a boss battle a random cube in your inventory gains \A HolyX 1 End
 ObtainAction: CrusaderBossConversion
 ObtainAction: AddCubeToInventory CubeConstant Crusade_Knight
 ObtainAction: AddCubeToInventory CubeConstant Holy_Cross

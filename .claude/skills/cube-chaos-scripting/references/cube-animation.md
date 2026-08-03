@@ -183,6 +183,17 @@ reach for `TRIGGER` only when it's tied to an `After*` reactive trigger.** Two i
    (`Mana_Leech`'s `AfterThisDealsDamage`, `Cooling_Aggregate`'s `AfterACubeTakesDamage`); every periodic ability's
    animation is `CLOCK`.
 
+**A `TRIGGER` bound to a heavily-conditional reactive ability fires only when that ability's action actually
+executes — not on every evaluation of its trigger.** So it is safe to bind one to an `Ability:` whose trigger fires
+constantly but whose guards rarely pass; you do **not** need to split the guarded branch into its own ability to get
+a clean animation. `Ability.LastActionTime` (what `TriggerAnimation` divides by 16) is written on execution, not on
+trigger evaluation. **User-confirmed in play, 2026-08-03**: Crusader's `Cardinal` carries
+`Animation: Lift TRIGGER 0 4 1 10 10 10` on its pick-up ability — a `BeforeThisMoves` chain gated behind a sideways-
+direction test, an "am I carrying nothing" test, and an ally-in-the-way test. `BeforeThisMoves` fires on *every*
+move the Cardinal makes, yet the hoist flourish plays only on an actual pick-up ("correctly only plays on picking up
+something"), never on ordinary movement. This had been flagged as an unknown worth watching for; it is now settled,
+so don't re-derive it or pre-emptively restructure an ability around it.
+
 **Write the threshold list back-loaded and starting with a literal `0`** — e.g. `Animation: Launch CLOCK 0 4 0 0.88
 0.04 0.04`, matching the base game's own `Thump CLOCK 0 4 0 0.85 0.05 0.05`. That gives a long rest on frame 0 and
 a short flourish that culminates as the ability fires, instead of `EQUAL <Amount>`'s uniform crawl (fine for a fast

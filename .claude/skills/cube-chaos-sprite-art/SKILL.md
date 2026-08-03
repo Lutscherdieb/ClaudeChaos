@@ -38,9 +38,29 @@ Sheet dimensions = `tile_size * columns` wide by `tile_size * rows` tall. Icons 
 4. **If the sheet has no free slot, extend it by one whole row and keep the existing column count** —
    `new_height = old_height + tile_size`, width untouched. This guarantees no existing tile moves.
    Draw the guide ring on every newly created cell, not just the one being filled.
-5. **Verify before calling it done**: regenerate the preview cards and actually look at the new item's
-   card *and* at the card of whatever block precedes it. Two adjacent correct cards prove the slot
-   math; the new card alone doesn't.
+5. **Verify before calling it done**: regenerate the preview cards **by hand** —
+   `python3 .claude/skills/cube-chaos-sprite-art/scripts/render_preview_cards.py` from the repo root —
+   and actually look at the new item's card *and* at the card of whatever block precedes it. Two
+   adjacent correct cards prove the slot math; the new card alone doesn't. See "Script-written sheets
+   don't trigger the regen hooks" below for why the manual run is mandatory rather than belt-and-braces.
+
+### Script-written sheets don't trigger the regen hooks — always run the renderer by hand afterwards
+
+**After any script writes to a `.c.png`, run `python3 .claude/skills/cube-chaos-sprite-art/scripts/render_preview_cards.py`
+yourself before looking at a preview card.** `.claude/hooks/regen-preview-cards.sh` and
+`regen-readme-previews.sh` are `PostToolUse` hooks matching `Write|Edit`, and they read the changed path
+out of `tool_input.file_path` — a Bash-invoked Python script has no `file_path`, so neither hook ever
+fires for it. This bites *specifically because this skill's own procedures prescribe generating sheets
+and animation strips from a scratchpad script* (see the animated-icon procedure below), so the
+recommended workflow silently defeats the automation that covers hand edits.
+
+The failure is quiet and misleading rather than loud: the card renders fine, just from the **previous**
+sheet. Real incident, 2026-08-03 (Crusader `Lazarett`): the `.c.txt` edits fired the hook and produced a
+correct-text card, then the sprite was written by script — so the shipped card showed the finished rule
+text next to an **empty blue tile**, which reads as "my slot math is wrong" rather than "my card is
+stale." The tell is a preview card whose icon is pure `#0094ff` background (or is simply the old art)
+while the sheet itself, dumped directly, is correct — check the sheet's mtime against the card's before
+debugging any slot arithmetic.
 
 **If a block genuinely must go elsewhere in the file**, that is a pixel-relocation job, not a text
 edit: work out the resulting slot index for the inserted block *and every block after it*, and move

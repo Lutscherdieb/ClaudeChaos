@@ -25,6 +25,13 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 <img src="Preview/Crusader_Cubes_Trebuchet_Rock.png" width="700" alt="Trebuchet Rock cube card">
 <img src="Preview/Crusader_Cubes_Holy_Cross.png" width="700" alt="Holy Cross cube card">
 <img src="Preview/Crusader_Cubes_Cardinal.png" width="700" alt="Cardinal cube card">
+<table>
+<tr>
+<td valign="middle">On Trigger</td>
+<td valign="middle"><img src="Preview/Crusader_Cubes_Cardinal_Lift.gif" width="70" alt="Cardinal Lift animation"></td>
+</tr>
+</table>
+<img src="Preview/Crusader_Cubes_Lazarett.png" width="700" alt="Lazarett cube card">
 
 ### Perks
 
