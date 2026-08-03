@@ -1,14 +1,18 @@
+COMPOUND: ACTION
+EnterBrokerForge
+ReadAScenario Broker_Cube_Forge
+End
+
 PERK: Broker
 BelongsTo: CLASS
 Ability: AtTheStartOfTheBattle EveryCubeInHandOfFactionWhich FactionOfThis IsLimited Test
  Both Exile AddCubeToHandOfFactionInfinitly CopyWithAction Target Both RemoveAbilityWithName RegeneratingUsesX SetLimited False FactionOfThis
 AbilityText: At the start of each battle, exile each cube with limited uses from your hand and add an unlimited-use copy of it End
-CampaignAbility: AfterAMapIsGenerated ReadAScenario Broker_Cube_Forge
+CampaignAbility: AfterAMapIsGenerated EnterBrokerForge
 AbilityText: At the start of each map, enter a Forge offering only Cube Upgrades End
-CampaignAbility: AfterYouGainOrLoseCurrency If IsLarger EventAmount DoubleConstant 0 GenerateXMana EventAmount
-AbilityText: Whenever you gain gold, also gain that much mana End
-Description: Broker: Cubes you upgrade keep infinite uses, each map starts with a Forge offering only Cube Upgrades, and gaining gold also gains that much mana End
-ObtainAction: AddCubeToInventory CubeConstant All_In
+Description: Broker: Cubes you upgrade keep infinite uses, and every map, including the first, starts with a Forge offering only Cube Upgrades End
+ObtainAction: EnterBrokerForge
+ObtainAction: AddCubeToInventory CubeConstant Bribe
 ObtainAction: AddCubeToInventory CubeConstant Skyscraper
 ObtainAction: AddCubeToInventory CubeConstant Construction_Site
 End
@@ -29,3 +33,16 @@ CUBECOST: Addition Multiplication 20 GetCampaignVariable FORGEDALREADY
 INFO: Spend gold to upgrade random cubes (first each run costs 20 less) End
 End
 SEnd
+
+PERK: Rising_Prominence
+BelongsTo: Broker
+Ability: AtTheStartOfTheBattle XTimes DoubleConstant 3
+ SetStorage ARandomCubeWhich And IsNeutral Test Not IsALeader Test
+  If CubeExists Storage
+   Both
+    TargetCube Storage Exile
+    CreateCubeOnPosition CopyWithAction CubeConstant Construction_Site
+     Both RemoveAbilityWithName Burrowing GainAbility Burrowed
+     PositionOfCube Storage
+Description: At the start of each battle, replace 3 random neutral cubes with an allied Construction Site that is already \A Burrowed End
+End

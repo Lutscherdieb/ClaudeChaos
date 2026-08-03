@@ -147,6 +147,8 @@ ANIMATION_CAPTIONS = {
     ("Unholy", "Two_Headed_Demon", "BiteLeft"): "Left Head Bite (every 0.7s)",
     ("Unholy", "Two_Headed_Demon", "BiteRight"): "Right Head Bite (every 2s)",
     ("Unholy", "Hell_Portal", "Open"): "Cube Spawn (every 60s)",
+    ("Broker", "Construction_Site", "Build"): "Skyscraper Build (every 2 min)",
+    ("Broker", "Skyscraper", "Crumble"): "Damage (5 hp down to 1)",
 }
 
 

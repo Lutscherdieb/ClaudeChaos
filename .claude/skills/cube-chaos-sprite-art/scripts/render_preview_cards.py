@@ -583,6 +583,55 @@ def build_double_gif(mod_dir, cube_name, anim_name, frame_indices, out_path):
                  duration=DOUBLE_FRAME_MS, loop=0, disposal=2)
 
 
+HP_FRAME_MS = 700  # dwell per hp point. An HP animation's frame ORDER is fully determined
+# (see below), but its real-time pacing is not -- how fast a cube loses hp is a property of
+# the battle, not of the Animation: line -- so this is a fixed watchable rate, and the
+# README caption carries the hp range, the same division of labour CLOCK uses for cadence.
+
+
+def hp_frame_sequence(thresholds, amount, max_hp):
+    """Frame index shown at each hp value, from full hp down to 1.
+
+    Deterministic, unlike DOUBLE: an HP animation's ratio is exactly `1 - hp/max_hp`
+    (HPAnimation.AutoChangedCheck, decompiled and quoted in
+    cube-chaos-scripting/references/cube-animation.md), so the whole sequence follows from
+    max_hp plus the threshold list -- no live battle state involved.
+
+    Reproduces the engine's cumulative walk INCLUDING its carry semantics: `LastFrame` is
+    only written when `index > 0`, so at full hp (ratio 0, below every cumulative sum) the
+    frame is left at its default 0 -- which is why frame 0 (the LEFTMOST tile) is the
+    undamaged pose for an HP animation. That is the opposite of TRIGGER, where the resting
+    pose is the LAST frame; the two types settle at opposite ends of the strip.
+    """
+    seq, last = [], 0
+    for hp in range(max_hp, 0, -1):
+        remaining, index = 1.0 - hp / max_hp, 0
+        while index < amount and remaining >= thresholds[index]:
+            remaining -= thresholds[index]
+            index += 1
+        if index > 0:
+            last = index - 1
+        seq.append(last)
+    return seq
+
+
+def build_hp_gif(mod_dir, cube_name, anim_name, rest_tokens, max_hp, out_path):
+    if rest_tokens[0] == "EQUAL":
+        amount = int(rest_tokens[1])
+        thresholds = [1.0 / amount] * amount
+    else:
+        amount = int(rest_tokens[0])
+        thresholds = [float(t) for t in rest_tokens[1:1 + amount]]
+    frames = load_animation_frames(mod_dir, cube_name, anim_name)
+    assert len(frames) == amount, (
+        f"{cube_name}_{anim_name}.png has {len(frames)} frames, Animation: declares {amount}")
+    order = hp_frame_sequence(thresholds, amount, max_hp)
+    imgs = [frames[i].resize((CUBE_ANIM_GIF_PX, CUBE_ANIM_GIF_PX), Image.NEAREST)
+            for i in order]
+    imgs[0].save(out_path, save_all=True, append_images=imgs[1:],
+                 duration=HP_FRAME_MS, loop=0, disposal=2)
+
+
 def build_cube_animation_gifs(mod_dir, mod_prefix, out_dir):
     txt_path = os.path.join(mod_dir, f"{mod_prefix}_Cubes.c.txt")
     if not os.path.exists(txt_path):
@@ -608,8 +657,16 @@ def build_cube_animation_gifs(mod_dir, mod_prefix, out_dir):
                 build_double_gif(mod_dir, cube_name, anim_name,
                                   list(range(animation_amount(rest))),
                                   os.path.join(out_dir, out_name))
+            elif atype == "HP":
+                # maxhp is the CUBE: header's 4th field; the frame sequence is fully
+                # determined by it plus the thresholds (see hp_frame_sequence).
+                max_hp = int(b["header"].group(4))
+                if max_hp < 1:
+                    continue  # a 0-maxhp cube never renders a damaged state
+                build_hp_gif(mod_dir, cube_name, anim_name, rest, max_hp,
+                             os.path.join(out_dir, out_name))
             else:
-                continue  # HP/BOOLEAN/TIME playback isn't implemented yet
+                continue  # BOOLEAN/TIME playback isn't implemented yet
             written.append(out_name)
     return written
 
@@ -1260,11 +1317,29 @@ def build_perks():
         for i, b in enumerate(blocks):
             name_to_slot[b["header"].group(1)] = (basename, i)
 
-    # Upgrades live in their own sprite-less file, matching base-game
-    # convention (e.g. ZUpgradeClassPerks.c.txt) -- read it too, if present.
+    # Upgrades live in their own file, matching base-game convention (e.g.
+    # ZUpgradeClassPerks.c.txt) -- read it too, if present.
     upgrade_path = os.path.join(MOD_DIR, f"{MOD_PREFIX}_UpgradePerks.c.txt")
     upgrade_blocks = parse_blocks(upgrade_path, PERK_HEADER) if os.path.exists(upgrade_path) else []
     upgrade_by_name = {b["header"].group(1): b for b in upgrade_blocks}
+
+    # That file MAY ship its own real sheet. The base game always leaves it
+    # sprite-less (the icon then falls back to the base perk's, via the chain
+    # walk below), but the engine renders a real one fine, and SKILL.md's
+    # going-forward preference is to give new upgrade files real art. Register
+    # it as a normal icon source when it exists, so an upgrade shows its OWN
+    # icon instead of silently reusing its base perk's. Broker's Downtown is
+    # the first in this repo to have one.
+    upgrade_sheet_path = os.path.join(SPRITES, f"{MOD_PREFIX}_UpgradePerks.c.png")
+    if upgrade_blocks and os.path.exists(upgrade_sheet_path):
+        up_sheet = load_sheet(f"{MOD_PREFIX}_UpgradePerks.c.png")
+        sources["UpgradePerks"] = {
+            "blocks": upgrade_blocks,
+            "sheet": up_sheet,
+            "cols": real_cols(up_sheet, TILE_PERK, len(upgrade_blocks)),
+        }
+        for i, b in enumerate(upgrade_blocks):
+            name_to_slot[b["header"].group(1)] = ("UpgradePerks", i)
 
     def resolve_icon_slot(target_name, seen=frozenset()):
         # Walk the IsUpgradeFrom chain -- an upgrade can itself be the base
@@ -1315,8 +1390,12 @@ def build_perks():
         for i, b in enumerate(sources[basename]["blocks"]):
             cards.append(render_block(b, (basename, i)))
     for b in upgrade_blocks:
-        base_name = field(b["lines"], "IsUpgradeFrom:").split()[0]
-        cards.append(render_block(b, resolve_icon_slot(base_name)))
+        name = b["header"].group(1)
+        if name in name_to_slot:
+            cards.append(render_block(b, name_to_slot[name]))  # has its own art
+        else:
+            base_name = field(b["lines"], "IsUpgradeFrom:").split()[0]
+            cards.append(render_block(b, resolve_icon_slot(base_name)))
     return cards
 
 

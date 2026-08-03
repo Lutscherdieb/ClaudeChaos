@@ -1,0 +1,26 @@
+PERK: Downtown
+Ability: AtTheStartOfTheBattle
+ Both TargetCube Caster SetVariable DTOWN_X DoubleConstant 0
+  Until IsLarger GetVariableOnCube DTOWN_X Caster MaxWorldX
+   Both
+    If IsEqual PlacabilityOfPosition PositionFromXAndY GetVariableOnCube DTOWN_X Caster DoubleConstant 0 FactionOfCube Caster
+     Both TargetCube Caster SetVariable DTOWN_Y MaxWorldY
+      Until IsSmaller GetVariableOnCube DTOWN_Y Caster DoubleConstant 0
+       IfElse Or
+         IsPositionEmpty PositionFromXAndY GetVariableOnCube DTOWN_X Caster GetVariableOnCube DTOWN_Y Caster
+         IsNeutral CubeOfPosition PositionFromXAndY GetVariableOnCube DTOWN_X Caster GetVariableOnCube DTOWN_Y Caster
+        Both
+         Both
+          If Not IsPositionEmpty PositionFromXAndY GetVariableOnCube DTOWN_X Caster GetVariableOnCube DTOWN_Y Caster
+           TargetCube CubeOfPosition PositionFromXAndY GetVariableOnCube DTOWN_X Caster GetVariableOnCube DTOWN_Y Caster Exile
+          CreateCubeOnPosition CopyWithAction CubeConstant Construction_Site
+           Both RemoveAbilityWithName Burrowing GainAbility Burrowed
+           PositionFromXAndY GetVariableOnCube DTOWN_X Caster GetVariableOnCube DTOWN_Y Caster
+         TargetCube Caster SetVariable DTOWN_Y DoubleConstant -1
+        ChangeVariable DTOWN_Y DoubleConstant -1
+       Nothing
+    ChangeVariable DTOWN_X DoubleConstant 1
+   Nothing
+Description: At the start of each battle, in each of your own columns, replace the lowest neutral cube or fill the lowest empty space with an allied Construction Site that is already \A Burrowed End
+IsUpgradeFrom: Rising_Prominence 100
+End

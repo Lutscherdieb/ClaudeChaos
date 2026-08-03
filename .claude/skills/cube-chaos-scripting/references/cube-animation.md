@@ -174,6 +174,10 @@ sliced PNG, indices 0..Amount-1 in file/sheet order.
 **Default to `CLOCK` whenever the animation is tied to an `EveryX...`/`EverySecond`/`EveryMinute`-style ability, and
 reach for `TRIGGER` only when it's tied to an `After*` reactive trigger.** Two independent reasons:
 
+> **One exception to the `After*` half of that rule: a death trigger.** `AfterThisDies`/`BeforeThisDies`
+> read as reactive triggers but must use an `HP` animation instead — see "It should animate when it's
+> destroyed" above for why (the cube is already removed) and the base-game evidence (0 of 53).
+
 1. **Timing.** `CLOCK`'s frame tracks how full the bound ability's cooldown bar is, so **the last frame lands
    exactly on the moment the ability fires** — that is the only way to get "the hatch is already open as the rocket
    launches" or "the portal is already open as the cube spawns". `TRIGGER` plays its flourish *after* the fact, so
@@ -193,6 +197,73 @@ direction test, an "am I carrying nothing" test, and an ally-in-the-way test. `B
 move the Cardinal makes, yet the hoist flourish plays only on an actual pick-up ("correctly only plays on picking up
 something"), never on ordinary movement. This had been flagged as an unknown worth watching for; it is now settled,
 so don't re-derive it or pre-emptively restructure an ability around it.
+
+### "It should animate when it's destroyed" -> reach for `HP`, never a `TRIGGER` on a death trigger
+
+**When a request asks for a death/destruction animation, bind an `HP` animation, not a `TRIGGER` on
+`AfterThisDies`/`BeforeThisDies`.** A `TRIGGER` is driven by elapsed time *since the bound ability last
+fired*, so by the time it would play its flourish the cube has already been removed from the board and
+there is nothing left to draw.
+
+**Verification that this is the engine's own convention, not just a theory:** grep every base-game
+`Animation:` line for a nearby death trigger — **zero** of the 53 base-game `TRIGGER` animations bind to
+one. The decisive example is `Main/3GeneralCubes.c.txt:3672-3680`, `CUBE: Container`, which *has* an
+`Ability: AfterThisDies` and still uses `Animation: Crumble HP 0 EQUAL 5` for its destruction visual.
+The whole `Crumble` family (46 `HP` animations) is this pattern. Draw the frames so the last reachable
+one reads as the collapse (debris settling toward the tile's bottom row), and the mechanic and the
+visual line up on their own. (44 of those 46 `HP` animations are literally named `Crumble`.)
+
+**This is a carve-out from "Picking the TYPE" below, which otherwise says `TRIGGER` is the right
+choice for an `After*` reactive trigger** — `AfterThisDies`/`BeforeThisDies` are `After*`/`Before*`
+reactive triggers by that section's wording, but they are the one family where `TRIGGER` cannot work,
+because the flourish plays *after* the fact and there is no cube left to play it on.
+
+For what goes in each frame, note `cube-chaos-sprite-art`'s rule that an `HP` animation's frame 0
+**replaces** the cube's battlefield appearance at full hp — so frame 0 must be a complete rendition of
+the undamaged cube, not a "damage overlay," and it is what a placed instance looks like instead of the
+main sheet's tooltip icon.
+
+### `EQUAL <Amount>` on an `HP` animation ALWAYS wastes its last frame — at every max hp
+
+**An `EQUAL <Amount>` `HP` animation has `Amount-1` visible stages, not `Amount`.** `EQUAL` makes the
+thresholds sum to exactly `1.0`, and the last frame requires the cumulative sum `1.0` to be `<= ratio`
+— but `ratio = 1 - Health/MaxHealth` only reaches `1.0` at **0 hp**, i.e. a dead cube. So the final
+tile of the strip is never on screen while the cube is alive. This is **not** a small-cube quirk: it
+holds identically at 5 max hp and at 20 (`hp_frame_sequence` in `render_preview_cards.py` reproduces
+the engine walk and confirms both — maxhp 20 / `EQUAL 4` yields frames `0×10, 1×5, 2×5`, never 3).
+
+**All 77 base-game `HP` animations use `EQUAL`; zero use an explicit threshold list** (swept across
+`Main`+`Characters`+`Base_Core`+`Extra_Mechanics`, 2026-08-04). So every stock `Crumble` in the game
+quietly animates in `Amount-1` stages, and its most-destroyed frame is effectively a death pose nobody
+sees. That's the convention working as intended — just budget the frame, and don't expect the last one
+to show.
+
+**On a low-max-hp cube `EQUAL` additionally wastes frames beyond the last one**, because the ratio only
+takes `MaxHp+1` discrete values, so several slices can fall between two reachable ratios. Broker's
+`Skyscraper` (5 max hp) with `EQUAL 4` lands on frames 0,0,0,1,2 — 3 visible stages out of 4, with two
+different hp values sharing frame 0.
+
+**Fix for both: an explicit threshold list whose sum is `< 1.0`**, sized to the cube's real hp. This is
+a deliberate departure from the base game's universal `EQUAL` (it is the only explicit `HP` list in this
+repo as of 2026-08-04) and the reason it buys a stage per hp point:
+
+```
+Animation: Crumble HP 0 5  0.05 0.1 0.2 0.2 0.2
+```
+which maps 5hp->frame 0, 4hp->1, 3hp->2, 2hp->3, 1hp->4 — one visible stage per hp point.
+
+**Derive these from the CUMULATIVE sums, not the individual thresholds, and verify by walking the loop
+for every hp value.** Frame selection depends only on how many cumulative sums `S_i = t[0]+...+t[i]`
+are `<= ratio`, so the rule is: **every `S_i` must land strictly between two adjacent reachable
+ratios.** For 5 max hp the reachable ratios are 0/0.2/0.4/0.6/0.8, and the list above gives
+`S = 0.05, 0.15, 0.35, 0.55, 0.75` — each one sitting in a gap, which is exactly why it works.
+(`S_0 > 0` is what keeps ratio `0` at index 0 and so leaves frame 0 as the undamaged pose.)
+
+Do **not** shortcut this as "half a step, then `1/MaxHp` repeated" — that reads plausibly and is
+wrong: `0.1 0.2 0.2 0.2 0.2` gives `S_1 = 0.3`, which is above the 0.2 ratio, so 4hp still shows frame
+0 and the whole strip is off by one. This exact wrong formula was written into this file and caught the
+same day by re-checking it against the loop (2026-08-04); the arithmetic is small enough that walking
+all `MaxHp+1` values takes a minute and is the only thing that actually proves a threshold list.
 
 **Write the threshold list back-loaded and starting with a literal `0`** — e.g. `Animation: Launch CLOCK 0 4 0 0.88
 0.04 0.04`, matching the base game's own `Thump CLOCK 0 4 0 0.85 0.05 0.05`. That gives a long rest on frame 0 and
@@ -289,8 +360,17 @@ authoring a new animated cube, not discovering after:
   to a fixed `CLOCK_CYCLE_MS`, with a floor per frame so a 4%-share flourish frame doesn't flicker past and a cap on
   the long rest frame. **The cadence therefore belongs in the README caption, not the gif** — hence
   `sync_readme_preview.py`'s `ANIMATION_CAPTIONS` entries naming it outright ("Rocket Launch (every 45s)").
-- **`HP`/`BOOLEAN`/`TIME` have no preview support at all yet** (`render_preview_cards.py`'s own documented gap) — a
-  cube using one of these will render its static card with no animation gif until someone adds that playback logic.
+- **`HP` previews deterministically — order exactly right, pace fixed** (`build_hp_gif()`, added
+  2026-08-04). It is the second-most faithful type after `TRIGGER`, because `ratio = 1 - hp/maxhp` means
+  the entire frame sequence follows from the `CUBE:` header's own `maxhp` plus the threshold list, with
+  no live battle state involved: `hp_frame_sequence()` replays the engine's cumulative walk (carry
+  semantics included) once per hp point from full down to 1. What is *not* derivable is real-time pacing
+  — how fast a cube loses hp is a property of the battle, not the `Animation:` line — so the gif uses a
+  flat `HP_FRAME_MS` per hp point and the **hp range belongs in the README caption**, the same division
+  of labour `CLOCK` uses for cadence.
+- **`BOOLEAN`/`TIME` still have no preview support** (`render_preview_cards.py`'s remaining documented
+  gap) — a cube using one of these renders its static card with no animation gif until someone adds that
+  playback logic.
 
 **Practical takeaway when designing a new cube for this repo's own mods:** pick the type by engine semantics first
 (the section above — `CLOCK` for a periodic ability, `TRIGGER` for a reactive one); preview fidelity is a

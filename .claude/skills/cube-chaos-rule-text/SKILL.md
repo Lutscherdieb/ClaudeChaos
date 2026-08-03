@@ -25,6 +25,19 @@ Step 3 is not optional bookkeeping — it's the mechanism that keeps step 1 usef
 
 **Never edit `ModdingInfo.txt`/`ModdingExplanation.txt` or anything under the base-game `GameData/` folders** — they're read-only ground truth (see `CLAUDE.md`).
 
+## Keep `Text:`/`Description:` pure ASCII — no em dashes, curly quotes, or accented characters
+
+**Write `-` or a comma where prose style wants an em dash, and `'` where it wants a curly apostrophe.**
+Every `.c.txt` in the entire base game is pure ASCII — **0 of all 67** files across `Main`, `Characters`, `Base_Core` and `Extra_Mechanics` contain a non-ASCII byte, and neither does any of this repo's own mod content (checked 2026-08-04):
+```bash
+find GameData/{Main,Characters,Base_Core,Extra_Mechanics} -name '*.c.txt' -exec grep -lP '[^\x00-\x7F]' {} +
+```
+Use `find -exec` rather than a `GameData/<Pkg>/*.c.txt` glob — `Characters/` keeps most of its files in `Classes/`/`Species/` subfolders, so a non-recursive glob silently checks a fraction of the corpus and "returns zero" for the wrong reason. So there is no precedent anywhere for a non-ASCII byte surviving the tokenizer and the bitmap font. Whether it would actually render or mojibake is **untested**, and a tooltip is a bad place to find out: this is a cheap-to-avoid unknown, not a confirmed bug.
+
+Caught before shipping on Broker's class perk `Description:` (2026-08-04), where "every map — including the first — starts with a Forge" was rewritten to "every map, including the first, starts with a Forge".
+
+**This applies to `.c.txt` files only, not to a mod's `README.md`** — those are ordinary GitHub markdown and already use em dashes freely. The README has its own, unrelated hazard (bare DSL keywords being tokenized out of prose) covered in `cube-chaos-mod-setup`.
+
 ## Forcing a real line break for a multi-point list: `\N`
 
 `\N` (literal backslash + capital N, as two plain characters embedded in the field's text) is a real, confirmed forced-line-break marker the tooltip renderer honors — not a paraphrase, an actual mechanism. Confirmed via dozens of real base-game examples (`Main/3GeneralCubes.c.txt`, `Main/UpgradePerks.c.txt`, `Characters/Classes/PerkFragments.c.txt`, `Extra_Mechanics/Blights.c.txt`, etc.), e.g.:
