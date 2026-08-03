@@ -120,6 +120,7 @@ IDENT 2 0 15 20 5
 TYPE Support
 TYPE Starter
 Ability: ArmorX 1
+Ability: Unique
 Ability: EveryXSeconds DoubleConstant 10 SpiritualRepeat EveryCubeTouchingPosition PositionOfThis
  If IsAllyToCaster Target If HasAbilityWithName Target ChargeEveryX
   TargetCube Target GainAbility Consecration
@@ -162,4 +163,26 @@ TYPE Support
 Ability: EveryXSeconds DoubleConstant 30 SpiritualRepeat TargetCube ARandomAlly GainAbility RegenerationX 3
 Text: Every 30 seconds a random ally gains \A RegenerationX 3 \B , \A Spiritual End
 AiPlacementRule: And AiBackline AiStacking
+End
+
+CUBE: Divine_Stone 35 30 30
+IDENT 2 0 30 10 15
+TYPE Wall
+Ability: BeforeACubeDies If IsAllyToCaster Victim If X%Chance DoubleConstant 1
+ TargetCube Victim GainAbility ExtraLife
+Text: Before an ally dies 1% chance to give it \A ExtraLife End
+AiPlacementRule: And AiStacking AiDefense
+End
+
+CUBE: Cloudstone 6 5 5
+TOKEN
+Ability: Burrowed
+Ability: Flying
+Ability: EveryMinute Both
+ If X%Chance DoubleConstant 80 CreateCubeOnPosition CubeConstant Cloudstone PositionInDirectionFromThis East
+ If X%Chance DoubleConstant 80 CreateCubeOnPosition CubeConstant Cloudstone PositionInDirectionFromThis West
+Text: Every minute 80% chance to create a Cloudstone to each side End
+Visual: Square 1 0 96 96 96
+Visual: Square -1 0 96 96 96
+AiPlacementRule: And AiStacking AiDefense
 End

@@ -494,6 +494,13 @@ GREAT_WALL_OUTPUTS = [
     ("GreatWall_Boss.png", ["Great_Wall_Terrain", "Great_Wall_Boss_Terrain", "Battle_Normal_Player"]),
 ]
 
+CRUSADER_OUTPUTS = [
+    ("StairwayToHeaven.png",
+     ["Stairway_To_Heaven_Terrain", "Battle_Normal_Player", "Battle_Normal_Enemy"]),
+    ("StairwayToHeaven_Boss.png",
+     ["Stairway_To_Heaven_Terrain", "Stairway_To_Heaven_Boss_Terrain", "Battle_Normal_Player"]),
+]
+
 
 def render_terrain_mod(map_file, out_dir, outputs, shared_map_file=None, mod_dir=None, mod_prefix=None):
     """mod_dir/mod_prefix (both required together) let a terrain's own
@@ -531,4 +538,14 @@ if __name__ == "__main__":
         os.path.join(ROOT, "GameData", "Great_Wall", "Screenshots"),
         GREAT_WALL_OUTPUTS,
         shared_map_file=SHARED_MAP_FILE,
+    )
+    # Crusader's terrain uses its own Cloudstone TOKEN, so it needs mod_dir/mod_prefix
+    # for `_mod_own_blocks()` to resolve that cube's icon out of the mod's own sheet.
+    render_terrain_mod(
+        os.path.join(ROOT, "GameData", "Crusader", "Crusader_Maps.c.txt"),
+        os.path.join(ROOT, "GameData", "Crusader", "Screenshots"),
+        CRUSADER_OUTPUTS,
+        shared_map_file=SHARED_MAP_FILE,
+        mod_dir=os.path.join(ROOT, "GameData", "Crusader"),
+        mod_prefix="Crusader",
     )

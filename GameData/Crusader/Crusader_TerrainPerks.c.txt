@@ -1,0 +1,12 @@
+PERK: Stairway_To_Heaven
+BelongsTo: Terrain
+WorldAbility: MapGenerationTPEB
+ ReadAPartialScenario Stairway_To_Heaven_Terrain
+ ReadAPartialScenario Battle_Normal_Player
+ ReadAPartialScenario Battle_Normal_Enemy
+ ReadAPartialScenario Stairway_To_Heaven_Boss_Terrain
+Description: A cloudstone stair through open sky to a crown of mana crystals End
+ReferenceCube: Cloudstone
+ReferenceCube: Staircase
+ReferenceCube: Mana_Crystal
+End

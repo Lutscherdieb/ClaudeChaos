@@ -32,11 +32,19 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 </tr>
 </table>
 <img src="Preview/Crusader_Cubes_Lazarett.png" width="700" alt="Lazarett cube card">
+<img src="Preview/Crusader_Cubes_Divine_Stone.png" width="700" alt="Divine Stone cube card">
+<img src="Preview/Crusader_Cubes_Cloudstone.png" width="700" alt="Cloudstone cube card">
 
 ### Perks
 
 <img src="Preview/Crusader_Perks_Crusader.png" width="700" alt="Crusader class perk card">
 <img src="Preview/Crusader_Perks_Home_Turf_Advantage.png" width="700" alt="Home Turf Advantage perk card">
+
+### Terrain
+
+<img src="Preview/Crusader_TerrainPerks_Stairway_To_Heaven.png" width="700" alt="Stairway To Heaven terrain perk card">
+<img src="Screenshots/StairwayToHeaven.png" width="700" alt="Stairway To Heaven - terrain, in game">
+<img src="Screenshots/StairwayToHeaven_Boss.png" width="700" alt="Stairway To Heaven Boss - terrain, in game">
 <!-- PREVIEW:END -->
 
 ## Installing this mod (to play it)
