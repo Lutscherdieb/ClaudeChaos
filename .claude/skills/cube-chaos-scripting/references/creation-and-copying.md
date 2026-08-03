@@ -45,6 +45,41 @@ Two fixes, both real:
 
 When auditing, `grep` for `AmountOfAbilitiesOfCubeWhich` and `AmountOfAbilitiesOfCube` across the whole mod, not just the file being edited — the guards are usually written far from the cube whose ability count just changed.
 
+## Randomizing a grant from a custom pool: `AddCubeToInventory` takes a full CUBE production, and `APRandom...` is the meta-game one
+
+**To grant a random cube from a pool you define, filter `APRandomCubeInLibraryWhich` with a name/category predicate and hand the result straight to `AddCubeToInventory`/`AddCubeToDeck`.** Both are declared `AddCubeToInventory CUBE` / `AddCubeToDeck CUBE` (`ModdingInfo.txt:340,342`) — the `CUBE` slot accepts *any* cube-typed expression, not just a `CubeConstant` literal. The base game's own `No_Class` (`Characters/Classes/No_Class.c.txt`) is the reference implementation, granting 3 filtered random starting cubes from one `ObtainAction:`:
+```
+ObtainAction: Both Both
+AddCubeToInventory APRandomCubeInLibraryWhich And And IsLarger ScalingOfCube Test DoubleConstant 5 Not IsAlreadyInInventory Test Not IsToken Test
+ AddCubeToInventory APRandomCubeInLibraryWhich And And HasCategory Test ATTACKER Not IsAlreadyInInventory Test Not IsToken Test
+ AddCubeToInventory APRandomCubeInLibraryWhich And Not IsAlreadyInInventory Test Not IsToken Test
+```
+For an explicit named pool, `Or` the name checks (`Or A (Or B C)` for three): `AddCubeToInventory APRandomCubeInLibraryWhich Or CubeHasName Test Saxophone Or CubeHasName Test Keyboard CubeHasName Test Speaker`. For a self-maintaining pool, tag each member with a shared `TYPE <Tag>` and filter `HasCategory Test <Tag>` (`HasCategory CUBE String`, `ModdingInfo.txt:473` — this is what `TYPE` lines are readable as; they're otherwise inventory-sorting only). The tag is less maintenance but matches on a bare string, so any other loaded package using the same tag joins your pool — pick a distinctive one and grep the loaded packages for it first.
+
+**`HasCategory` is CASE-SENSITIVE, and the base game's own `No_Class` gets this wrong — do not copy its casing.** `BOOLEANHasCategory.Value()` decompiles to `CI.SortingTypeQ.contains(this.CategoryName)`, i.e. `ArrayList<String>.contains` → `String.equals`. No normalisation on either side. But `No_Class` filters `HasCategory Test ATTACKER` while **every** real cube in the game declares `TYPE Attacker` — grepped all `^TYPE ` lines across `Main`/`Characters`/`Base_Core`: 145 `Attacker`, zero `ATTACKER`, in any file. So that predicate matches nothing, `APRandomCubeInLibraryWhich` returns `null`, and the grant silently does nothing — `No_Class`'s `Description:` promises "3 random cubes" and it actually delivers 2. Confirmed 2026-08-03.
+
+**Rule: write the `TYPE` line and its `HasCategory` filter in one edit, character-for-character identical, then verify with a paired grep before launching** — a mismatch produces no parse error, no log line, and no missing-cube warning; the only symptom is a grant that quietly never happens.
+```bash
+grep -rn "^TYPE <Tag>" GameData/<Mod>/      # declarations
+grep -rn "HasCategory Test <Tag>" GameData/<Mod>/   # the filter -- casing must match exactly
+```
+Real usage: DJ's class perk rolls its starting cube from `TYPE Instrument` (`Speaker`/`Keyboard`/`Saxophone`/`King_of_Pop`), so adding a fifth instrument to the pool is a one-line `TYPE` addition on the new cube with no perk edit. **A random-pool grant also needs explicit `ReferenceCube:` lines** — the tooltip's referenced-cube icons come from scanning for literal `CubeConstant <Name>` tokens, and a filtered random pick has none, so the pool renders empty without them (see `cube-chaos-sprite-art`'s README preview-card section, which documents the same two-source lookup).
+
+### `APRandomCubeInLibraryWhich` vs `ARandomCubeInLibraryWhich` — seeded vs raw, and one needs a live Campaign
+
+Decompiled both (`dw/game/dd/Code/CUBE/CUBE{AP,A}RandomCubeInLibraryWhich.class`, 2026-08-03). The filter/collect half is identical — walk `Game.Library.CubeQ`, bind each candidate to `Test`, skip `C.Banished`, keep whatever passes the `BOOLEAN`. They differ in exactly two ways:
+
+| | `ARandomCubeInLibraryWhich` | `APRandomCubeInLibraryWhich` |
+|---|---|---|
+| RNG | `Math.random()` | `E.Caster.Game.Campaign.GetRandom(true)` — the campaign's own seeded RNG |
+| Guard | needs `Caster.Game` | needs `Caster.Game` **and** `Caster.Game.Campaign` (returns `null` otherwise) |
+
+So **`AP` = the campaign-seeded pick, and it is the right one for anything in meta-game context** (`ObtainAction:`, `ClickAction:`, a `CubeUpgrade`'s `SpecialAction:`) — reproducible under a daily/seeded run, and the only variant every real base-game meta-game site uses (`Main/CubeUpgrades.c.txt` throughout, `Main/Consumables.c.txt:165`, `No_Class` above). Plain `A` is for in-battle rolls where no campaign reproducibility is wanted. Note `AP` returning `null` outside a campaign is silent — no log line.
+
+The roll happens **once, when the perk is obtained** (run start for a class perk), not per battle. `AddCubeToInventoryWithScreen CUBE` (`ModdingInfo.txt:394`) is the same grant with a reveal screen, which is what `Consumables.c.txt` uses when the pick should read as an event.
+
+**On guarding: this one grant site is the documented exception to the `SetStorage`+`If CubeExists Storage` rule further down this file.** Every real base-game grant of this shape — `No_Class`'s three, `Consumables.c.txt:165` — passes the search straight into `AddCubeToInventory` with no emptiness guard, because a curated pool that can't come up empty doesn't need one. Keep the guard for any search whose predicate *can* legitimately match nothing (a hand scan, a rarity/mana-filtered library pick), per that section. If your pool is name-filtered, the only way it comes up empty is a typo'd or renamed cube — which fails silently, so re-check the names against the real `.c.txt` rather than adding a guard that would hide it just as quietly.
+
 ## Faction numbers and default allegiance of created cubes
 
 - Factions are numbered `0` = neutral, `1` = one player, `2` = the other (confirmed via dozens of `SetFaction DoubleConstant 1`/`2`/`0` calls, e.g. `Main/Perks.c.txt`'s `Both SetFaction DoubleConstant 1 ...` / `Both SetFaction DoubleConstant 2 ...` pair for "give a copy to each side"). To affect "everyone's hand" (both players) rather than one side relative to the caster, loop `EveryCubeInHandOfFactionWhich DoubleConstant 1 ...` and `EveryCubeInHandOfFactionWhich DoubleConstant 2 ...` explicitly — simpler and more literal than `FactionOfThis`/`InvertedFaction FactionOfThis`, which only get you "mine" vs "the opponent's" relative to the current Caster.

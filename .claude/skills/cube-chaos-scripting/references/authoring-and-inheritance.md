@@ -9,17 +9,26 @@ an effect propagate to created cubes, or building a battle-start/movement/creatu
 
 **Do this for every `CUBE:` you write or edit, before calling it done:**
 
-1. **Run `grep -nE 'PositionInDirectionFromPosition|CubeInDirectionFromCube|TopPositionAboveCube' <file>`** over the block. Every hit is a candidate — do not eyeball the ability chain for "does this feel positional."
+1. **Run `grep -nE 'PositionInDirectionFrom|CubeInDirectionFromCube|TopPositionAboveCube' <file>`** over the block. Every hit is a candidate — do not eyeball the ability chain for "does this feel positional."
+   **The pattern is the bare prefix `PositionInDirectionFrom` on purpose: it must catch BOTH
+   `PositionInDirectionFromPosition <Dir> PositionOfThis` and its shorter synonym
+   `PositionInDirectionFromThis <Dir>`.** Until 2026-08-03 every documented copy of this grep (4 files)
+   and `.claude/hooks/check-visual-coverage.sh` all named only the `...FromPosition` spelling, silently
+   exempting every cube written the short way — 5 real sites at the time, including DJ's own
+   `SpeakerNoteSpawn`, which had its `Visual:` line only because a human added it. If a further
+   position-producing token is ever added here, add every spelling of it.
 2. **Apply the table below to each hit** to get the required marker (or a decision to omit).
 3. **Verify: the block's `Visual:` line count equals the number of distinct tile offsets the table produced.** A cube that affects 4 touching tiles needs 4 `Visual:` lines, not 1. This step is the point — "I checked and it looked fine" is exactly how `Hell_Portal` shipped without one.
 
 | What the ability targets | Marker? | Write |
 |---|---|---|
-| Fixed offset from the cube — `PositionInDirectionFromPosition <Dir> PositionOfThis` / `... PositionOfCube Caster`, or `CubeInDirectionFromCube <Dir> Caster` | **Required** | `Visual: <Shape> X Y R G B`, one line per tile |
+| Fixed offset from the cube — `PositionInDirectionFromPosition <Dir> PositionOfThis` / `... PositionOfCube Caster` / **`PositionInDirectionFromThis <Dir>`** (the shorter spelling of the same thing — see note below), or `CubeInDirectionFromCube <Dir> Caster` | **Required** | `Visual: <Shape> X Y R G B`, one line per tile |
 | Anywhere up/down a column — `TopPositionAboveCube`, "first empty space above" | **Required** | `Visual: Target 0 -1 96 96 96` then a bare `Visual: Infinite` |
 | The cube's own tile — a **bare** `PositionOfThis`/`PositionOfCube Caster` used directly as the destination with no `PositionInDirectionFromPosition` wrapper around it, or `OriginalPosition` | **Omit** | Nothing. **Offset `0 0` appears in 0 of ~530 base-game `Visual:` lines** — there is no self-marker. (Don't confuse this with row 1: the wrapper is what makes it a *neighbouring* tile) |
 | A dynamic/unpredictable tile — `ARandomPositionWhich`, above `ARandomEnemy`, a `Victim`'s position | **Omit** | Nothing. Base game omits here too (`Weed`, `Fungus_Heart`, `Growing_Worm`, `Green_Worm`) |
 | An effect granted onto *another* cube via `Enchantment`/`GainAbilityText` | **Omit** | The marker would belong to the host cube, not this one (`Ring_Of_Shields`) |
+
+**Copying a `CUBE:` block? Delete every inherited `Visual:` line and re-derive it from the new block's own ability chain.** A copied block arrives with markers that were correct *for the cube it came from*, which is worse than having none — a wrong marker looks deliberate and is invisible to `.claude/hooks/check-visual-coverage.sh` (that hook only fires on blocks with **zero** `Visual:` lines, on the stated assumption that a block already carrying one "has been thought about"; copy-paste is precisely how that assumption fails). Real case, 2026-08-03: DJ's `Keyboard` was built from `Speaker` and inherited its `Visual: Square 1 0` forward marker, but `KeyboardNoteSpawn` spawns above a *random enemy* — a dynamic destination that the table above says gets no marker at all. Wrong offset *and* shouldn't exist; user-spotted in play after surviving a full placement-preview sweep. **Verification: after copying, run the step-1 grep on the new block and confirm each surviving `Visual:` line maps to a token that is actually in that block (or in a compound it references) — not merely that the line count looks plausible.** The audit-side counterpart is the "wrong / shouldn't exist" direction in `cube-chaos-audit/references/detection-recipes.md`'s placement-preview recipe.
 
 **This is a house-wide default, not a per-cube judgement call.** Measured base-game ground truth, 2026-08-02: of the 23 base-game cubes that create a cube at a fixed offset, **18 carry a `Visual:`** — and the 5 that don't (`Piston_Leg`, `Ring_Of_Shields`, `Sky_Vine_Bulb`, `Boomerang`, `Container`) are base-game oversights of exactly the kind this rule exists to prevent, not a competing convention.
 

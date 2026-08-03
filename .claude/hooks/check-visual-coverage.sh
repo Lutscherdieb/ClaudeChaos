@@ -10,9 +10,22 @@
 #  - Only fires on blocks with NO Visual: line at all. A block that already has one is
 #    assumed to have been thought about; a stale/wrong offset is the periodic audit's job
 #    (cube-chaos-audit's "Placement-preview coverage" recipe), not this hook's.
+#    KNOWN BLIND SPOT, and it is load-bearing: a COPY-PASTED block arrives already carrying
+#    the source cube's markers, so "has a Visual: line" is NOT evidence anyone thought about
+#    it. DJ's Keyboard shipped Speaker's forward marker while spawning above a random enemy
+#    (2026-08-03, user-spotted in play). Nothing here can catch that -- it needs the inverse
+#    scan (has Visual: lines, has NO fixed-offset token, expanding one hop into referenced
+#    COMPOUNDs), which lives in cube-chaos-audit's recipe. Do not "fix" this hook to cover it
+#    without that compound expansion; a naive version flags Bombardement/Cultist/Medic too.
 #  - Only matches a destination anchored to the cube ITSELF (PositionOfThis / PositionOfCube
-#    Caster / CubeInDirectionFromCube ... Caster). Dynamic destinations (above ARandomEnemy,
-#    ARandomPositionWhich, a Victim's position) correctly don't match and are never flagged.
+#    Caster / CubeInDirectionFromCube ... Caster / PositionInDirectionFromThis). Dynamic
+#    destinations (above ARandomEnemy, ARandomPositionWhich, a Victim's position) correctly
+#    don't match and are never flagged.
+#    PositionInDirectionFromThis <Dir> is the SHORTER SPELLING of
+#    "PositionInDirectionFromPosition <Dir> PositionOfThis" and must be matched separately --
+#    it was missing until 2026-08-03, silently exempting every cube that used it (5 real sites
+#    at the time, incl. DJ's own SpeakerNoteSpawn, which only had its Visual: line because a
+#    human put it there). Any future addition to this list must cover BOTH spellings.
 #  - TopPositionAboveCube is NOT matched — it is genuinely ambiguous (own column vs a random
 #    enemy's column), so it's named in the message as a manual check instead of guessed at.
 # This is a nudge, not a gate: it never blocks the stop, only surfaces the question via
@@ -44,6 +57,8 @@ while IFS= read -r f; do
       if (visual == 0 && blob ~ /PositionInDirectionFromPosition (North|South|East|West|Forwards|Backwards) (PositionOfThis|PositionOfCube Caster)/) {
         print name " (line " start ")"
       } else if (visual == 0 && blob ~ /CubeInDirectionFromCube (North|South|East|West|Forwards|Backwards) (Caster|This)/) {
+        print name " (line " start ")"
+      } else if (visual == 0 && blob ~ /PositionInDirectionFromThis (North|South|East|West|Forwards|Backwards)/) {
         print name " (line " start ")"
       }
       name = ""; blob = ""; visual = 0

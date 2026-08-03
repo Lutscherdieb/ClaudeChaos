@@ -3,9 +3,13 @@ BelongsTo: CLASS
 LevelRequirement: 1
 Ability: AfterACubeIsCreated If IsAllyToCaster Victim If IsSmaller ManaCostOfCube Victim DoubleConstant 1
  TargetCube Victim GainAbility Rhythmic 50
-Description: Whenever an allied 0 mana cost cube is created it gains \A Rhythmic 50 End
+Description: Start with a random Instrument cube in your inventory. Whenever an allied 0 mana cost cube is created it gains \A Rhythmic 50 End
 ObtainAction: AddCubeToDeck CubeConstant Microphone
-ObtainAction: AddCubeToInventory CubeConstant Speaker
+ObtainAction: AddCubeToInventory APRandomCubeInLibraryWhich HasCategory Test Instrument
+ReferenceCube: Speaker
+ReferenceCube: Keyboard
+ReferenceCube: Saxophone
+ReferenceCube: King_of_Pop
 End
 
 PERK: Echo

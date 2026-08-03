@@ -231,6 +231,34 @@ two on one cube → 370 distinct cubes, and the log read exactly `-370 Animated 
 every new line was accepted — a typo'd type or a mis-slotted line drops the count without printing any error.
 A missing frame **file** does log (`Failed to find animation file: ...`), but is likewise non-fatal.
 
+### The count is a DECLARATION count — it cannot detect a missing/misnamed frame file
+
+**Confirmed 2026-08-03 by deleting a frame file and relaunching: the count did not move.** DJ's `King_of_Pop`
+was added with `Animation: Spin CLOCK ...`; the log read `-372 Animated Cubes`. Renaming
+`Sprites/Animations/King_of_Pop_Spin.png` out of the way and relaunching produced
+`ERROR: Failed to find animation file: GameData\DJ/Sprites/Animations/King_of_Pop_Spin.png` **and still read
+`-372 Animated Cubes`.** So the two checks are strictly complementary and you need both:
+
+| Failure | Caught by |
+|---|---|
+| `Animation:` line rejected (typo'd TYPE, bad threshold count, wrong block) | the count dropping |
+| frame PNG missing / misnamed / wrong folder | the `Failed to find animation file:` ERROR line |
+
+### Verifying ONE new cube's animation when the aggregate count won't reconcile
+
+**Procedure: temporarily rename the frame PNG, relaunch, and confirm the log names the exact path you expect.**
+The engine builds that path from `C.Name + "_" + A.Name + ".png"` at lookup time, so the error appearing *at all*
+— with your cube's name and your animation's name in it — proves the `Animation:` line parsed AND bound to the
+right cube. Restore the file and relaunch. This is the fallback whenever a static recount of `Animation:` lines
+disagrees with the log's total, which it will:
+
+- a package listed in `Loading_Order.txt` may not live under `GameData/` at all (a Steam Workshop mod loads from
+  `steamapps/workshop/content/...`), so a `GameData`-only recount undershoots;
+- a naive block-terminator of `line.strip() == "End"` closes a `CUBE:` block early on any indented `End`; the
+  parser's own terminator is `^End$` at column 0.
+
+Both bit a 2026-08-03 attempt to reconcile `-372` and cost more time than the rename test, which took one launch.
+
 ## Which type to pick, knowing how each one previews in a README (added 2026-08-01)
 
 `cube-chaos-sprite-art/scripts/render_preview_cards.py` generates a companion `.gif` for a new animated cube's own

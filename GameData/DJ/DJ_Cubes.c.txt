@@ -45,6 +45,7 @@ End
 CUBE: Speaker 50 15 15
 IDENT 3 10 0 30 40
 TYPE Factory
+TYPE Instrument
 TYPE Starter
 Ability: SpeakerNoteSpawn
 Animation: Beat TRIGGER 0 4 4 10 14 20
@@ -70,9 +71,10 @@ End
 CUBE: Keyboard 50 12 12
 IDENT 2 5 0 25 15
 TYPE Factory
+TYPE Instrument
+TYPE Starter
 Ability: KeyboardNoteSpawn
 Ability: Unique
-Visual: Square 1 0 96 96 96
 AiPlacementRule: And AiStacking AiBackline
 End
 
@@ -109,4 +111,45 @@ Visual: Target 0 1 96 96 96
 Visual: Target 1 0 96 96 96
 Visual: Target -1 0 96 96 96
 AiPlacementRule: And AiStacking AiBackline
+End
+
+CUBE: King_of_Pop 60 18 18
+IDENT 3 30 10 35 10
+TYPE Attacker
+TYPE Factory
+TYPE Instrument
+TYPE Starter
+Ability: ChargeEveryX 180
+Ability: FleeEveryX 360
+Ability: EveryXMeleeY 90 4
+Ability: EveryXSeconds DoubleConstant 12 Both
+ CreateCubeOnPosition CopyWithAction CubeConstant Note PlaySound Coin PositionInDirectionFromThis Forwards
+ CreateCubeOnPosition CubeConstant Note PositionInDirectionFromThis North
+Text: Every 12 seconds create a Note in front of this and a Note above this End
+Animation: Spin CLOCK 0 5 0 0.82 0.05 0.05 0.04
+Ability: Unique
+Visual: Square 1 0 96 96 96
+Visual: Square 0 -1 96 96 96
+AiPlacementRule: And And AiStacking AiEmptyInfront AiEmptyNorth
+End
+
+CUBE: Saxophone 50 12 12
+IDENT 2 5 0 25 25
+TYPE Factory
+TYPE Instrument
+TYPE Starter
+Ability: EveryXSeconds DoubleConstant 6 Both
+ If And IsPositionEmpty PositionInDirectionFromPosition North PositionInDirectionFromThis Forwards X%Chance DoubleConstant 30
+  CreateCubeOnPosition CopyWithAction CubeConstant Note PlaySound Coin PositionInDirectionFromPosition North PositionInDirectionFromThis Forwards
+ Both
+  If And IsPositionEmpty PositionInDirectionFromThis Forwards X%Chance DoubleConstant 30
+   CreateCubeOnPosition CopyWithAction CubeConstant Note PlaySound Coin PositionInDirectionFromThis Forwards
+  If And IsPositionEmpty PositionInDirectionFromPosition South PositionInDirectionFromThis Forwards X%Chance DoubleConstant 30
+   CreateCubeOnPosition CopyWithAction CubeConstant Note PlaySound Coin PositionInDirectionFromPosition South PositionInDirectionFromThis Forwards
+Text: Every 6 seconds, for each empty space diagonally above, in front of, and diagonally below this, 30% chance to create a Note there End
+Ability: Unique
+Visual: Square 1 -1 96 96 96
+Visual: Square 1 0 96 96 96
+Visual: Square 1 1 96 96 96
+AiPlacementRule: And And AiStacking AiBackline AiEmptyInfront
 End

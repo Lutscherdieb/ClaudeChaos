@@ -138,6 +138,8 @@ def pretty(name):
 # documented in its own Text: as "Every second").
 ANIMATION_CAPTIONS = {
     ("DJ", "Speaker", "Beat"): "On Cube Creation",
+    ("DJ", "King_of_Pop", "Spin"): "Note Spawn (every 12s)",
+    ("Crusader", "Cardinal", "Lift"): "On Picking Up an Ally",
     ("General", "Rocket_Silo", "Launch"): "Rocket Launch (every 45s)",
     ("Unholy", "Imp", "Acid"): "Acidic Damage (every 2s)",
     ("Unholy", "Plague_Imp", "Acid"): "Acidic Damage (every 2s)",

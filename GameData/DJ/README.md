@@ -23,6 +23,14 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 <img src="Preview/DJ_Cubes_Bass_Dragon_Egg.png" width="700" alt="Bass Dragon Egg cube card">
 <img src="Preview/DJ_Cubes_Baby_Bass_Dragon.png" width="700" alt="Baby Bass Dragon cube card">
 <img src="Preview/DJ_Cubes_Bass_Dragon.png" width="700" alt="Bass Dragon cube card">
+<img src="Preview/DJ_Cubes_King_of_Pop.png" width="700" alt="King of Pop cube card">
+<table>
+<tr>
+<td valign="middle">Note Spawn (every 12s)</td>
+<td valign="middle"><img src="Preview/DJ_Cubes_King_of_Pop_Spin.gif" width="70" alt="King of Pop Spin animation"></td>
+</tr>
+</table>
+<img src="Preview/DJ_Cubes_Saxophone.png" width="700" alt="Saxophone cube card">
 
 ### Perks
 

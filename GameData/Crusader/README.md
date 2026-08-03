@@ -27,7 +27,7 @@ Each card below is rendered to match the game's own in-game tooltip style. Full-
 <img src="Preview/Crusader_Cubes_Cardinal.png" width="700" alt="Cardinal cube card">
 <table>
 <tr>
-<td valign="middle">On Trigger</td>
+<td valign="middle">On Picking Up an Ally</td>
 <td valign="middle"><img src="Preview/Crusader_Cubes_Cardinal_Lift.gif" width="70" alt="Cardinal Lift animation"></td>
 </tr>
 </table>

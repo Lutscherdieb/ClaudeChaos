@@ -162,7 +162,22 @@ When writing the `Text:` for a custom reversal ability that (unlike `RoamingX`) 
 
 ## Reverse-movement patrol: swapping `ChargeEveryX` for `FleeEveryX`
 
-`FleeEveryX TIME` (built-in, `Base_Core/1Compounds.c.txt`) is the real "move backwards every X" ability — the mirror image of `ChargeEveryX`. For a cube that should patrol back and forth (advance until some condition, then retreat, then re-advance), swap the two abilities in and out rather than granting both at once (having both active simultaneously fires opposing per-tick moves and the cube visually jitters in place instead of travelling).
+`FleeEveryX TIME` (built-in, `Base_Core/1Compounds.c.txt`) is the real "move backwards every X" ability — the mirror image of `ChargeEveryX`. For a cube that should **patrol back and forth** (advance until some condition, then retreat, then re-advance), swap the two abilities in and out, so the cube is only ever in one state at a time. For a cube that should instead **drift steadily with a rhythmic hitch**, hold both at once at different periods — see the subsection immediately below before assuming that's forbidden.
+
+### Holding BOTH at once: legal, and it's a net-drift crawl — not the jitter this section used to claim
+
+An earlier version of this line said holding both "fires opposing per-tick moves and the cube visually jitters in place instead of travelling." That's only true when the two periods are **equal**. Both compounds are the same one-liner over an independent timer (`Base_Core/1Compounds.c.txt:702-713`):
+```
+ChargeEveryX   EveryTick EveryXTimes GenericTime MoveInDirection Forwards
+FleeEveryX     EveryTick EveryXTimes GenericTime MoveInDirection Backwards
+```
+No shared state, no mutual exclusion — so **net displacement per unit time is just the difference of the two rates**. `ChargeEveryX 180` + `FleeEveryX 360` = 2 forward and 1 back every 6 seconds = a net +1 tile crawl with a visible backslide, which is a real and useful movement shape (it also keeps the cube's own forward tile empty a good fraction of the time, which matters for anything that spawns there). Equal periods are the degenerate case that actually jitters.
+
+**Zero base-game cubes hold both simultaneously** (checked across `Main/`, `Characters/**`, `Base_Core/`), so this is unprecedented rather than proven — first use is DJ's `King_of_Pop` (2026-08-03, "moonwalking" — backwards-facing sprite, net-forward drift). **PARSE-confirmed with a clean log; the in-play movement feel is UNVERIFIED.** Both compounds carry their own `Visual: Arrow` line, so a cube holding both gets both direction previews for free with no extra DSL.
+
+Reach for the swap pattern below when the cube must be in exactly one state at a time (a real patrol that turns around); reach for holding both when you want a steady drift with a rhythmic hitch.
+
+**One thing holding both costs you: `HasAbilityWithName Caster ChargeEveryX` stops working as a facing flag.** The swap pattern below (and the `_West` sprite-variant trick referenced in the `RoamingX` section above) both key a cube's current facing off which of the two abilities it currently holds — a both-holder holds each of them permanently, so that test is constant-true and useless. A both-holder that needs a directional sprite must get its facing from something else; DJ's `King_of_Pop` sidesteps this entirely by having a fixed backwards-facing sprite plus an `Animation:` rather than a mirrored variant.
 
 **`IfElse BOOLEAN Action Action` is a real, self-chaining 2-branch conditional** (confirmed real precedent: `Characters/2TokenCubes.c.txt`'s `Robot_Remote` — `IfElse HasAbilityWithName Target ChargeEveryX (swap-to-Flee Action) (If HasAbilityWithName Target FleeEveryX (swap-to-Charge Action))`) — reach for it instead of two separate `If`-only `Ability:` blocks when a single trigger needs to pick exactly one of two mutually-exclusive branches, since it collapses what would otherwise be two guarded, near-duplicate `Ability:`/`Text:` pairs into one:
 ```
@@ -182,6 +197,8 @@ BeforeThisMoves If CubeExists CubeInDirectionFromCube EventDirection Caster
 `EventDirection` is the direction of the attempted move, bound within `BeforeThisMoves`/`AfterThisMoves`; `CubeInDirectionFromCube DIRECTION CUBE` reads whatever's immediately touching in that direction (only the adjacent tile — for "anywhere further out," see `TheFirstCubeInDirectionFromPositionWhich` above). `Caster` refers to the cube itself inside a `CUBE:`'s own self-trigger, same as `This`. This check fires **before** the move resolves, whether or not the destination is actually occupied — which is exactly what this blocked-detection idiom wants, but is a hazard for any `Before*` chain that also acts on a *different* cube. See "A `Before*` trigger fires on the ATTEMPT, not the outcome" below before writing one.
 
 **By itself, this check misses being blocked by the edge of the map** — no cube exists off-board either, same as an empty movable tile, so `CubeInDirectionFromCube` alone can't distinguish "empty tile, will move fine" from "off the board, can't move at all." Caught the hard way: a first version of `Bomber`'s reversal used only this check and reversed correctly when blocked by another cube while charging forward, but never reversed back from fleeing, since fleeing heads toward the player's own board edge where nothing was there to trigger it — the cube just silently got stuck trying to flee forever. The fix is `PositionExists POSITION` (confirmed real, used by the base game's own `Star_Gift`/`Sky_Vine` cubes for exactly "is this the edge of the map" checks, e.g. `Main/2TokenCubes.c.txt`'s `Star_Gift`: `If Not PositionExists PositionInDirectionFromPosition North PositionOfThis Both Die ...`) — `Or` it alongside the `CubeInDirectionFromCube` check to catch both kinds of blocking.
+
+> **Shorter equivalent, confirmed 2026-08-03:** that whole two-part `Or` is exactly `Not IsPositionEmpty <dest>` — see "`IsPositionEmpty` already implies `PositionExists`" below for the decompile. `Bomber` still ships the long form; it works and was left alone. Write new blocked-checks the short way.
 
 **Confirmed via real in-game testing (both edges of the map): `EventDirection` does not reliably report `Backwards` for a `FleeEveryX`-driven move.** Wiring the combined check above through a shared `EventDirection` (one `Ability:` reacting to whichever direction the trigger reports) fixed the charging-direction/forward-edge case, but the fleeing-direction/backward-edge case silently never fired — confirmed fixed by switching to the literal `Backwards` constant instead of `EventDirection` (see below), with no other change, and user-confirmed working on both sides of the map afterward. Treat this as a real, load-bearing gap for any cube reacting to `BeforeThisMoves`/`EventDirection` on a cube that also holds `FleeEveryX` — don't rely on `EventDirection` alone once `FleeEveryX` is in play, even though it demonstrably works fine for the `Forwards`/`ChargeEveryX` case.
 
@@ -214,13 +231,37 @@ The engine gives you three distinct triggers per event, and the base game's own 
 
 **`After*` doesn't lose access to the pre-move tile — that's what `OriginalPosition` is for.** Real base-game usage: `Hat` (`Extra_Mechanics/1Compounds.c.txt:537`) implements "follow the cube below me" entirely from the *follower's* side with `AfterACubeMoves If IsSameCube Caster CubeOfPosition PositionInDirectionFromPosition North OriginalPosition MoveInDirection EventDirection`; `Growing_Worm`/`Green_Worm` (`Main/3GeneralCubes.c.txt:2072`, `:5930`) both do `AfterThisMoves ... CreateCubeOnPosition ... OriginalPosition` to leave a trail segment behind. So "act on where I *was*" needs no `Before*` at all.
 
-**If you genuinely need `Before*`, the guard is the destination check, and it needs `PositionExists` as well as `IsPositionEmpty`:**
+**If you genuinely need `Before*`, the guard is the destination check — and `IsPositionEmpty` alone is the whole guard. Do NOT pair it with `PositionExists`:**
 ```
-Ability: BeforeThisMoves If And PositionExists PositionInDirectionFromPosition EventDirection PositionOfThis
-   IsPositionEmpty PositionInDirectionFromPosition EventDirection PositionOfThis
+Ability: BeforeThisMoves If IsPositionEmpty PositionInDirectionFromPosition EventDirection PositionOfThis
  <effect on the other cube>
 ```
-An off-board tile is not a tile the cube can move into, and whether `IsPositionEmpty` reports true or false for a nonexistent position is unverified — so test existence separately (same reason the `Bomber` reversal above needs `PositionExists`; base-game precedent in `Take_Off`, `General/General_Cubes.c.txt`).
+
+### `IsPositionEmpty` already implies `PositionExists` — settled by decompile, 2026-08-03
+
+An earlier version of this section told you to write `And PositionExists <P> IsPositionEmpty <P>`, on the grounds that "whether `IsPositionEmpty` reports true or false for a nonexistent position is unverified." It is now verified, and the `And` is dead weight. Decompiled `dw/game/dd/Code/BOOLEAN/BOOLEANIsPositionEmpty.class` and `BOOLEANPositionExists.class` — the two methods are three lines apart in behaviour:
+
+```java
+// BOOLEANPositionExists.Value(E)
+GridPoint PI = this.P.Value(E);
+return PI != null;
+
+// BOOLEANIsPositionEmpty.Value(E)
+GridPoint PI = this.P.Value(E);
+return PI != null && PI.OnThis == null;
+```
+
+So `IsPositionEmpty` **short-circuits on the null check first** and returns `false` for an off-board tile. Concretely:
+
+| You want | Write | NOT |
+|---|---|---|
+| "a real tile, and nothing standing on it" | `IsPositionEmpty <P>` | `And PositionExists <P> IsPositionEmpty <P>` |
+| "blocked — by a cube *or* by the map edge" | `Not IsPositionEmpty <P>` | `Or (CubeExists CubeOfPosition <P>) (Not PositionExists <P>)` |
+| "off the map specifically" (edge, regardless of occupancy) | `Not PositionExists <P>` | — `PositionExists` is still the only tool for this |
+
+**`PositionExists` remains genuinely necessary only for the third row** — "is this the map edge," independent of what's standing there (the base game's own `Star_Gift`/`Sky_Vine` usage). It is redundant everywhere it appears next to an `IsPositionEmpty` on the same position.
+
+**Known live redundancy, not yet refactored:** the `Bomber` reversal above (`General/General_Cubes.c.txt`) spells its blocked-check as the two-part `Or CubeExists ... Not PositionExists ...` from row 2, which the decompile now shows is exactly `Not IsPositionEmpty <dest>`. It works correctly and is left alone deliberately — noted here so the next person to read it doesn't copy the long form as if it were required. Same for `Take_Off` in the same file.
 
 **Verification: for every `Before*` ability, ask "does this touch a cube other than `Caster`?" If yes, the block must contain either a destination/precondition guard or a good reason it's outcome-independent.** A missing guard produces no warning and no log line — only a wrong board state.
 
