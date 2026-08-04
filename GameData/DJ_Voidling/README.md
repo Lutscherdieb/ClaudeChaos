@@ -1,8 +1,12 @@
 # DJ_Voidling — a Cube Chaos crossover mod
 
+<img src="Image.png" width="120" align="left" alt="DJ_Voidling mod icon">
+
 A small bridge mod that adds the `DJ-Voidling` synergy perk. Pick both the DJ class and the Voidling species in the same run, and every allied 0 mana cost cube you create becomes Void Touched, immune to damage from your own True Void.
 
 **Requires both the `DJ` and `Voidling` mods to also be installed and enabled** — this mod adds nothing on its own, it only wires the two together. Neither `DJ` nor `Voidling` needs this mod.
+
+<br clear="left">
 
 <!-- PREVIEW:START -->
 ## Preview — DJ_Voidling mod content

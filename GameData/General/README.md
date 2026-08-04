@@ -1,6 +1,10 @@
 # General — a Cube Chaos Class mod
 
+<img src="Image.png" width="120" align="left" alt="General mod icon">
+
 A military-themed Class: Strength grows from the sacrifices and reinforcements of the front line. Bomb the enemy from above, shell them from a distance, and drop paratroopers behind their lines.
+
+<br clear="left">
 
 <!-- PREVIEW:START -->
 ## Preview — General mod content

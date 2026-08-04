@@ -4,16 +4,16 @@ A set of Claude Code skills that build [Cube Chaos](https://store.steampowered.c
 
 ## The mods
 
-| Mod | What it is |
-|---|---|
-| [`GameData/DJ/`](GameData/DJ/README.md) | A full Class: a cube family, a stacking perk line, curses, a consumable, and a synergy portrait for every base-game species. |
-| [`GameData/General/`](GameData/General/README.md) | A military-themed Class: Strength grows from the sacrifices and reinforcements of the front line. |
-| [`GameData/Unholy/`](GameData/Unholy/README.md) | A winged-demon Species: any allied cube that would be created with 0 hp is instead rescued into a teleporting bomb. |
-| [`GameData/Voidling/`](GameData/Voidling/README.md) | A Species built around one neutral cube at the center of the board: True Void. |
-| [`GameData/Broker/`](GameData/Broker/README.md) | A gold-and-gambling Class: cube upgrades never run out of uses, and gold income doubles as mana income. |
-| [`GameData/DJ_Voidling/`](GameData/DJ_Voidling/README.md) | A small crossover mod bridging DJ + Voidling — requires both to be installed. |
-| [`GameData/Great_Wall/`](GameData/Great_Wall/README.md) | A battlefields mod (Terrain perks) — starts with one: a barren field split by a great wall. |
-| [`GameData/Crusader/`](GameData/Crusader/README.md) | A holy-war Class: half the battles on every map become boss battles, and every boss you beat leaves your whole inventory a little harder to kill. |
+| | Mod | What it is |
+|---|---|---|
+| <img src="GameData/DJ/Image.png" width="64" alt="DJ mod icon"> | [`GameData/DJ/`](GameData/DJ/README.md) | A full Class: a cube family, a stacking perk line, curses, a consumable, and a synergy portrait for every base-game species. |
+| <img src="GameData/General/Image.png" width="64" alt="General mod icon"> | [`GameData/General/`](GameData/General/README.md) | A military-themed Class: Strength grows from the sacrifices and reinforcements of the front line. |
+| <img src="GameData/Unholy/Image.png" width="64" alt="Unholy mod icon"> | [`GameData/Unholy/`](GameData/Unholy/README.md) | A winged-demon Species: any allied cube that would be created with 0 hp is instead rescued into a teleporting bomb. |
+| <img src="GameData/Voidling/Image.png" width="64" alt="Voidling mod icon"> | [`GameData/Voidling/`](GameData/Voidling/README.md) | A Species built around one neutral cube at the center of the board: True Void. |
+| <img src="GameData/Broker/Image.png" width="64" alt="Broker mod icon"> | [`GameData/Broker/`](GameData/Broker/README.md) | A gold-and-gambling Class: cube upgrades never run out of uses, and gold income doubles as mana income. |
+| <img src="GameData/DJ_Voidling/Image.png" width="64" alt="DJ_Voidling mod icon"> | [`GameData/DJ_Voidling/`](GameData/DJ_Voidling/README.md) | A small crossover mod bridging DJ + Voidling — requires both to be installed. |
+| <img src="GameData/Great_Wall/Image.png" width="64" alt="Great_Wall mod icon"> | [`GameData/Great_Wall/`](GameData/Great_Wall/README.md) | A battlefields mod (Terrain perks) — starts with one: a barren field split by a great wall. |
+| <img src="GameData/Crusader/Image.png" width="64" alt="Crusader mod icon"> | [`GameData/Crusader/`](GameData/Crusader/README.md) | A holy-war Class: half the battles on every map become boss battles, and every boss you beat leaves your whole inventory a little harder to kill. |
 
 ### A couple of things worth knowing
 
@@ -24,6 +24,12 @@ A set of Claude Code skills that build [Cube Chaos](https://store.steampowered.c
   ```
 
   (run from this repo's root — renders every mod registered in its own `render_mod(...)` calls, one PNG per cube/perk/curse/etc. See `cube-chaos-sprite-art`'s "Rendering README preview cards..." section for the details.)
+
+- **Those icons above are the mods' actual Steam Workshop thumbnails**, and they're generated too — each one is that mod's own namesake perk sprite, blown up 20× with no smoothing. Nothing to hand-crop, and nothing to go stale when a sprite gets touched up:
+
+  ```
+  python3 .claude/skills/cube-chaos-mod-setup/scripts/render_workshop_image.py
+  ```
 
 - **A Terrain perk's battlefield layout can be rendered as a screenshot straight from its map data — no game launch required.** `cube-chaos-scenario-scripting/scripts/render_terrain_screenshot.py` reproduces the real in-game look (chroma-keyed backgrounds, HP-based sprite swaps, and more) so a wrong tile coordinate shows up in seconds, not after a full test-launch.
 

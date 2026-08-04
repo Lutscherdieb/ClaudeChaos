@@ -1,6 +1,10 @@
 # Unholy — a Cube Chaos Species mod
 
+<img src="Image.png" width="120" align="left" alt="Unholy mod icon">
+
 A winged-demon Species built around death never quite sticking. Any allied cube that would be created with 0 hp gets a second life instead — next time it dies, it comes back once at full hp in the same spot. The cult keeps feeding off death from there too: a dying ally sometimes leaves behind a Damned Soul for your hand, and a freshly placed ally can mutate into a Two-Headed Demon on the spot.
+
+<br clear="left">
 
 <!-- PREVIEW:START -->
 ## Preview — Unholy mod content

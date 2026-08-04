@@ -1,6 +1,10 @@
 # DJ — a Cube Chaos Class mod
 
+<img src="Image.png" width="120" align="left" alt="DJ mod icon">
+
 A full Class built with the skills in this repo's `.claude/` folder: a cube family, a stacking perk line, curses, a consumable, and a synergy portrait for every base-game species.
+
+<br clear="left">
 
 <!-- PREVIEW:START -->
 ## Preview — DJ mod content

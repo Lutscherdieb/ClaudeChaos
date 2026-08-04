@@ -1,6 +1,10 @@
 # Broker — a Cube Chaos Class mod
 
+<img src="Image.png" width="120" align="left" alt="Broker mod icon">
+
 A gold-and-real-estate Class: cube upgrades you buy never run out of uses, every map opens with a Forge offering only Cube Upgrades, and you can buy enemy units outright — or pave the battlefield with construction sites that grow their own skyline.
+
+<br clear="left">
 
 <!-- PREVIEW:START -->
 ## Preview — Broker mod content

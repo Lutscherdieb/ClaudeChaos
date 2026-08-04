@@ -1,6 +1,10 @@
 # Voidling — a Cube Chaos Species mod
 
+<img src="Image.png" width="120" align="left" alt="Voidling mod icon">
+
 A Species built around one neutral cube, True Void, that's unmovable once you place it. It can't be destroyed and your leader specifically can't be hurt by it, and any excess mana damage — yours or an enemy's — gets negated and banked into your mana pool instead of landing. Feed it enough mana overflow (or more True Voids) and its Void Reach grows, periodically zapping everything around it for area damage.
+
+<br clear="left">
 
 <!-- PREVIEW:START -->
 ## Preview — Voidling mod content

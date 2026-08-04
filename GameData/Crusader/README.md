@@ -1,5 +1,7 @@
 # Crusader — a Cube Chaos Class mod
 
+<img src="Image.png" width="120" align="left" alt="Crusader mod icon">
+
 A holy-war Class built on one idea: you don't get easy fights.
 
 At the start of every map, each battle node flips a coin — about half of them become boss battles instead. A cursed battle that flips keeps its curse, so cursed boss fights are a real thing that will happen to you. Difficulty climbs faster than usual, and losing a boss means fighting it again.
@@ -9,6 +11,8 @@ What you get back is permanence. Every boss you beat gives **every cube in your 
 The cubes are a siege army. A slow armoured knight who hits hard and refuses to die. A Ballista whose bolts split off a weaker copy each time they kill something. A Trebuchet that lobs three rocks at once on three different arcs. And a Cardinal — no attack at all, just outstretched hands — who carries the cube above him wherever he walks, scoops up any ally he bumps into, and turns wasted healing into damage on an enemy leader. Park a Holy Cross on his shoulders and he becomes a walking chapel that blesses everything charging alongside him.
 
 The class also carries **Home Turf Advantage**, which used to be its own little mod. In a boss battle it flips the terrain's fortified side onto *your* half of the field. Since almost every battle is a boss battle here, it's on almost all the time.
+
+<br clear="left">
 
 <!-- PREVIEW:START -->
 ## Preview — Crusader mod content
